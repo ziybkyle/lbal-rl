@@ -1,0 +1,6191 @@
+{
+  "schema": 1,
+  "source_workbook": "data2.xlsx",
+  "workbook_sha256": "6ab9753b4ae9fa0cc149b0f7da137b1fe37d3ff582c085cd034ae4762b5f4fb7",
+  "source_code": "run.py",
+  "source_code_sha256": "b496908a11088d579f132aca00358a5e27a5974daeea4652471804375a79c692",
+  "names": {
+    "amethyst": {
+      "display": "紫水晶",
+      "category": "符号"
+    },
+    "anchor": {
+      "display": "锚",
+      "category": "符号"
+    },
+    "apple": {
+      "display": "苹果",
+      "category": "符号"
+    },
+    "banana": {
+      "display": "香蕉",
+      "category": "符号"
+    },
+    "banana_peel": {
+      "display": "香蕉皮",
+      "category": "符号"
+    },
+    "bar_of_soap": {
+      "display": "肥皂条",
+      "category": "符号"
+    },
+    "bartender": {
+      "display": "酒保",
+      "category": "符号"
+    },
+    "bear": {
+      "display": "熊",
+      "category": "符号"
+    },
+    "beastmaster": {
+      "display": "驯兽师",
+      "category": "符号"
+    },
+    "bee": {
+      "display": "蜜蜂",
+      "category": "符号"
+    },
+    "beehive": {
+      "display": "蜂巢",
+      "category": "符号"
+    },
+    "beer": {
+      "display": "啤酒",
+      "category": "符号"
+    },
+    "big_ore": {
+      "display": "巨矿",
+      "category": "符号"
+    },
+    "big_urn": {
+      "display": "大骨灰瓮",
+      "category": "符号"
+    },
+    "billionaire": {
+      "display": "亿万富翁",
+      "category": "符号"
+    },
+    "bounty_hunter": {
+      "display": "赏金猎人",
+      "category": "符号"
+    },
+    "bronze_arrow": {
+      "display": "铜箭",
+      "category": "符号"
+    },
+    "bubble": {
+      "display": "泡泡",
+      "category": "符号"
+    },
+    "buffing_powder": {
+      "display": "增益扭蛋",
+      "category": "符号"
+    },
+    "candy": {
+      "display": "糖果",
+      "category": "符号"
+    },
+    "card_shark": {
+      "display": "纸牌高手",
+      "category": "符号"
+    },
+    "cat": {
+      "display": "猫咪",
+      "category": "符号"
+    },
+    "cheese": {
+      "display": "奶酪",
+      "category": "符号"
+    },
+    "chef": {
+      "display": "厨师",
+      "category": "符号"
+    },
+    "chemical_seven": {
+      "display": "七号化学物",
+      "category": "符号"
+    },
+    "cherry": {
+      "display": "樱桃",
+      "category": "符号"
+    },
+    "chick": {
+      "display": "小鸡",
+      "category": "符号"
+    },
+    "chicken": {
+      "display": "大鸡",
+      "category": "符号"
+    },
+    "clubs": {
+      "display": "梅花",
+      "category": "符号"
+    },
+    "coal": {
+      "display": "煤炭",
+      "category": "符号"
+    },
+    "coconut": {
+      "display": "椰子",
+      "category": "符号"
+    },
+    "coconut_half": {
+      "display": "半个椰子",
+      "category": "符号"
+    },
+    "coin": {
+      "display": "硬币",
+      "category": "符号"
+    },
+    "comedian": {
+      "display": "喜剧演员",
+      "category": "符号"
+    },
+    "cow": {
+      "display": "牛",
+      "category": "符号"
+    },
+    "crab": {
+      "display": "螃蟹",
+      "category": "符号"
+    },
+    "crow": {
+      "display": "乌鸦",
+      "category": "符号"
+    },
+    "cultist": {
+      "display": "异教徒",
+      "category": "符号"
+    },
+    "dame": {
+      "display": "贵妇",
+      "category": "符号"
+    },
+    "diamond": {
+      "display": "钻石",
+      "category": "符号"
+    },
+    "diamonds": {
+      "display": "方块",
+      "category": "符号"
+    },
+    "diver": {
+      "display": "潜水员",
+      "category": "符号"
+    },
+    "dog": {
+      "display": "狗狗",
+      "category": "符号"
+    },
+    "dove": {
+      "display": "鸽子",
+      "category": "符号"
+    },
+    "dud": {
+      "display": "红叉",
+      "category": "符号"
+    },
+    "dwarf": {
+      "display": "矮人",
+      "category": "符号"
+    },
+    "egg": {
+      "display": "蛋",
+      "category": "符号"
+    },
+    "eldritch_beast": {
+      "display": "怪异生物",
+      "category": "符号"
+    },
+    "emerald": {
+      "display": "绿宝石",
+      "category": "符号"
+    },
+    "empty": {
+      "display": "空位",
+      "category": "符号"
+    },
+    "essence_capsule": {
+      "display": "精华扭蛋",
+      "category": "符号"
+    },
+    "farmer": {
+      "display": "农夫",
+      "category": "符号"
+    },
+    "d5": {
+      "display": "五面骰",
+      "category": "符号"
+    },
+    "flower": {
+      "display": "花",
+      "category": "符号"
+    },
+    "frozen_fossil": {
+      "display": "冰冻化石",
+      "category": "符号"
+    },
+    "gambler": {
+      "display": "赌徒",
+      "category": "符号"
+    },
+    "general_zaroff": {
+      "display": "扎罗夫将军",
+      "category": "符号"
+    },
+    "archaeologist": {
+      "display": "地质学家",
+      "category": "符号"
+    },
+    "golden_arrow": {
+      "display": "金箭",
+      "category": "符号"
+    },
+    "golden_egg": {
+      "display": "金蛋",
+      "category": "符号"
+    },
+    "goldfish": {
+      "display": "金鱼",
+      "category": "符号"
+    },
+    "golem": {
+      "display": "石巨人",
+      "category": "符号"
+    },
+    "goose": {
+      "display": "鹅",
+      "category": "符号"
+    },
+    "hearts": {
+      "display": "红心",
+      "category": "符号"
+    },
+    "hex_of_destruction": {
+      "display": "破坏魔法",
+      "category": "符号"
+    },
+    "hex_of_draining": {
+      "display": "抽吸魔法",
+      "category": "符号"
+    },
+    "hex_of_emptiness": {
+      "display": "空虚魔法",
+      "category": "符号"
+    },
+    "hex_of_hoarding": {
+      "display": "囤积魔法",
+      "category": "符号"
+    },
+    "hex_of_midas": {
+      "display": "迈达斯魔法",
+      "category": "符号"
+    },
+    "hex_of_tedium": {
+      "display": "沉闷魔法",
+      "category": "符号"
+    },
+    "hex_of_thievery": {
+      "display": "偷窃魔法",
+      "category": "符号"
+    },
+    "highlander": {
+      "display": "高地剑",
+      "category": "符号"
+    },
+    "honey": {
+      "display": "蜂蜜",
+      "category": "符号"
+    },
+    "hooligan": {
+      "display": "流氓",
+      "category": "符号"
+    },
+    "hustler": {
+      "display": "诈骗扭蛋",
+      "category": "符号"
+    },
+    "item_capsule": {
+      "display": "物品扭蛋",
+      "category": "符号"
+    },
+    "jellyfish": {
+      "display": "水母",
+      "category": "符号"
+    },
+    "joker": {
+      "display": "小丑",
+      "category": "符号"
+    },
+    "key": {
+      "display": "钥匙",
+      "category": "符号"
+    },
+    "king_midas": {
+      "display": "迈达斯国王",
+      "category": "符号"
+    },
+    "light_bulb": {
+      "display": "电灯泡",
+      "category": "符号"
+    },
+    "lockbox": {
+      "display": "带锁箱",
+      "category": "符号"
+    },
+    "rarity_capsule": {
+      "display": "幸运扭蛋",
+      "category": "符号"
+    },
+    "magic_key": {
+      "display": "魔法钥匙",
+      "category": "符号"
+    },
+    "magpie": {
+      "display": "喜鹊",
+      "category": "符号"
+    },
+    "martini": {
+      "display": "马提尼酒",
+      "category": "符号"
+    },
+    "matryoshka_doll_1": {
+      "display": "俄罗斯套娃",
+      "category": "符号"
+    },
+    "matryoshka_doll_2": {
+      "display": "俄罗斯套娃2",
+      "category": "符号"
+    },
+    "matryoshka_doll_3": {
+      "display": "俄罗斯套娃3",
+      "category": "符号"
+    },
+    "matryoshka_doll_4": {
+      "display": "俄罗斯套娃4",
+      "category": "符号"
+    },
+    "matryoshka_doll_5": {
+      "display": "俄罗斯套娃5",
+      "category": "符号"
+    },
+    "mega_chest": {
+      "display": "巨大宝箱",
+      "category": "符号"
+    },
+    "midas_bomb": {
+      "display": "迈达斯炸弹",
+      "category": "符号"
+    },
+    "milk": {
+      "display": "牛奶",
+      "category": "符号"
+    },
+    "mine": {
+      "display": "矿井",
+      "category": "符号"
+    },
+    "miner": {
+      "display": "矿工",
+      "category": "符号"
+    },
+    "missing": {
+      "display": "符号缺失",
+      "category": "符号"
+    },
+    "monkey": {
+      "display": "猴子",
+      "category": "符号"
+    },
+    "moon": {
+      "display": "月亮",
+      "category": "符号"
+    },
+    "mouse": {
+      "display": "老鼠",
+      "category": "符号"
+    },
+    "mrs_fruit": {
+      "display": "水果女士",
+      "category": "符号"
+    },
+    "ninja": {
+      "display": "忍者",
+      "category": "符号"
+    },
+    "omelette": {
+      "display": "煎蛋卷",
+      "category": "符号"
+    },
+    "orange": {
+      "display": "橙子",
+      "category": "符号"
+    },
+    "ore": {
+      "display": "矿石",
+      "category": "符号"
+    },
+    "owl": {
+      "display": "猫头鹰",
+      "category": "符号"
+    },
+    "oyster": {
+      "display": "牡蛎",
+      "category": "符号"
+    },
+    "peach": {
+      "display": "桃子",
+      "category": "符号"
+    },
+    "pear": {
+      "display": "梨",
+      "category": "符号"
+    },
+    "pearl": {
+      "display": "珍珠",
+      "category": "符号"
+    },
+    "pirate": {
+      "display": "海盗",
+      "category": "符号"
+    },
+    "pinata": {
+      "display": "彩罐",
+      "category": "符号"
+    },
+    "present": {
+      "display": "礼物",
+      "category": "符号"
+    },
+    "pufferfish": {
+      "display": "河豚",
+      "category": "符号"
+    },
+    "rabbit": {
+      "display": "兔子",
+      "category": "符号"
+    },
+    "rabbit_fluff": {
+      "display": "兔毛",
+      "category": "符号"
+    },
+    "rain": {
+      "display": "雨",
+      "category": "符号"
+    },
+    "removal_capsule": {
+      "display": "移除扭蛋",
+      "category": "符号"
+    },
+    "reroll_capsule": {
+      "display": "重掷扭蛋",
+      "category": "符号"
+    },
+    "robin_hood": {
+      "display": "罗宾汉",
+      "category": "符号"
+    },
+    "ruby": {
+      "display": "红宝石",
+      "category": "符号"
+    },
+    "safe": {
+      "display": "保险箱",
+      "category": "符号"
+    },
+    "sand_dollar": {
+      "display": "沙钱",
+      "category": "符号"
+    },
+    "sapphire": {
+      "display": "蓝宝石",
+      "category": "符号"
+    },
+    "seed": {
+      "display": "种子",
+      "category": "符号"
+    },
+    "shiny_pebble": {
+      "display": "闪亮鹅卵石",
+      "category": "符号"
+    },
+    "silver_arrow": {
+      "display": "银箭",
+      "category": "符号"
+    },
+    "sloth": {
+      "display": "树懒",
+      "category": "符号"
+    },
+    "snail": {
+      "display": "蜗牛",
+      "category": "符号"
+    },
+    "spades": {
+      "display": "黑桃",
+      "category": "符号"
+    },
+    "spirit": {
+      "display": "幽魂",
+      "category": "符号"
+    },
+    "strawberry": {
+      "display": "草莓",
+      "category": "符号"
+    },
+    "sun": {
+      "display": "太阳",
+      "category": "符号"
+    },
+    "target": {
+      "display": "靶子",
+      "category": "符号"
+    },
+    "tedium_capsule": {
+      "display": "沉闷扭蛋",
+      "category": "符号"
+    },
+    "thief": {
+      "display": "小偷",
+      "category": "符号"
+    },
+    "d3": {
+      "display": "三面骰",
+      "category": "符号"
+    },
+    "time_capsule": {
+      "display": "时间扭蛋",
+      "category": "符号"
+    },
+    "toddler": {
+      "display": "幼儿",
+      "category": "符号"
+    },
+    "tomb": {
+      "display": "坟墓",
+      "category": "符号"
+    },
+    "treasure_chest": {
+      "display": "藏宝箱",
+      "category": "符号"
+    },
+    "turtle": {
+      "display": "龟",
+      "category": "符号"
+    },
+    "urn": {
+      "display": "骨灰瓮",
+      "category": "符号"
+    },
+    "void_creature": {
+      "display": "虚空生物",
+      "category": "符号"
+    },
+    "void_fruit": {
+      "display": "虚空水果",
+      "category": "符号"
+    },
+    "void_stone": {
+      "display": "虚空之石",
+      "category": "符号"
+    },
+    "watermelon": {
+      "display": "西瓜",
+      "category": "符号"
+    },
+    "lucky_capsule": {
+      "display": "财富扭蛋",
+      "category": "符号"
+    },
+    "wildcard": {
+      "display": "通配符",
+      "category": "符号"
+    },
+    "wine": {
+      "display": "葡萄酒",
+      "category": "符号"
+    },
+    "witch": {
+      "display": "女巫",
+      "category": "符号"
+    },
+    "wolf": {
+      "display": "狼",
+      "category": "符号"
+    },
+    "fifth_ace": {
+      "display": "第五张A",
+      "category": "物品"
+    },
+    "adoption_papers": {
+      "display": "领养文件",
+      "category": "物品"
+    },
+    "ancient_lizard_blade": {
+      "display": "古老蜥蜴之刃",
+      "category": "物品"
+    },
+    "anthropology_degree": {
+      "display": "人类学",
+      "category": "物品"
+    },
+    "barrel_o_dwarves": {
+      "display": "一桶矮人",
+      "category": "物品"
+    },
+    "symbol_bomb_big": {
+      "display": "大符号炸弹",
+      "category": "物品"
+    },
+    "birdhouse": {
+      "display": "鸟舍",
+      "category": "物品"
+    },
+    "black_cat": {
+      "display": "黑猫",
+      "category": "物品"
+    },
+    "black_pepper": {
+      "display": "黑辣椒",
+      "category": "物品"
+    },
+    "blue_suits": {
+      "display": "黑色牌",
+      "category": "物品"
+    },
+    "blue_pepper": {
+      "display": "蓝辣椒",
+      "category": "物品"
+    },
+    "booster_pack": {
+      "display": "补充包",
+      "category": "物品"
+    },
+    "bowling_ball": {
+      "display": "保龄球",
+      "category": "物品"
+    },
+    "brown_pepper": {
+      "display": "棕辣椒",
+      "category": "物品"
+    },
+    "capsule_machine": {
+      "display": "扭蛋机",
+      "category": "物品"
+    },
+    "cardboard_box": {
+      "display": "纸板箱",
+      "category": "物品"
+    },
+    "checkered_flag": {
+      "display": "格子旗",
+      "category": "物品"
+    },
+    "chicken_coop": {
+      "display": "鸡舍",
+      "category": "物品"
+    },
+    "chili_powder": {
+      "display": "辣椒粉",
+      "category": "物品"
+    },
+    "cleaning_rag": {
+      "display": "抹布",
+      "category": "物品"
+    },
+    "clear_sky": {
+      "display": "晴空",
+      "category": "物品"
+    },
+    "coffee": {
+      "display": "咖啡",
+      "category": "物品"
+    },
+    "coin_on_a_string": {
+      "display": "系绳硬币",
+      "category": "物品"
+    },
+    "comfy_pillow": {
+      "display": "舒适枕头",
+      "category": "物品"
+    },
+    "compost_heap": {
+      "display": "堆肥堆",
+      "category": "物品"
+    },
+    "conveyor_belt": {
+      "display": "传送带",
+      "category": "物品"
+    },
+    "copycat": {
+      "display": "抄袭猫",
+      "category": "物品"
+    },
+    "credit_card": {
+      "display": "信用卡",
+      "category": "物品"
+    },
+    "cursed_katana": {
+      "display": "诅咒武士刀",
+      "category": "物品"
+    },
+    "cyan_pepper": {
+      "display": "青椒",
+      "category": "物品"
+    },
+    "dark_humor": {
+      "display": "黑色幽默",
+      "category": "物品"
+    },
+    "devils_deal": {
+      "display": "恶魔交易",
+      "category": "物品"
+    },
+    "dishwasher": {
+      "display": "洗碗机",
+      "category": "物品"
+    },
+    "dwarven_anvil": {
+      "display": "矮人砧",
+      "category": "物品"
+    },
+    "egg_carton": {
+      "display": "蛋盒",
+      "category": "物品"
+    },
+    "fertilizer": {
+      "display": "肥料",
+      "category": "物品"
+    },
+    "fish_bowl": {
+      "display": "鱼缸",
+      "category": "物品"
+    },
+    "flush": {
+      "display": "同花",
+      "category": "物品"
+    },
+    "four_leaf_clover": {
+      "display": "幸运草",
+      "category": "物品"
+    },
+    "frozen_pizza": {
+      "display": "冷冻披萨",
+      "category": "物品"
+    },
+    "fruit_basket": {
+      "display": "果篮",
+      "category": "物品"
+    },
+    "frying_pan": {
+      "display": "煎锅",
+      "category": "物品"
+    },
+    "golden_carrot": {
+      "display": "金胡萝卜",
+      "category": "物品"
+    },
+    "goldilocks": {
+      "display": "金凤花",
+      "category": "物品"
+    },
+    "grave_robber": {
+      "display": "盗墓人",
+      "category": "物品"
+    },
+    "gray_pepper": {
+      "display": "灰辣椒",
+      "category": "物品"
+    },
+    "green_pepper": {
+      "display": "绿辣椒",
+      "category": "物品"
+    },
+    "guillotine": {
+      "display": "断头台",
+      "category": "物品"
+    },
+    "happy_hour": {
+      "display": "欢乐时光",
+      "category": "物品"
+    },
+    "holy_water": {
+      "display": "圣水",
+      "category": "物品"
+    },
+    "horseshoe": {
+      "display": "马蹄铁",
+      "category": "物品"
+    },
+    "bag_of_holding": {
+      "display": "方便面",
+      "category": "物品"
+    },
+    "item_missing": {
+      "display": "物品缺失",
+      "category": "物品"
+    },
+    "jackolantern": {
+      "display": "南瓜灯",
+      "category": "物品"
+    },
+    "kyle_the_kernite": {
+      "display": "硼砂凯尔",
+      "category": "物品"
+    },
+    "lefty_the_rabbit": {
+      "display": "兔子莱福特",
+      "category": "物品"
+    },
+    "lemon": {
+      "display": "柠檬",
+      "category": "物品"
+    },
+    "lime_pepper": {
+      "display": "青绿辣椒",
+      "category": "物品"
+    },
+    "lint_roller": {
+      "display": "粘毛滚筒",
+      "category": "物品"
+    },
+    "lockpick": {
+      "display": "开锁器",
+      "category": "物品"
+    },
+    "looting_glove": {
+      "display": "抢劫手套",
+      "category": "物品"
+    },
+    "lucky_carrot": {
+      "display": "幸运胡萝卜",
+      "category": "物品"
+    },
+    "lucky_cat": {
+      "display": "招财猫",
+      "category": "物品"
+    },
+    "lucky_dice": {
+      "display": "幸运骰子",
+      "category": "物品"
+    },
+    "lucky_seven": {
+      "display": "幸运七",
+      "category": "物品"
+    },
+    "lunchbox": {
+      "display": "饭盒",
+      "category": "物品"
+    },
+    "maxwell_the_bear": {
+      "display": "麦克斯韦熊",
+      "category": "物品"
+    },
+    "mining_pick": {
+      "display": "矿镐",
+      "category": "物品"
+    },
+    "mobius_strip": {
+      "display": "莫比乌斯环",
+      "category": "物品"
+    },
+    "ninja_and_mouse": {
+      "display": "忍者和老鼠",
+      "category": "物品"
+    },
+    "nori_the_rabbit": {
+      "display": "兔子诺里",
+      "category": "物品"
+    },
+    "oil_can": {
+      "display": "油罐",
+      "category": "物品"
+    },
+    "oswald_the_monkey": {
+      "display": "猴子奥斯瓦德",
+      "category": "物品"
+    },
+    "piggy_bank": {
+      "display": "存钱罐",
+      "category": "物品"
+    },
+    "pink_pepper": {
+      "display": "粉红辣椒",
+      "category": "物品"
+    },
+    "pizza_the_cat": {
+      "display": "披萨小猫",
+      "category": "物品"
+    },
+    "pool_ball": {
+      "display": "台球",
+      "category": "物品"
+    },
+    "popsicle": {
+      "display": "冰棒",
+      "category": "物品"
+    },
+    "protractor": {
+      "display": "量角器",
+      "category": "物品"
+    },
+    "purple_pepper": {
+      "display": "紫辣椒",
+      "category": "物品"
+    },
+    "symbol_bomb_quantum": {
+      "display": "量子符号炸弹",
+      "category": "物品"
+    },
+    "quigley_the_wolf": {
+      "display": "野狼奎格利",
+      "category": "物品"
+    },
+    "quiver": {
+      "display": "箭袋",
+      "category": "物品"
+    },
+    "rain_cloud": {
+      "display": "雨云",
+      "category": "物品"
+    },
+    "recycling": {
+      "display": "回收利用",
+      "category": "物品"
+    },
+    "red_pepper": {
+      "display": "红辣椒",
+      "category": "物品"
+    },
+    "red_suits": {
+      "display": "红色牌",
+      "category": "物品"
+    },
+    "reroll": {
+      "display": "重掷",
+      "category": "物品"
+    },
+    "ricky_the_banana": {
+      "display": "香蕉瑞奇",
+      "category": "物品"
+    },
+    "ritual_candle": {
+      "display": "仪式蜡烛",
+      "category": "物品"
+    },
+    "rusty_gear": {
+      "display": "生锈齿轮",
+      "category": "物品"
+    },
+    "shattered_mirror": {
+      "display": "破镜子",
+      "category": "物品"
+    },
+    "shedding_season": {
+      "display": "脱毛季节",
+      "category": "物品"
+    },
+    "shrine": {
+      "display": "神龛",
+      "category": "物品"
+    },
+    "symbol_bomb_small": {
+      "display": "小符号炸弹",
+      "category": "物品"
+    },
+    "sunglasses": {
+      "display": "太阳镜",
+      "category": "物品"
+    },
+    "swapping_device": {
+      "display": "交换装置",
+      "category": "物品"
+    },
+    "swear_jar": {
+      "display": "脏话罐",
+      "category": "物品"
+    },
+    "tax_evasion": {
+      "display": "逃税",
+      "category": "物品"
+    },
+    "telescope": {
+      "display": "望远镜",
+      "category": "物品"
+    },
+    "turtle_and_rabbit": {
+      "display": "龟兔赛跑",
+      "category": "物品"
+    },
+    "time_machine": {
+      "display": "时光机",
+      "category": "物品"
+    },
+    "treasure_map": {
+      "display": "藏宝图",
+      "category": "物品"
+    },
+    "triple_coins": {
+      "display": "三倍硬币",
+      "category": "物品"
+    },
+    "undertaker": {
+      "display": "殡仪员",
+      "category": "物品"
+    },
+    "symbol_bomb_very_big": {
+      "display": "超大符号炸弹",
+      "category": "物品"
+    },
+    "void_party": {
+      "display": "虚空派对",
+      "category": "物品"
+    },
+    "void_portal": {
+      "display": "虚空传送门",
+      "category": "物品"
+    },
+    "wanted_poster": {
+      "display": "通缉告示",
+      "category": "物品"
+    },
+    "watering_can": {
+      "display": "浇水壶",
+      "category": "物品"
+    },
+    "white_pepper": {
+      "display": "白辣椒",
+      "category": "物品"
+    },
+    "x_ray_machine": {
+      "display": "X光机",
+      "category": "物品"
+    },
+    "yellow_pepper": {
+      "display": "黄辣椒",
+      "category": "物品"
+    },
+    "zaroffs_contract": {
+      "display": "扎罗夫合约",
+      "category": "物品"
+    },
+    "fifth_ace_essence": {
+      "display": "第五张A精华",
+      "category": "精华"
+    },
+    "adoption_papers_essence": {
+      "display": "领养文件精华",
+      "category": "精华"
+    },
+    "ancient_lizard_blade_essence": {
+      "display": "古老蜥蜴之刃精华",
+      "category": "精华"
+    },
+    "anthropology_degree_essence": {
+      "display": "人类学精华",
+      "category": "精华"
+    },
+    "barrel_o_dwarves_essence": {
+      "display": "一桶矮人精华",
+      "category": "精华"
+    },
+    "symbol_bomb_big_essence": {
+      "display": "大符号炸弹精华",
+      "category": "精华"
+    },
+    "birdhouse_essence": {
+      "display": "鸟舍精华",
+      "category": "精华"
+    },
+    "black_cat_essence": {
+      "display": "黑猫精华",
+      "category": "精华"
+    },
+    "black_pepper_essence": {
+      "display": "黑辣椒精华",
+      "category": "精华"
+    },
+    "blue_suits_essence": {
+      "display": "黑色牌精华",
+      "category": "精华"
+    },
+    "blue_pepper_essence": {
+      "display": "蓝辣椒精华",
+      "category": "精华"
+    },
+    "booster_pack_essence": {
+      "display": "补充包精华",
+      "category": "精华"
+    },
+    "bowling_ball_essence": {
+      "display": "保龄球精华",
+      "category": "精华"
+    },
+    "brown_pepper_essence": {
+      "display": "棕辣椒精华",
+      "category": "精华"
+    },
+    "capsule_machine_essence": {
+      "display": "扭蛋机精华",
+      "category": "精华"
+    },
+    "cardboard_box_essence": {
+      "display": "纸板箱精华",
+      "category": "精华"
+    },
+    "checkered_flag_essence": {
+      "display": "格子旗精华",
+      "category": "精华"
+    },
+    "chicken_coop_essence": {
+      "display": "鸡舍精华",
+      "category": "精华"
+    },
+    "chili_powder_essence": {
+      "display": "辣椒粉精华",
+      "category": "精华"
+    },
+    "cleaning_rag_essence": {
+      "display": "抹布精华",
+      "category": "精华"
+    },
+    "clear_sky_essence": {
+      "display": "晴空精华",
+      "category": "精华"
+    },
+    "coffee_essence": {
+      "display": "咖啡精华",
+      "category": "精华"
+    },
+    "coin_on_a_string_essence": {
+      "display": "系绳硬币精华",
+      "category": "精华"
+    },
+    "comfy_pillow_essence": {
+      "display": "舒适枕头精华",
+      "category": "精华"
+    },
+    "compost_heap_essence": {
+      "display": "堆肥堆精华",
+      "category": "精华"
+    },
+    "conveyor_belt_essence": {
+      "display": "传送带精华",
+      "category": "精华"
+    },
+    "copycat_essence": {
+      "display": "抄袭猫精华",
+      "category": "精华"
+    },
+    "credit_card_essence": {
+      "display": "信用卡精华",
+      "category": "精华"
+    },
+    "cursed_katana_essence": {
+      "display": "武士刀精华",
+      "category": "精华"
+    },
+    "cyan_pepper_essence": {
+      "display": "青椒精华",
+      "category": "精华"
+    },
+    "dark_humor_essence": {
+      "display": "黑色幽默精华",
+      "category": "精华"
+    },
+    "devils_deal_essence": {
+      "display": "恶魔交易精华",
+      "category": "精华"
+    },
+    "dishwasher_essence": {
+      "display": "洗碗机精华",
+      "category": "精华"
+    },
+    "dwarven_anvil_essence": {
+      "display": "矮人砧精华",
+      "category": "精华"
+    },
+    "egg_carton_essence": {
+      "display": "蛋盒精华",
+      "category": "精华"
+    },
+    "fertilizer_essence": {
+      "display": "肥料精华",
+      "category": "精华"
+    },
+    "fish_bowl_essence": {
+      "display": "鱼缸精华",
+      "category": "精华"
+    },
+    "flush_essence": {
+      "display": "同花精华",
+      "category": "精华"
+    },
+    "four_leaf_clover_essence": {
+      "display": "幸运草精华",
+      "category": "精华"
+    },
+    "frozen_pizza_essence": {
+      "display": "冷冻披萨精华",
+      "category": "精华"
+    },
+    "fruit_basket_essence": {
+      "display": "果篮精华",
+      "category": "精华"
+    },
+    "frying_pan_essence": {
+      "display": "煎锅精华",
+      "category": "精华"
+    },
+    "golden_carrot_essence": {
+      "display": "金胡萝卜精华",
+      "category": "精华"
+    },
+    "goldilocks_essence": {
+      "display": "金凤花精华",
+      "category": "精华"
+    },
+    "grave_robber_essence": {
+      "display": "盗墓人精华",
+      "category": "精华"
+    },
+    "gray_pepper_essence": {
+      "display": "灰辣椒精华",
+      "category": "精华"
+    },
+    "green_pepper_essence": {
+      "display": "绿辣椒精华",
+      "category": "精华"
+    },
+    "guillotine_essence": {
+      "display": "断头台精华",
+      "category": "精华"
+    },
+    "happy_hour_essence": {
+      "display": "欢乐时光精华",
+      "category": "精华"
+    },
+    "holy_water_essence": {
+      "display": "圣水精华",
+      "category": "精华"
+    },
+    "horseshoe_essence": {
+      "display": "马蹄铁精华",
+      "category": "精华"
+    },
+    "bag_of_holding_essence": {
+      "display": "方便面精华",
+      "category": "精华"
+    },
+    "jackolantern_essence": {
+      "display": "南瓜灯精华",
+      "category": "精华"
+    },
+    "kyle_the_kernite_essence": {
+      "display": "硼砂凯尔精华",
+      "category": "精华"
+    },
+    "lefty_the_rabbit_essence": {
+      "display": "兔子莱福特精华",
+      "category": "精华"
+    },
+    "lemon_essence": {
+      "display": "柠檬精华",
+      "category": "精华"
+    },
+    "lime_pepper_essence": {
+      "display": "青绿辣椒精华",
+      "category": "精华"
+    },
+    "lint_roller_essence": {
+      "display": "粘毛滚筒精华",
+      "category": "精华"
+    },
+    "lockpick_essence": {
+      "display": "开锁器精华",
+      "category": "精华"
+    },
+    "looting_glove_essence": {
+      "display": "抢劫手套精华",
+      "category": "精华"
+    },
+    "lucky_carrot_essence": {
+      "display": "幸运胡萝卜精华",
+      "category": "精华"
+    },
+    "lucky_cat_essence": {
+      "display": "招财猫精华",
+      "category": "精华"
+    },
+    "lucky_dice_essence": {
+      "display": "幸运骰子精华",
+      "category": "精华"
+    },
+    "lucky_seven_essence": {
+      "display": "幸运七精华",
+      "category": "精华"
+    },
+    "lunchbox_essence": {
+      "display": "饭盒精华",
+      "category": "精华"
+    },
+    "maxwell_the_bear_essence": {
+      "display": "麦克斯韦熊精华",
+      "category": "精华"
+    },
+    "mining_pick_essence": {
+      "display": "矿镐精华",
+      "category": "精华"
+    },
+    "mobius_strip_essence": {
+      "display": "莫比乌斯环精华",
+      "category": "精华"
+    },
+    "ninja_and_mouse_essence": {
+      "display": "忍者和老鼠精华",
+      "category": "精华"
+    },
+    "nori_the_rabbit_essence": {
+      "display": "兔子诺里精华",
+      "category": "精华"
+    },
+    "oil_can_essence": {
+      "display": "油罐精华",
+      "category": "精华"
+    },
+    "oswald_the_monkey_essence": {
+      "display": "猴子奥斯瓦德精华",
+      "category": "精华"
+    },
+    "piggy_bank_essence": {
+      "display": "存钱罐精华",
+      "category": "精华"
+    },
+    "pink_pepper_essence": {
+      "display": "粉红辣椒精华",
+      "category": "精华"
+    },
+    "pizza_the_cat_essence": {
+      "display": "披萨小猫精华",
+      "category": "精华"
+    },
+    "pool_ball_essence": {
+      "display": "台球精华",
+      "category": "精华"
+    },
+    "popsicle_essence": {
+      "display": "冰棒精华",
+      "category": "精华"
+    },
+    "protractor_essence": {
+      "display": "量角器精华",
+      "category": "精华"
+    },
+    "purple_pepper_essence": {
+      "display": "紫辣椒精华",
+      "category": "精华"
+    },
+    "symbol_bomb_quantum_essence": {
+      "display": "量子符号炸弹精华",
+      "category": "精华"
+    },
+    "quigley_the_wolf_essence": {
+      "display": "野狼奎格利精华",
+      "category": "精华"
+    },
+    "quiver_essence": {
+      "display": "箭袋精华",
+      "category": "精华"
+    },
+    "rain_cloud_essence": {
+      "display": "雨云精华",
+      "category": "精华"
+    },
+    "recycling_essence": {
+      "display": "回收利用精华",
+      "category": "精华"
+    },
+    "red_pepper_essence": {
+      "display": "红辣椒精华",
+      "category": "精华"
+    },
+    "red_suits_essence": {
+      "display": "红色牌精华",
+      "category": "精华"
+    },
+    "reroll_essence": {
+      "display": "重掷精华",
+      "category": "精华"
+    },
+    "ricky_the_banana_essence": {
+      "display": "香蕉瑞奇精华",
+      "category": "精华"
+    },
+    "ritual_candle_essence": {
+      "display": "仪式蜡烛精华",
+      "category": "精华"
+    },
+    "rusty_gear_essence": {
+      "display": "生锈齿轮精华",
+      "category": "精华"
+    },
+    "shattered_mirror_essence": {
+      "display": "破镜子精华",
+      "category": "精华"
+    },
+    "shedding_season_essence": {
+      "display": "脱毛季节精华",
+      "category": "精华"
+    },
+    "shrine_essence": {
+      "display": "神龛精华",
+      "category": "精华"
+    },
+    "symbol_bomb_small_essence": {
+      "display": "小符号炸弹精华",
+      "category": "精华"
+    },
+    "sunglasses_essence": {
+      "display": "太阳镜精华",
+      "category": "精华"
+    },
+    "swapping_device_essence": {
+      "display": "交换装置精华",
+      "category": "精华"
+    },
+    "swear_jar_essence": {
+      "display": "脏话罐精华",
+      "category": "精华"
+    },
+    "tax_evasion_essence": {
+      "display": "逃税精华",
+      "category": "精华"
+    },
+    "telescope_essence": {
+      "display": "望远镜精华",
+      "category": "精华"
+    },
+    "turtle_and_rabbit_essence": {
+      "display": "龟兔赛跑精华",
+      "category": "精华"
+    },
+    "time_machine_essence": {
+      "display": "时光机精华",
+      "category": "精华"
+    },
+    "treasure_map_essence": {
+      "display": "藏宝图精华",
+      "category": "精华"
+    },
+    "triple_coins_essence": {
+      "display": "三倍硬币精华",
+      "category": "精华"
+    },
+    "undertaker_essence": {
+      "display": "殡仪员精华",
+      "category": "精华"
+    },
+    "symbol_bomb_very_big_essence": {
+      "display": "超大符号炸弹精华",
+      "category": "精华"
+    },
+    "void_party_essence": {
+      "display": "虚空派对精华",
+      "category": "精华"
+    },
+    "void_portal_essence": {
+      "display": "虚空传送门精华",
+      "category": "精华"
+    },
+    "wanted_poster_essence": {
+      "display": "通缉告示精华",
+      "category": "精华"
+    },
+    "watering_can_essence": {
+      "display": "浇水壶精华",
+      "category": "精华"
+    },
+    "white_pepper_essence": {
+      "display": "白辣椒精华",
+      "category": "精华"
+    },
+    "x_ray_machine_essence": {
+      "display": "X光机精华",
+      "category": "精华"
+    },
+    "yellow_pepper_essence": {
+      "display": "黄辣椒精华",
+      "category": "精华"
+    },
+    "zaroffs_contract_essence": {
+      "display": "扎罗夫合约精华",
+      "category": "精华"
+    }
+  },
+  "pairs": [
+    [
+      "adoption_papers",
+      "beastmaster"
+    ],
+    [
+      "adoption_papers",
+      "beehive"
+    ],
+    [
+      "adoption_papers",
+      "black_cat"
+    ],
+    [
+      "adoption_papers",
+      "comedian"
+    ],
+    [
+      "adoption_papers",
+      "crab"
+    ],
+    [
+      "adoption_papers",
+      "diver"
+    ],
+    [
+      "adoption_papers",
+      "fish_bowl"
+    ],
+    [
+      "adoption_papers",
+      "honey"
+    ],
+    [
+      "adoption_papers",
+      "moon"
+    ],
+    [
+      "adoption_papers_essence",
+      "diver"
+    ],
+    [
+      "adoption_papers_essence",
+      "jellyfish"
+    ],
+    [
+      "amethyst",
+      "bronze_arrow"
+    ],
+    [
+      "amethyst",
+      "buffing_powder"
+    ],
+    [
+      "amethyst",
+      "cleaning_rag"
+    ],
+    [
+      "amethyst",
+      "cleaning_rag_essence"
+    ],
+    [
+      "amethyst",
+      "dame"
+    ],
+    [
+      "amethyst",
+      "golden_arrow"
+    ],
+    [
+      "amethyst",
+      "light_bulb"
+    ],
+    [
+      "amethyst",
+      "silver_arrow"
+    ],
+    [
+      "anchor",
+      "diver"
+    ],
+    [
+      "anchor",
+      "pirate"
+    ],
+    [
+      "anthropology_degree",
+      "archaeologist"
+    ],
+    [
+      "anthropology_degree",
+      "bartender"
+    ],
+    [
+      "anthropology_degree",
+      "beastmaster"
+    ],
+    [
+      "anthropology_degree",
+      "billionaire"
+    ],
+    [
+      "anthropology_degree",
+      "bounty_hunter"
+    ],
+    [
+      "anthropology_degree",
+      "card_shark"
+    ],
+    [
+      "anthropology_degree",
+      "chef"
+    ],
+    [
+      "anthropology_degree",
+      "comedian"
+    ],
+    [
+      "anthropology_degree",
+      "cultist"
+    ],
+    [
+      "anthropology_degree",
+      "dame"
+    ],
+    [
+      "anthropology_degree",
+      "diver"
+    ],
+    [
+      "anthropology_degree",
+      "dwarf"
+    ],
+    [
+      "anthropology_degree",
+      "farmer"
+    ],
+    [
+      "anthropology_degree",
+      "gambler"
+    ],
+    [
+      "anthropology_degree",
+      "general_zaroff"
+    ],
+    [
+      "anthropology_degree",
+      "hooligan"
+    ],
+    [
+      "anthropology_degree",
+      "joker"
+    ],
+    [
+      "anthropology_degree",
+      "king_midas"
+    ],
+    [
+      "anthropology_degree",
+      "miner"
+    ],
+    [
+      "anthropology_degree",
+      "mrs_fruit"
+    ],
+    [
+      "anthropology_degree",
+      "ninja"
+    ],
+    [
+      "anthropology_degree",
+      "pirate"
+    ],
+    [
+      "anthropology_degree",
+      "robin_hood"
+    ],
+    [
+      "anthropology_degree",
+      "thief"
+    ],
+    [
+      "anthropology_degree",
+      "toddler"
+    ],
+    [
+      "anthropology_degree",
+      "witch"
+    ],
+    [
+      "anthropology_degree_essence",
+      "archaeologist"
+    ],
+    [
+      "anthropology_degree_essence",
+      "bartender"
+    ],
+    [
+      "anthropology_degree_essence",
+      "beastmaster"
+    ],
+    [
+      "anthropology_degree_essence",
+      "billionaire"
+    ],
+    [
+      "anthropology_degree_essence",
+      "bounty_hunter"
+    ],
+    [
+      "anthropology_degree_essence",
+      "card_shark"
+    ],
+    [
+      "anthropology_degree_essence",
+      "chef"
+    ],
+    [
+      "anthropology_degree_essence",
+      "comedian"
+    ],
+    [
+      "anthropology_degree_essence",
+      "cultist"
+    ],
+    [
+      "anthropology_degree_essence",
+      "dame"
+    ],
+    [
+      "anthropology_degree_essence",
+      "diver"
+    ],
+    [
+      "anthropology_degree_essence",
+      "dwarf"
+    ],
+    [
+      "anthropology_degree_essence",
+      "farmer"
+    ],
+    [
+      "anthropology_degree_essence",
+      "gambler"
+    ],
+    [
+      "anthropology_degree_essence",
+      "general_zaroff"
+    ],
+    [
+      "anthropology_degree_essence",
+      "hooligan"
+    ],
+    [
+      "anthropology_degree_essence",
+      "joker"
+    ],
+    [
+      "anthropology_degree_essence",
+      "king_midas"
+    ],
+    [
+      "anthropology_degree_essence",
+      "miner"
+    ],
+    [
+      "anthropology_degree_essence",
+      "mrs_fruit"
+    ],
+    [
+      "anthropology_degree_essence",
+      "ninja"
+    ],
+    [
+      "anthropology_degree_essence",
+      "pirate"
+    ],
+    [
+      "anthropology_degree_essence",
+      "robin_hood"
+    ],
+    [
+      "anthropology_degree_essence",
+      "thief"
+    ],
+    [
+      "anthropology_degree_essence",
+      "toddler"
+    ],
+    [
+      "anthropology_degree_essence",
+      "witch"
+    ],
+    [
+      "apple",
+      "chef"
+    ],
+    [
+      "apple",
+      "farmer"
+    ],
+    [
+      "apple",
+      "fruit_basket"
+    ],
+    [
+      "apple",
+      "fruit_basket_essence"
+    ],
+    [
+      "apple",
+      "robin_hood"
+    ],
+    [
+      "apple",
+      "witch"
+    ],
+    [
+      "archaeologist",
+      "big_ore"
+    ],
+    [
+      "archaeologist",
+      "dog"
+    ],
+    [
+      "archaeologist",
+      "general_zaroff"
+    ],
+    [
+      "archaeologist",
+      "golem"
+    ],
+    [
+      "archaeologist",
+      "mine"
+    ],
+    [
+      "archaeologist",
+      "mining_pick"
+    ],
+    [
+      "archaeologist",
+      "mining_pick_essence"
+    ],
+    [
+      "archaeologist",
+      "ore"
+    ],
+    [
+      "archaeologist",
+      "oyster"
+    ],
+    [
+      "archaeologist",
+      "pearl"
+    ],
+    [
+      "archaeologist",
+      "sapphire"
+    ],
+    [
+      "archaeologist",
+      "shiny_pebble"
+    ],
+    [
+      "archaeologist",
+      "symbol_bomb_big"
+    ],
+    [
+      "archaeologist",
+      "symbol_bomb_quantum"
+    ],
+    [
+      "archaeologist",
+      "symbol_bomb_quantum_essence"
+    ],
+    [
+      "archaeologist",
+      "symbol_bomb_small"
+    ],
+    [
+      "archaeologist",
+      "symbol_bomb_very_big"
+    ],
+    [
+      "archaeologist",
+      "x_ray_machine"
+    ],
+    [
+      "archaeologist",
+      "x_ray_machine_essence"
+    ],
+    [
+      "archaeologist",
+      "zaroffs_contract"
+    ],
+    [
+      "banana",
+      "chef"
+    ],
+    [
+      "banana",
+      "comedian"
+    ],
+    [
+      "banana",
+      "dark_humor_essence"
+    ],
+    [
+      "banana",
+      "farmer"
+    ],
+    [
+      "banana",
+      "fruit_basket"
+    ],
+    [
+      "banana",
+      "fruit_basket_essence"
+    ],
+    [
+      "banana",
+      "monkey"
+    ],
+    [
+      "banana",
+      "mrs_fruit"
+    ],
+    [
+      "banana",
+      "oswald_the_monkey_essence"
+    ],
+    [
+      "banana",
+      "ricky_the_banana"
+    ],
+    [
+      "banana",
+      "ricky_the_banana_essence"
+    ],
+    [
+      "banana_peel",
+      "bounty_hunter"
+    ],
+    [
+      "banana_peel",
+      "comedian"
+    ],
+    [
+      "banana_peel",
+      "dark_humor_essence"
+    ],
+    [
+      "banana_peel",
+      "ricky_the_banana"
+    ],
+    [
+      "banana_peel",
+      "ricky_the_banana_essence"
+    ],
+    [
+      "banana_peel",
+      "thief"
+    ],
+    [
+      "banana_peel",
+      "wanted_poster"
+    ],
+    [
+      "bar_of_soap",
+      "dove"
+    ],
+    [
+      "bar_of_soap",
+      "goldfish"
+    ],
+    [
+      "bar_of_soap",
+      "toddler"
+    ],
+    [
+      "bar_of_soap",
+      "void_portal"
+    ],
+    [
+      "barrel_o_dwarves",
+      "barrel_o_dwarves_essence"
+    ],
+    [
+      "barrel_o_dwarves",
+      "general_zaroff"
+    ],
+    [
+      "barrel_o_dwarves",
+      "zaroffs_contract"
+    ],
+    [
+      "barrel_o_dwarves_essence",
+      "dwarf"
+    ],
+    [
+      "barrel_o_dwarves_essence",
+      "general_zaroff"
+    ],
+    [
+      "barrel_o_dwarves_essence",
+      "zaroffs_contract"
+    ],
+    [
+      "bartender",
+      "conveyor_belt"
+    ],
+    [
+      "bartender",
+      "dog"
+    ],
+    [
+      "bartender",
+      "dwarf"
+    ],
+    [
+      "bartender",
+      "general_zaroff"
+    ],
+    [
+      "bartender",
+      "happy_hour"
+    ],
+    [
+      "bartender",
+      "happy_hour_essence"
+    ],
+    [
+      "bartender",
+      "pirate"
+    ],
+    [
+      "bartender",
+      "zaroffs_contract"
+    ],
+    [
+      "bear",
+      "beastmaster"
+    ],
+    [
+      "bear",
+      "beehive"
+    ],
+    [
+      "bear",
+      "goldilocks_essence"
+    ],
+    [
+      "bear",
+      "honey"
+    ],
+    [
+      "bear",
+      "lunchbox"
+    ],
+    [
+      "bear",
+      "maxwell_the_bear"
+    ],
+    [
+      "bear",
+      "maxwell_the_bear_essence"
+    ],
+    [
+      "beastmaster",
+      "bee"
+    ],
+    [
+      "beastmaster",
+      "cat"
+    ],
+    [
+      "beastmaster",
+      "chick"
+    ],
+    [
+      "beastmaster",
+      "chicken"
+    ],
+    [
+      "beastmaster",
+      "cow"
+    ],
+    [
+      "beastmaster",
+      "crab"
+    ],
+    [
+      "beastmaster",
+      "crow"
+    ],
+    [
+      "beastmaster",
+      "dog"
+    ],
+    [
+      "beastmaster",
+      "dove"
+    ],
+    [
+      "beastmaster",
+      "eldritch_beast"
+    ],
+    [
+      "beastmaster",
+      "frozen_fossil"
+    ],
+    [
+      "beastmaster",
+      "general_zaroff"
+    ],
+    [
+      "beastmaster",
+      "goldfish"
+    ],
+    [
+      "beastmaster",
+      "goose"
+    ],
+    [
+      "beastmaster",
+      "jellyfish"
+    ],
+    [
+      "beastmaster",
+      "magpie"
+    ],
+    [
+      "beastmaster",
+      "monkey"
+    ],
+    [
+      "beastmaster",
+      "mouse"
+    ],
+    [
+      "beastmaster",
+      "owl"
+    ],
+    [
+      "beastmaster",
+      "oyster"
+    ],
+    [
+      "beastmaster",
+      "pufferfish"
+    ],
+    [
+      "beastmaster",
+      "rabbit"
+    ],
+    [
+      "beastmaster",
+      "sand_dollar"
+    ],
+    [
+      "beastmaster",
+      "sloth"
+    ],
+    [
+      "beastmaster",
+      "snail"
+    ],
+    [
+      "beastmaster",
+      "turtle"
+    ],
+    [
+      "beastmaster",
+      "void_creature"
+    ],
+    [
+      "beastmaster",
+      "wolf"
+    ],
+    [
+      "beastmaster",
+      "zaroffs_contract"
+    ],
+    [
+      "bee",
+      "beehive"
+    ],
+    [
+      "bee",
+      "flower"
+    ],
+    [
+      "bee",
+      "honey"
+    ],
+    [
+      "beehive",
+      "chef"
+    ],
+    [
+      "beehive",
+      "conveyor_belt"
+    ],
+    [
+      "beehive",
+      "conveyor_belt_essence"
+    ],
+    [
+      "beehive",
+      "goldilocks"
+    ],
+    [
+      "beehive",
+      "maxwell_the_bear_essence"
+    ],
+    [
+      "beehive",
+      "rusty_gear"
+    ],
+    [
+      "beehive",
+      "rusty_gear_essence"
+    ],
+    [
+      "beer",
+      "chef"
+    ],
+    [
+      "beer",
+      "dark_humor"
+    ],
+    [
+      "beer",
+      "dwarf"
+    ],
+    [
+      "beer",
+      "dwarven_anvil"
+    ],
+    [
+      "beer",
+      "dwarven_anvil_essence"
+    ],
+    [
+      "beer",
+      "happy_hour"
+    ],
+    [
+      "beer",
+      "happy_hour_essence"
+    ],
+    [
+      "beer",
+      "pirate"
+    ],
+    [
+      "big_ore",
+      "dwarven_anvil"
+    ],
+    [
+      "big_ore",
+      "dwarven_anvil_essence"
+    ],
+    [
+      "big_ore",
+      "kyle_the_kernite"
+    ],
+    [
+      "big_ore",
+      "kyle_the_kernite_essence"
+    ],
+    [
+      "big_ore",
+      "miner"
+    ],
+    [
+      "big_ore",
+      "mining_pick"
+    ],
+    [
+      "big_ore",
+      "mining_pick_essence"
+    ],
+    [
+      "big_ore",
+      "x_ray_machine"
+    ],
+    [
+      "big_ore",
+      "x_ray_machine_essence"
+    ],
+    [
+      "big_urn",
+      "dark_humor"
+    ],
+    [
+      "big_urn",
+      "grave_robber"
+    ],
+    [
+      "big_urn",
+      "grave_robber_essence"
+    ],
+    [
+      "big_urn",
+      "hooligan"
+    ],
+    [
+      "big_urn",
+      "undertaker"
+    ],
+    [
+      "big_urn",
+      "undertaker_essence"
+    ],
+    [
+      "billionaire",
+      "cheese"
+    ],
+    [
+      "billionaire",
+      "general_zaroff"
+    ],
+    [
+      "billionaire",
+      "guillotine"
+    ],
+    [
+      "billionaire",
+      "looting_glove_essence"
+    ],
+    [
+      "billionaire",
+      "mobius_strip"
+    ],
+    [
+      "billionaire",
+      "mobius_strip_essence"
+    ],
+    [
+      "billionaire",
+      "robin_hood"
+    ],
+    [
+      "billionaire",
+      "wine"
+    ],
+    [
+      "billionaire",
+      "zaroffs_contract"
+    ],
+    [
+      "birdhouse",
+      "chick"
+    ],
+    [
+      "birdhouse",
+      "chicken"
+    ],
+    [
+      "birdhouse",
+      "crow"
+    ],
+    [
+      "birdhouse",
+      "dove"
+    ],
+    [
+      "birdhouse",
+      "goose"
+    ],
+    [
+      "birdhouse",
+      "magpie"
+    ],
+    [
+      "birdhouse",
+      "owl"
+    ],
+    [
+      "birdhouse_essence",
+      "chick"
+    ],
+    [
+      "birdhouse_essence",
+      "chicken"
+    ],
+    [
+      "birdhouse_essence",
+      "chicken_coop"
+    ],
+    [
+      "birdhouse_essence",
+      "crow"
+    ],
+    [
+      "birdhouse_essence",
+      "dove"
+    ],
+    [
+      "birdhouse_essence",
+      "goose"
+    ],
+    [
+      "birdhouse_essence",
+      "magpie"
+    ],
+    [
+      "birdhouse_essence",
+      "owl"
+    ],
+    [
+      "black_cat",
+      "cat"
+    ],
+    [
+      "black_cat",
+      "cow"
+    ],
+    [
+      "black_cat",
+      "milk"
+    ],
+    [
+      "black_cat",
+      "pizza_the_cat"
+    ],
+    [
+      "black_cat",
+      "witch"
+    ],
+    [
+      "black_cat_essence",
+      "cat"
+    ],
+    [
+      "black_pepper",
+      "chili_powder"
+    ],
+    [
+      "blue_pepper",
+      "chili_powder"
+    ],
+    [
+      "blue_pepper_essence",
+      "empty"
+    ],
+    [
+      "blue_suits",
+      "clubs"
+    ],
+    [
+      "blue_suits",
+      "fifth_ace"
+    ],
+    [
+      "blue_suits",
+      "flush"
+    ],
+    [
+      "blue_suits",
+      "flush_essence"
+    ],
+    [
+      "blue_suits",
+      "spades"
+    ],
+    [
+      "blue_suits_essence",
+      "clubs"
+    ],
+    [
+      "blue_suits_essence",
+      "spades"
+    ],
+    [
+      "bounty_hunter",
+      "dog"
+    ],
+    [
+      "bounty_hunter",
+      "general_zaroff"
+    ],
+    [
+      "bounty_hunter",
+      "thief"
+    ],
+    [
+      "bounty_hunter",
+      "wanted_poster"
+    ],
+    [
+      "bounty_hunter",
+      "wanted_poster_essence"
+    ],
+    [
+      "bounty_hunter",
+      "zaroffs_contract"
+    ],
+    [
+      "bounty_hunter",
+      "zaroffs_contract_essence"
+    ],
+    [
+      "bronze_arrow",
+      "pear"
+    ],
+    [
+      "bronze_arrow",
+      "quiver"
+    ],
+    [
+      "bronze_arrow",
+      "quiver_essence"
+    ],
+    [
+      "bronze_arrow",
+      "robin_hood"
+    ],
+    [
+      "bronze_arrow",
+      "target"
+    ],
+    [
+      "brown_pepper",
+      "chili_powder"
+    ],
+    [
+      "bubble",
+      "goldfish"
+    ],
+    [
+      "bubble",
+      "toddler"
+    ],
+    [
+      "buffing_powder",
+      "capsule_machine"
+    ],
+    [
+      "buffing_powder",
+      "capsule_machine_essence"
+    ],
+    [
+      "buffing_powder",
+      "pear"
+    ],
+    [
+      "buffing_powder",
+      "telescope_essence"
+    ],
+    [
+      "candy",
+      "chef"
+    ],
+    [
+      "candy",
+      "jackolantern"
+    ],
+    [
+      "candy",
+      "jackolantern_essence"
+    ],
+    [
+      "candy",
+      "toddler"
+    ],
+    [
+      "capsule_machine",
+      "capsule_machine_essence"
+    ],
+    [
+      "capsule_machine",
+      "essence_capsule"
+    ],
+    [
+      "capsule_machine",
+      "hustler"
+    ],
+    [
+      "capsule_machine",
+      "item_capsule"
+    ],
+    [
+      "capsule_machine",
+      "lucky_capsule"
+    ],
+    [
+      "capsule_machine",
+      "rarity_capsule"
+    ],
+    [
+      "capsule_machine",
+      "removal_capsule"
+    ],
+    [
+      "capsule_machine",
+      "reroll_capsule"
+    ],
+    [
+      "capsule_machine",
+      "tedium_capsule"
+    ],
+    [
+      "capsule_machine",
+      "time_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "hustler"
+    ],
+    [
+      "capsule_machine_essence",
+      "item_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "lucky_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "rarity_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "removal_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "reroll_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "tedium_capsule"
+    ],
+    [
+      "capsule_machine_essence",
+      "time_capsule"
+    ],
+    [
+      "card_shark",
+      "clubs"
+    ],
+    [
+      "card_shark",
+      "diamonds"
+    ],
+    [
+      "card_shark",
+      "dog"
+    ],
+    [
+      "card_shark",
+      "general_zaroff"
+    ],
+    [
+      "card_shark",
+      "hearts"
+    ],
+    [
+      "card_shark",
+      "spades"
+    ],
+    [
+      "card_shark",
+      "zaroffs_contract"
+    ],
+    [
+      "cardboard_box",
+      "gray_pepper"
+    ],
+    [
+      "cat",
+      "copycat"
+    ],
+    [
+      "cat",
+      "copycat_essence"
+    ],
+    [
+      "cat",
+      "cow"
+    ],
+    [
+      "cat",
+      "lucky_cat"
+    ],
+    [
+      "cat",
+      "lucky_cat_essence"
+    ],
+    [
+      "cat",
+      "milk"
+    ],
+    [
+      "cat",
+      "pizza_the_cat"
+    ],
+    [
+      "cat",
+      "pizza_the_cat_essence"
+    ],
+    [
+      "cat",
+      "witch"
+    ],
+    [
+      "checkered_flag",
+      "magpie"
+    ],
+    [
+      "checkered_flag",
+      "owl"
+    ],
+    [
+      "checkered_flag",
+      "robin_hood"
+    ],
+    [
+      "checkered_flag",
+      "sloth"
+    ],
+    [
+      "checkered_flag",
+      "snail"
+    ],
+    [
+      "checkered_flag",
+      "turtle"
+    ],
+    [
+      "checkered_flag_essence",
+      "magpie"
+    ],
+    [
+      "checkered_flag_essence",
+      "owl"
+    ],
+    [
+      "checkered_flag_essence",
+      "robin_hood"
+    ],
+    [
+      "checkered_flag_essence",
+      "sloth"
+    ],
+    [
+      "checkered_flag_essence",
+      "snail"
+    ],
+    [
+      "checkered_flag_essence",
+      "turtle"
+    ],
+    [
+      "cheese",
+      "chef"
+    ],
+    [
+      "cheese",
+      "farmer"
+    ],
+    [
+      "cheese",
+      "frying_pan"
+    ],
+    [
+      "cheese",
+      "frying_pan_essence"
+    ],
+    [
+      "cheese",
+      "mouse"
+    ],
+    [
+      "cheese",
+      "ninja_and_mouse"
+    ],
+    [
+      "cheese",
+      "omelette"
+    ],
+    [
+      "chef",
+      "cherry"
+    ],
+    [
+      "chef",
+      "coconut_half"
+    ],
+    [
+      "chef",
+      "compost_heap_essence"
+    ],
+    [
+      "chef",
+      "dog"
+    ],
+    [
+      "chef",
+      "egg"
+    ],
+    [
+      "chef",
+      "fertilizer_essence"
+    ],
+    [
+      "chef",
+      "fruit_basket"
+    ],
+    [
+      "chef",
+      "fruit_basket_essence"
+    ],
+    [
+      "chef",
+      "general_zaroff"
+    ],
+    [
+      "chef",
+      "golden_egg"
+    ],
+    [
+      "chef",
+      "honey"
+    ],
+    [
+      "chef",
+      "lunchbox"
+    ],
+    [
+      "chef",
+      "martini"
+    ],
+    [
+      "chef",
+      "milk"
+    ],
+    [
+      "chef",
+      "omelette"
+    ],
+    [
+      "chef",
+      "orange"
+    ],
+    [
+      "chef",
+      "peach"
+    ],
+    [
+      "chef",
+      "pear"
+    ],
+    [
+      "chef",
+      "strawberry"
+    ],
+    [
+      "chef",
+      "void_fruit"
+    ],
+    [
+      "chef",
+      "watermelon"
+    ],
+    [
+      "chef",
+      "wine"
+    ],
+    [
+      "chef",
+      "zaroffs_contract"
+    ],
+    [
+      "chemical_seven",
+      "dove"
+    ],
+    [
+      "chemical_seven",
+      "happy_hour"
+    ],
+    [
+      "chemical_seven",
+      "happy_hour_essence"
+    ],
+    [
+      "chemical_seven",
+      "looting_glove_essence"
+    ],
+    [
+      "chemical_seven",
+      "lucky_seven"
+    ],
+    [
+      "chemical_seven",
+      "lucky_seven_essence"
+    ],
+    [
+      "chemical_seven",
+      "mobius_strip"
+    ],
+    [
+      "chemical_seven",
+      "mobius_strip_essence"
+    ],
+    [
+      "cherry",
+      "farmer"
+    ],
+    [
+      "cherry",
+      "fruit_basket"
+    ],
+    [
+      "cherry",
+      "fruit_basket_essence"
+    ],
+    [
+      "cherry",
+      "mrs_fruit"
+    ],
+    [
+      "chick",
+      "chicken_coop"
+    ],
+    [
+      "chick",
+      "chicken_coop_essence"
+    ],
+    [
+      "chick",
+      "egg_carton"
+    ],
+    [
+      "chick",
+      "egg_carton_essence"
+    ],
+    [
+      "chick",
+      "farmer"
+    ],
+    [
+      "chicken",
+      "chicken_coop"
+    ],
+    [
+      "chicken",
+      "chicken_coop_essence"
+    ],
+    [
+      "chicken",
+      "conveyor_belt"
+    ],
+    [
+      "chicken",
+      "conveyor_belt_essence"
+    ],
+    [
+      "chicken",
+      "egg_carton"
+    ],
+    [
+      "chicken",
+      "egg_carton_essence"
+    ],
+    [
+      "chicken",
+      "farmer"
+    ],
+    [
+      "chicken",
+      "frying_pan"
+    ],
+    [
+      "chicken_coop",
+      "egg"
+    ],
+    [
+      "chicken_coop",
+      "egg_carton"
+    ],
+    [
+      "chicken_coop",
+      "golden_egg"
+    ],
+    [
+      "chicken_coop_essence",
+      "egg"
+    ],
+    [
+      "chicken_coop_essence",
+      "golden_egg"
+    ],
+    [
+      "chili_powder",
+      "chili_powder_essence"
+    ],
+    [
+      "chili_powder",
+      "cyan_pepper"
+    ],
+    [
+      "chili_powder",
+      "gray_pepper"
+    ],
+    [
+      "chili_powder",
+      "green_pepper"
+    ],
+    [
+      "chili_powder",
+      "lime_pepper"
+    ],
+    [
+      "chili_powder",
+      "pink_pepper"
+    ],
+    [
+      "chili_powder",
+      "purple_pepper"
+    ],
+    [
+      "chili_powder",
+      "red_pepper"
+    ],
+    [
+      "chili_powder",
+      "white_pepper"
+    ],
+    [
+      "chili_powder",
+      "yellow_pepper"
+    ],
+    [
+      "cleaning_rag",
+      "coal"
+    ],
+    [
+      "cleaning_rag",
+      "dame"
+    ],
+    [
+      "cleaning_rag",
+      "diamond"
+    ],
+    [
+      "cleaning_rag",
+      "emerald"
+    ],
+    [
+      "cleaning_rag",
+      "pearl"
+    ],
+    [
+      "cleaning_rag",
+      "ruby"
+    ],
+    [
+      "cleaning_rag",
+      "sapphire"
+    ],
+    [
+      "cleaning_rag",
+      "shiny_pebble"
+    ],
+    [
+      "cleaning_rag",
+      "void_stone"
+    ],
+    [
+      "cleaning_rag_essence",
+      "coal"
+    ],
+    [
+      "cleaning_rag_essence",
+      "diamond"
+    ],
+    [
+      "cleaning_rag_essence",
+      "dwarven_anvil"
+    ],
+    [
+      "cleaning_rag_essence",
+      "emerald"
+    ],
+    [
+      "cleaning_rag_essence",
+      "pearl"
+    ],
+    [
+      "cleaning_rag_essence",
+      "ruby"
+    ],
+    [
+      "cleaning_rag_essence",
+      "sapphire"
+    ],
+    [
+      "cleaning_rag_essence",
+      "shiny_pebble"
+    ],
+    [
+      "cleaning_rag_essence",
+      "void_stone"
+    ],
+    [
+      "clear_sky",
+      "moon"
+    ],
+    [
+      "clear_sky",
+      "sun"
+    ],
+    [
+      "clear_sky_essence",
+      "moon"
+    ],
+    [
+      "clear_sky_essence",
+      "sun"
+    ],
+    [
+      "clubs",
+      "clubs"
+    ],
+    [
+      "clubs",
+      "diamonds"
+    ],
+    [
+      "clubs",
+      "fifth_ace"
+    ],
+    [
+      "clubs",
+      "fifth_ace_essence"
+    ],
+    [
+      "clubs",
+      "flush"
+    ],
+    [
+      "clubs",
+      "flush_essence"
+    ],
+    [
+      "clubs",
+      "hearts"
+    ],
+    [
+      "clubs",
+      "joker"
+    ],
+    [
+      "clubs",
+      "spades"
+    ],
+    [
+      "coal",
+      "coal"
+    ],
+    [
+      "coal",
+      "dame"
+    ],
+    [
+      "coal",
+      "diamond"
+    ],
+    [
+      "coal",
+      "hex_of_destruction"
+    ],
+    [
+      "coal",
+      "light_bulb"
+    ],
+    [
+      "coal",
+      "time_machine"
+    ],
+    [
+      "coal",
+      "time_machine_essence"
+    ],
+    [
+      "coal",
+      "x_ray_machine_essence"
+    ],
+    [
+      "coconut",
+      "farmer"
+    ],
+    [
+      "coconut",
+      "fruit_basket"
+    ],
+    [
+      "coconut",
+      "fruit_basket_essence"
+    ],
+    [
+      "coconut",
+      "monkey"
+    ],
+    [
+      "coconut",
+      "mrs_fruit"
+    ],
+    [
+      "coconut",
+      "oswald_the_monkey_essence"
+    ],
+    [
+      "coconut_half",
+      "fruit_basket"
+    ],
+    [
+      "coconut_half",
+      "fruit_basket_essence"
+    ],
+    [
+      "coconut_half",
+      "monkey"
+    ],
+    [
+      "coconut_half",
+      "mrs_fruit"
+    ],
+    [
+      "coconut_half",
+      "oswald_the_monkey_essence"
+    ],
+    [
+      "coin",
+      "coin_on_a_string"
+    ],
+    [
+      "coin",
+      "coin_on_a_string_essence"
+    ],
+    [
+      "coin",
+      "king_midas"
+    ],
+    [
+      "coin",
+      "pirate"
+    ],
+    [
+      "coin",
+      "triple_coins"
+    ],
+    [
+      "coin",
+      "triple_coins_essence"
+    ],
+    [
+      "coin_on_a_string",
+      "hex_of_midas"
+    ],
+    [
+      "coin_on_a_string",
+      "king_midas"
+    ],
+    [
+      "coin_on_a_string",
+      "pirate"
+    ],
+    [
+      "coin_on_a_string",
+      "triple_coins"
+    ],
+    [
+      "coin_on_a_string_essence",
+      "hex_of_midas"
+    ],
+    [
+      "coin_on_a_string_essence",
+      "king_midas"
+    ],
+    [
+      "comedian",
+      "dark_humor"
+    ],
+    [
+      "comedian",
+      "dark_humor_essence"
+    ],
+    [
+      "comedian",
+      "dog"
+    ],
+    [
+      "comedian",
+      "general_zaroff"
+    ],
+    [
+      "comedian",
+      "golden_carrot"
+    ],
+    [
+      "comedian",
+      "joker"
+    ],
+    [
+      "comedian",
+      "lucky_carrot"
+    ],
+    [
+      "comedian",
+      "lunchbox"
+    ],
+    [
+      "comedian",
+      "monkey"
+    ],
+    [
+      "comedian",
+      "quigley_the_wolf"
+    ],
+    [
+      "comedian",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "comedian",
+      "ricky_the_banana"
+    ],
+    [
+      "comedian",
+      "ricky_the_banana_essence"
+    ],
+    [
+      "comedian",
+      "toddler"
+    ],
+    [
+      "comedian",
+      "zaroffs_contract"
+    ],
+    [
+      "compost_heap",
+      "farmer"
+    ],
+    [
+      "compost_heap",
+      "fertilizer"
+    ],
+    [
+      "compost_heap",
+      "fertilizer_essence"
+    ],
+    [
+      "compost_heap",
+      "fruit_basket_essence"
+    ],
+    [
+      "compost_heap",
+      "mrs_fruit"
+    ],
+    [
+      "compost_heap",
+      "watering_can"
+    ],
+    [
+      "compost_heap_essence",
+      "farmer"
+    ],
+    [
+      "compost_heap_essence",
+      "fruit_basket_essence"
+    ],
+    [
+      "compost_heap_essence",
+      "void_party"
+    ],
+    [
+      "compost_heap_essence",
+      "watermelon"
+    ],
+    [
+      "conveyor_belt",
+      "cow"
+    ],
+    [
+      "conveyor_belt",
+      "goose"
+    ],
+    [
+      "conveyor_belt",
+      "hex_of_midas"
+    ],
+    [
+      "conveyor_belt",
+      "oyster"
+    ],
+    [
+      "conveyor_belt",
+      "shedding_season"
+    ],
+    [
+      "conveyor_belt",
+      "tomb"
+    ],
+    [
+      "conveyor_belt_essence",
+      "cow"
+    ],
+    [
+      "conveyor_belt_essence",
+      "goose"
+    ],
+    [
+      "conveyor_belt_essence",
+      "hex_of_midas"
+    ],
+    [
+      "conveyor_belt_essence",
+      "oyster"
+    ],
+    [
+      "conveyor_belt_essence",
+      "shedding_season"
+    ],
+    [
+      "conveyor_belt_essence",
+      "shedding_season_essence"
+    ],
+    [
+      "conveyor_belt_essence",
+      "tomb"
+    ],
+    [
+      "cow",
+      "farmer"
+    ],
+    [
+      "cow",
+      "pizza_the_cat_essence"
+    ],
+    [
+      "crab",
+      "crab"
+    ],
+    [
+      "crab",
+      "diver"
+    ],
+    [
+      "crab",
+      "hex_of_tedium"
+    ],
+    [
+      "crab",
+      "lefty_the_rabbit"
+    ],
+    [
+      "crab",
+      "lucky_cat"
+    ],
+    [
+      "crab",
+      "rabbit_fluff"
+    ],
+    [
+      "crow",
+      "tax_evasion"
+    ],
+    [
+      "crow",
+      "witch"
+    ],
+    [
+      "cultist",
+      "cultist"
+    ],
+    [
+      "cultist",
+      "dog"
+    ],
+    [
+      "cultist",
+      "eldritch_beast"
+    ],
+    [
+      "cultist",
+      "frozen_fossil"
+    ],
+    [
+      "cultist",
+      "general_zaroff"
+    ],
+    [
+      "cultist",
+      "hex_of_tedium"
+    ],
+    [
+      "cultist",
+      "lefty_the_rabbit"
+    ],
+    [
+      "cultist",
+      "lucky_cat"
+    ],
+    [
+      "cultist",
+      "rabbit_fluff"
+    ],
+    [
+      "cultist",
+      "ritual_candle"
+    ],
+    [
+      "cultist",
+      "ritual_candle_essence"
+    ],
+    [
+      "cultist",
+      "zaroffs_contract"
+    ],
+    [
+      "cursed_katana",
+      "ninja"
+    ],
+    [
+      "cursed_katana",
+      "ninja_and_mouse"
+    ],
+    [
+      "cursed_katana_essence",
+      "ninja"
+    ],
+    [
+      "d3",
+      "gambler"
+    ],
+    [
+      "d3",
+      "lucky_dice"
+    ],
+    [
+      "d3",
+      "lucky_dice_essence"
+    ],
+    [
+      "d3",
+      "reroll"
+    ],
+    [
+      "d3",
+      "reroll_essence"
+    ],
+    [
+      "d5",
+      "gambler"
+    ],
+    [
+      "d5",
+      "lucky_dice"
+    ],
+    [
+      "d5",
+      "lucky_dice_essence"
+    ],
+    [
+      "d5",
+      "reroll"
+    ],
+    [
+      "d5",
+      "reroll_essence"
+    ],
+    [
+      "dame",
+      "diamond"
+    ],
+    [
+      "dame",
+      "dog"
+    ],
+    [
+      "dame",
+      "emerald"
+    ],
+    [
+      "dame",
+      "general_zaroff"
+    ],
+    [
+      "dame",
+      "martini"
+    ],
+    [
+      "dame",
+      "pearl"
+    ],
+    [
+      "dame",
+      "ruby"
+    ],
+    [
+      "dame",
+      "sapphire"
+    ],
+    [
+      "dame",
+      "shiny_pebble"
+    ],
+    [
+      "dame",
+      "void_stone"
+    ],
+    [
+      "dame",
+      "zaroffs_contract"
+    ],
+    [
+      "dark_humor",
+      "dog"
+    ],
+    [
+      "dark_humor",
+      "joker"
+    ],
+    [
+      "dark_humor",
+      "quigley_the_wolf"
+    ],
+    [
+      "dark_humor",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "dark_humor",
+      "rabbit_fluff"
+    ],
+    [
+      "dark_humor",
+      "ricky_the_banana"
+    ],
+    [
+      "dark_humor",
+      "spirit"
+    ],
+    [
+      "dark_humor",
+      "toddler"
+    ],
+    [
+      "dark_humor",
+      "tomb"
+    ],
+    [
+      "dark_humor",
+      "undertaker"
+    ],
+    [
+      "dark_humor",
+      "urn"
+    ],
+    [
+      "dark_humor",
+      "wine"
+    ],
+    [
+      "dark_humor_essence",
+      "dog"
+    ],
+    [
+      "dark_humor_essence",
+      "joker"
+    ],
+    [
+      "dark_humor_essence",
+      "monkey"
+    ],
+    [
+      "dark_humor_essence",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "dark_humor_essence",
+      "toddler"
+    ],
+    [
+      "diamond",
+      "diamond"
+    ],
+    [
+      "diamond",
+      "light_bulb"
+    ],
+    [
+      "diamond",
+      "x_ray_machine_essence"
+    ],
+    [
+      "diamonds",
+      "diamonds"
+    ],
+    [
+      "diamonds",
+      "fifth_ace"
+    ],
+    [
+      "diamonds",
+      "fifth_ace_essence"
+    ],
+    [
+      "diamonds",
+      "flush"
+    ],
+    [
+      "diamonds",
+      "flush_essence"
+    ],
+    [
+      "diamonds",
+      "hearts"
+    ],
+    [
+      "diamonds",
+      "joker"
+    ],
+    [
+      "diamonds",
+      "red_suits"
+    ],
+    [
+      "diamonds",
+      "red_suits_essence"
+    ],
+    [
+      "diamonds",
+      "spades"
+    ],
+    [
+      "diver",
+      "dog"
+    ],
+    [
+      "diver",
+      "general_zaroff"
+    ],
+    [
+      "diver",
+      "goldfish"
+    ],
+    [
+      "diver",
+      "jellyfish"
+    ],
+    [
+      "diver",
+      "oyster"
+    ],
+    [
+      "diver",
+      "pearl"
+    ],
+    [
+      "diver",
+      "pufferfish"
+    ],
+    [
+      "diver",
+      "sand_dollar"
+    ],
+    [
+      "diver",
+      "snail"
+    ],
+    [
+      "diver",
+      "symbol_bomb_big"
+    ],
+    [
+      "diver",
+      "symbol_bomb_quantum"
+    ],
+    [
+      "diver",
+      "symbol_bomb_quantum_essence"
+    ],
+    [
+      "diver",
+      "symbol_bomb_small"
+    ],
+    [
+      "diver",
+      "symbol_bomb_very_big"
+    ],
+    [
+      "diver",
+      "turtle"
+    ],
+    [
+      "diver",
+      "zaroffs_contract"
+    ],
+    [
+      "dog",
+      "dwarf"
+    ],
+    [
+      "dog",
+      "farmer"
+    ],
+    [
+      "dog",
+      "gambler"
+    ],
+    [
+      "dog",
+      "general_zaroff"
+    ],
+    [
+      "dog",
+      "hooligan"
+    ],
+    [
+      "dog",
+      "joker"
+    ],
+    [
+      "dog",
+      "king_midas"
+    ],
+    [
+      "dog",
+      "miner"
+    ],
+    [
+      "dog",
+      "mrs_fruit"
+    ],
+    [
+      "dog",
+      "ninja"
+    ],
+    [
+      "dog",
+      "pirate"
+    ],
+    [
+      "dog",
+      "quigley_the_wolf"
+    ],
+    [
+      "dog",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "dog",
+      "robin_hood"
+    ],
+    [
+      "dog",
+      "thief"
+    ],
+    [
+      "dog",
+      "toddler"
+    ],
+    [
+      "dog",
+      "witch"
+    ],
+    [
+      "dove",
+      "general_zaroff"
+    ],
+    [
+      "dove",
+      "matryoshka_doll_1"
+    ],
+    [
+      "dwarf",
+      "dwarven_anvil"
+    ],
+    [
+      "dwarf",
+      "dwarven_anvil_essence"
+    ],
+    [
+      "dwarf",
+      "general_zaroff"
+    ],
+    [
+      "dwarf",
+      "happy_hour"
+    ],
+    [
+      "dwarf",
+      "happy_hour_essence"
+    ],
+    [
+      "dwarf",
+      "lunchbox"
+    ],
+    [
+      "dwarf",
+      "wine"
+    ],
+    [
+      "dwarf",
+      "zaroffs_contract"
+    ],
+    [
+      "dwarven_anvil",
+      "mining_pick"
+    ],
+    [
+      "dwarven_anvil",
+      "ore"
+    ],
+    [
+      "dwarven_anvil",
+      "wine"
+    ],
+    [
+      "dwarven_anvil",
+      "x_ray_machine_essence"
+    ],
+    [
+      "dwarven_anvil_essence",
+      "ore"
+    ],
+    [
+      "dwarven_anvil_essence",
+      "wine"
+    ],
+    [
+      "egg",
+      "egg_carton"
+    ],
+    [
+      "egg",
+      "egg_carton_essence"
+    ],
+    [
+      "egg",
+      "farmer"
+    ],
+    [
+      "egg",
+      "frying_pan"
+    ],
+    [
+      "egg",
+      "frying_pan_essence"
+    ],
+    [
+      "egg_carton",
+      "frying_pan"
+    ],
+    [
+      "egg_carton",
+      "frying_pan_essence"
+    ],
+    [
+      "egg_carton",
+      "lunchbox"
+    ],
+    [
+      "eldritch_beast",
+      "frozen_fossil"
+    ],
+    [
+      "eldritch_beast",
+      "hex_of_destruction"
+    ],
+    [
+      "eldritch_beast",
+      "hex_of_draining"
+    ],
+    [
+      "eldritch_beast",
+      "hex_of_emptiness"
+    ],
+    [
+      "eldritch_beast",
+      "hex_of_hoarding"
+    ],
+    [
+      "eldritch_beast",
+      "hex_of_tedium"
+    ],
+    [
+      "eldritch_beast",
+      "hex_of_thievery"
+    ],
+    [
+      "eldritch_beast",
+      "witch"
+    ],
+    [
+      "emerald",
+      "emerald"
+    ],
+    [
+      "emerald",
+      "light_bulb"
+    ],
+    [
+      "empty",
+      "green_pepper"
+    ],
+    [
+      "empty",
+      "green_pepper_essence"
+    ],
+    [
+      "empty",
+      "purple_pepper"
+    ],
+    [
+      "empty",
+      "red_pepper_essence"
+    ],
+    [
+      "empty",
+      "rusty_gear_essence"
+    ],
+    [
+      "essence_capsule",
+      "tax_evasion"
+    ],
+    [
+      "essence_capsule",
+      "tax_evasion_essence"
+    ],
+    [
+      "farmer",
+      "fertilizer"
+    ],
+    [
+      "farmer",
+      "flower"
+    ],
+    [
+      "farmer",
+      "fruit_basket"
+    ],
+    [
+      "farmer",
+      "general_zaroff"
+    ],
+    [
+      "farmer",
+      "golden_egg"
+    ],
+    [
+      "farmer",
+      "lunchbox"
+    ],
+    [
+      "farmer",
+      "milk"
+    ],
+    [
+      "farmer",
+      "orange"
+    ],
+    [
+      "farmer",
+      "peach"
+    ],
+    [
+      "farmer",
+      "pear"
+    ],
+    [
+      "farmer",
+      "seed"
+    ],
+    [
+      "farmer",
+      "strawberry"
+    ],
+    [
+      "farmer",
+      "void_fruit"
+    ],
+    [
+      "farmer",
+      "watermelon"
+    ],
+    [
+      "farmer",
+      "zaroffs_contract"
+    ],
+    [
+      "fertilizer",
+      "fruit_basket"
+    ],
+    [
+      "fertilizer",
+      "seed"
+    ],
+    [
+      "fertilizer_essence",
+      "seed"
+    ],
+    [
+      "fertilizer_essence",
+      "watermelon"
+    ],
+    [
+      "fifth_ace",
+      "hearts"
+    ],
+    [
+      "fifth_ace",
+      "red_suits"
+    ],
+    [
+      "fifth_ace",
+      "spades"
+    ],
+    [
+      "fifth_ace_essence",
+      "hearts"
+    ],
+    [
+      "fifth_ace_essence",
+      "spades"
+    ],
+    [
+      "fish_bowl",
+      "goldfish"
+    ],
+    [
+      "fish_bowl_essence",
+      "goldfish"
+    ],
+    [
+      "flower",
+      "rain"
+    ],
+    [
+      "flower",
+      "rain_cloud_essence"
+    ],
+    [
+      "flower",
+      "sun"
+    ],
+    [
+      "flush",
+      "flush_essence"
+    ],
+    [
+      "flush",
+      "hearts"
+    ],
+    [
+      "flush",
+      "red_suits"
+    ],
+    [
+      "flush",
+      "spades"
+    ],
+    [
+      "flush_essence",
+      "hearts"
+    ],
+    [
+      "flush_essence",
+      "red_suits"
+    ],
+    [
+      "flush_essence",
+      "spades"
+    ],
+    [
+      "frozen_fossil",
+      "hex_of_destruction"
+    ],
+    [
+      "frozen_fossil",
+      "hex_of_draining"
+    ],
+    [
+      "frozen_fossil",
+      "hex_of_emptiness"
+    ],
+    [
+      "frozen_fossil",
+      "hex_of_hoarding"
+    ],
+    [
+      "frozen_fossil",
+      "hex_of_tedium"
+    ],
+    [
+      "frozen_fossil",
+      "hex_of_thievery"
+    ],
+    [
+      "frozen_fossil",
+      "holy_water"
+    ],
+    [
+      "frozen_fossil",
+      "time_machine"
+    ],
+    [
+      "frozen_fossil",
+      "time_machine_essence"
+    ],
+    [
+      "frozen_fossil",
+      "witch"
+    ],
+    [
+      "fruit_basket",
+      "fruit_basket_essence"
+    ],
+    [
+      "fruit_basket",
+      "lunchbox"
+    ],
+    [
+      "fruit_basket",
+      "orange"
+    ],
+    [
+      "fruit_basket",
+      "peach"
+    ],
+    [
+      "fruit_basket",
+      "pear"
+    ],
+    [
+      "fruit_basket",
+      "strawberry"
+    ],
+    [
+      "fruit_basket",
+      "void_fruit"
+    ],
+    [
+      "fruit_basket",
+      "watermelon"
+    ],
+    [
+      "fruit_basket_essence",
+      "lunchbox"
+    ],
+    [
+      "fruit_basket_essence",
+      "orange"
+    ],
+    [
+      "fruit_basket_essence",
+      "peach"
+    ],
+    [
+      "fruit_basket_essence",
+      "pear"
+    ],
+    [
+      "fruit_basket_essence",
+      "strawberry"
+    ],
+    [
+      "fruit_basket_essence",
+      "void_fruit"
+    ],
+    [
+      "fruit_basket_essence",
+      "watermelon"
+    ],
+    [
+      "frying_pan",
+      "frying_pan_essence"
+    ],
+    [
+      "frying_pan",
+      "golden_egg"
+    ],
+    [
+      "frying_pan",
+      "lunchbox"
+    ],
+    [
+      "frying_pan",
+      "milk"
+    ],
+    [
+      "frying_pan",
+      "mouse"
+    ],
+    [
+      "frying_pan",
+      "omelette"
+    ],
+    [
+      "frying_pan_essence",
+      "golden_egg"
+    ],
+    [
+      "frying_pan_essence",
+      "lunchbox"
+    ],
+    [
+      "frying_pan_essence",
+      "milk"
+    ],
+    [
+      "frying_pan_essence",
+      "omelette"
+    ],
+    [
+      "gambler",
+      "general_zaroff"
+    ],
+    [
+      "gambler",
+      "looting_glove"
+    ],
+    [
+      "gambler",
+      "looting_glove_essence"
+    ],
+    [
+      "gambler",
+      "midas_bomb"
+    ],
+    [
+      "gambler",
+      "mobius_strip"
+    ],
+    [
+      "gambler",
+      "mobius_strip_essence"
+    ],
+    [
+      "gambler",
+      "shrine"
+    ],
+    [
+      "gambler",
+      "zaroffs_contract"
+    ],
+    [
+      "general_zaroff",
+      "general_zaroff"
+    ],
+    [
+      "general_zaroff",
+      "guillotine"
+    ],
+    [
+      "general_zaroff",
+      "hooligan"
+    ],
+    [
+      "general_zaroff",
+      "joker"
+    ],
+    [
+      "general_zaroff",
+      "king_midas"
+    ],
+    [
+      "general_zaroff",
+      "miner"
+    ],
+    [
+      "general_zaroff",
+      "mrs_fruit"
+    ],
+    [
+      "general_zaroff",
+      "ninja"
+    ],
+    [
+      "general_zaroff",
+      "pirate"
+    ],
+    [
+      "general_zaroff",
+      "robin_hood"
+    ],
+    [
+      "general_zaroff",
+      "shrine"
+    ],
+    [
+      "general_zaroff",
+      "symbol_bomb_quantum"
+    ],
+    [
+      "general_zaroff",
+      "symbol_bomb_very_big"
+    ],
+    [
+      "general_zaroff",
+      "thief"
+    ],
+    [
+      "general_zaroff",
+      "toddler"
+    ],
+    [
+      "general_zaroff",
+      "witch"
+    ],
+    [
+      "general_zaroff",
+      "zaroffs_contract"
+    ],
+    [
+      "general_zaroff",
+      "zaroffs_contract_essence"
+    ],
+    [
+      "golden_arrow",
+      "pear"
+    ],
+    [
+      "golden_arrow",
+      "quiver"
+    ],
+    [
+      "golden_arrow",
+      "quiver_essence"
+    ],
+    [
+      "golden_arrow",
+      "robin_hood"
+    ],
+    [
+      "golden_arrow",
+      "target"
+    ],
+    [
+      "golden_carrot",
+      "moon"
+    ],
+    [
+      "golden_carrot",
+      "rabbit"
+    ],
+    [
+      "golden_egg",
+      "omelette"
+    ],
+    [
+      "goldilocks",
+      "green_pepper"
+    ],
+    [
+      "goldilocks",
+      "honey"
+    ],
+    [
+      "goldilocks",
+      "maxwell_the_bear"
+    ],
+    [
+      "goldilocks",
+      "maxwell_the_bear_essence"
+    ],
+    [
+      "goldilocks",
+      "purple_pepper"
+    ],
+    [
+      "golem",
+      "miner"
+    ],
+    [
+      "golem",
+      "time_machine"
+    ],
+    [
+      "golem",
+      "time_machine_essence"
+    ],
+    [
+      "grave_robber",
+      "grave_robber_essence"
+    ],
+    [
+      "grave_robber",
+      "hooligan"
+    ],
+    [
+      "grave_robber",
+      "tomb"
+    ],
+    [
+      "grave_robber",
+      "undertaker"
+    ],
+    [
+      "grave_robber",
+      "undertaker_essence"
+    ],
+    [
+      "grave_robber",
+      "urn"
+    ],
+    [
+      "grave_robber",
+      "witch"
+    ],
+    [
+      "grave_robber_essence",
+      "hooligan"
+    ],
+    [
+      "grave_robber_essence",
+      "tomb"
+    ],
+    [
+      "grave_robber_essence",
+      "urn"
+    ],
+    [
+      "gray_pepper",
+      "jellyfish"
+    ],
+    [
+      "guillotine",
+      "mobius_strip"
+    ],
+    [
+      "guillotine",
+      "robin_hood"
+    ],
+    [
+      "guillotine",
+      "zaroffs_contract"
+    ],
+    [
+      "happy_hour",
+      "lunchbox"
+    ],
+    [
+      "happy_hour",
+      "martini"
+    ],
+    [
+      "happy_hour",
+      "wine"
+    ],
+    [
+      "happy_hour_essence",
+      "lunchbox"
+    ],
+    [
+      "happy_hour_essence",
+      "martini"
+    ],
+    [
+      "happy_hour_essence",
+      "pirate"
+    ],
+    [
+      "happy_hour_essence",
+      "wine"
+    ],
+    [
+      "hearts",
+      "hearts"
+    ],
+    [
+      "hearts",
+      "joker"
+    ],
+    [
+      "hearts",
+      "red_suits"
+    ],
+    [
+      "hearts",
+      "red_suits_essence"
+    ],
+    [
+      "hearts",
+      "spades"
+    ],
+    [
+      "hex_of_destruction",
+      "holy_water"
+    ],
+    [
+      "hex_of_destruction",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_destruction",
+      "matryoshka_doll_1"
+    ],
+    [
+      "hex_of_destruction",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_destruction",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_destruction",
+      "shrine"
+    ],
+    [
+      "hex_of_destruction",
+      "witch"
+    ],
+    [
+      "hex_of_draining",
+      "holy_water"
+    ],
+    [
+      "hex_of_draining",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_draining",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_draining",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_draining",
+      "witch"
+    ],
+    [
+      "hex_of_emptiness",
+      "holy_water"
+    ],
+    [
+      "hex_of_emptiness",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_emptiness",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_emptiness",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_emptiness",
+      "witch"
+    ],
+    [
+      "hex_of_hoarding",
+      "holy_water"
+    ],
+    [
+      "hex_of_hoarding",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_hoarding",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_hoarding",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_hoarding",
+      "witch"
+    ],
+    [
+      "hex_of_midas",
+      "holy_water"
+    ],
+    [
+      "hex_of_midas",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_midas",
+      "pirate"
+    ],
+    [
+      "hex_of_midas",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_midas",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_midas",
+      "triple_coins"
+    ],
+    [
+      "hex_of_midas",
+      "triple_coins_essence"
+    ],
+    [
+      "hex_of_tedium",
+      "holy_water"
+    ],
+    [
+      "hex_of_tedium",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_tedium",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_tedium",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_tedium",
+      "witch"
+    ],
+    [
+      "hex_of_thievery",
+      "holy_water"
+    ],
+    [
+      "hex_of_thievery",
+      "holy_water_essence"
+    ],
+    [
+      "hex_of_thievery",
+      "ritual_candle"
+    ],
+    [
+      "hex_of_thievery",
+      "ritual_candle_essence"
+    ],
+    [
+      "hex_of_thievery",
+      "witch"
+    ],
+    [
+      "highlander",
+      "highlander"
+    ],
+    [
+      "holy_water",
+      "ritual_candle"
+    ],
+    [
+      "holy_water_essence",
+      "ritual_candle"
+    ],
+    [
+      "honey",
+      "maxwell_the_bear"
+    ],
+    [
+      "honey",
+      "maxwell_the_bear_essence"
+    ],
+    [
+      "hooligan",
+      "tomb"
+    ],
+    [
+      "hooligan",
+      "undertaker"
+    ],
+    [
+      "hooligan",
+      "urn"
+    ],
+    [
+      "hooligan",
+      "zaroffs_contract"
+    ],
+    [
+      "hustler",
+      "tax_evasion"
+    ],
+    [
+      "hustler",
+      "tax_evasion_essence"
+    ],
+    [
+      "jackolantern",
+      "pinata"
+    ],
+    [
+      "jackolantern",
+      "toddler"
+    ],
+    [
+      "jackolantern_essence",
+      "pinata"
+    ],
+    [
+      "jackolantern_essence",
+      "toddler"
+    ],
+    [
+      "joker",
+      "spades"
+    ],
+    [
+      "joker",
+      "zaroffs_contract"
+    ],
+    [
+      "key",
+      "lockbox"
+    ],
+    [
+      "key",
+      "lockpick"
+    ],
+    [
+      "key",
+      "lockpick_essence"
+    ],
+    [
+      "key",
+      "looting_glove"
+    ],
+    [
+      "key",
+      "looting_glove_essence"
+    ],
+    [
+      "key",
+      "magic_key"
+    ],
+    [
+      "key",
+      "mega_chest"
+    ],
+    [
+      "key",
+      "pirate"
+    ],
+    [
+      "key",
+      "safe"
+    ],
+    [
+      "key",
+      "treasure_chest"
+    ],
+    [
+      "king_midas",
+      "pirate"
+    ],
+    [
+      "king_midas",
+      "triple_coins"
+    ],
+    [
+      "king_midas",
+      "triple_coins_essence"
+    ],
+    [
+      "king_midas",
+      "zaroffs_contract"
+    ],
+    [
+      "kyle_the_kernite",
+      "mine"
+    ],
+    [
+      "kyle_the_kernite",
+      "ore"
+    ],
+    [
+      "kyle_the_kernite",
+      "shiny_pebble"
+    ],
+    [
+      "kyle_the_kernite_essence",
+      "ore"
+    ],
+    [
+      "kyle_the_kernite_essence",
+      "shiny_pebble"
+    ],
+    [
+      "lefty_the_rabbit",
+      "lint_roller"
+    ],
+    [
+      "lefty_the_rabbit",
+      "lint_roller_essence"
+    ],
+    [
+      "lefty_the_rabbit",
+      "nori_the_rabbit"
+    ],
+    [
+      "lefty_the_rabbit",
+      "rabbit"
+    ],
+    [
+      "lefty_the_rabbit",
+      "rabbit_fluff"
+    ],
+    [
+      "lefty_the_rabbit_essence",
+      "rabbit"
+    ],
+    [
+      "lefty_the_rabbit_essence",
+      "rabbit_fluff"
+    ],
+    [
+      "lefty_the_rabbit_essence",
+      "shedding_season_essence"
+    ],
+    [
+      "lemon_essence",
+      "yellow_pepper"
+    ],
+    [
+      "light_bulb",
+      "pearl"
+    ],
+    [
+      "light_bulb",
+      "ruby"
+    ],
+    [
+      "light_bulb",
+      "sapphire"
+    ],
+    [
+      "light_bulb",
+      "shiny_pebble"
+    ],
+    [
+      "light_bulb",
+      "void_stone"
+    ],
+    [
+      "lime_pepper",
+      "reroll_capsule"
+    ],
+    [
+      "lint_roller",
+      "rabbit_fluff"
+    ],
+    [
+      "lint_roller",
+      "shedding_season"
+    ],
+    [
+      "lint_roller",
+      "shedding_season_essence"
+    ],
+    [
+      "lint_roller_essence",
+      "rabbit"
+    ],
+    [
+      "lint_roller_essence",
+      "rabbit_fluff"
+    ],
+    [
+      "lint_roller_essence",
+      "shedding_season"
+    ],
+    [
+      "lint_roller_essence",
+      "shedding_season_essence"
+    ],
+    [
+      "lockbox",
+      "lockpick"
+    ],
+    [
+      "lockbox",
+      "lockpick_essence"
+    ],
+    [
+      "lockbox",
+      "looting_glove"
+    ],
+    [
+      "lockbox",
+      "looting_glove_essence"
+    ],
+    [
+      "lockbox",
+      "magic_key"
+    ],
+    [
+      "lockbox",
+      "mobius_strip"
+    ],
+    [
+      "lockbox",
+      "mobius_strip_essence"
+    ],
+    [
+      "lockbox",
+      "pirate"
+    ],
+    [
+      "lockpick",
+      "lockpick_essence"
+    ],
+    [
+      "lockpick",
+      "looting_glove"
+    ],
+    [
+      "lockpick",
+      "magic_key"
+    ],
+    [
+      "lockpick",
+      "mega_chest"
+    ],
+    [
+      "lockpick",
+      "mobius_strip"
+    ],
+    [
+      "lockpick",
+      "mobius_strip_essence"
+    ],
+    [
+      "lockpick",
+      "pirate"
+    ],
+    [
+      "lockpick",
+      "safe"
+    ],
+    [
+      "lockpick",
+      "treasure_chest"
+    ],
+    [
+      "lockpick_essence",
+      "magic_key"
+    ],
+    [
+      "lockpick_essence",
+      "mega_chest"
+    ],
+    [
+      "lockpick_essence",
+      "pirate"
+    ],
+    [
+      "lockpick_essence",
+      "safe"
+    ],
+    [
+      "lockpick_essence",
+      "treasure_chest"
+    ],
+    [
+      "looting_glove",
+      "lucky_capsule"
+    ],
+    [
+      "looting_glove",
+      "magic_key"
+    ],
+    [
+      "looting_glove",
+      "mega_chest"
+    ],
+    [
+      "looting_glove",
+      "pirate"
+    ],
+    [
+      "looting_glove",
+      "present"
+    ],
+    [
+      "looting_glove",
+      "safe"
+    ],
+    [
+      "looting_glove",
+      "target"
+    ],
+    [
+      "looting_glove",
+      "tedium_capsule"
+    ],
+    [
+      "looting_glove",
+      "thief"
+    ],
+    [
+      "looting_glove",
+      "treasure_chest"
+    ],
+    [
+      "looting_glove",
+      "void_creature"
+    ],
+    [
+      "looting_glove",
+      "void_fruit"
+    ],
+    [
+      "looting_glove",
+      "void_stone"
+    ],
+    [
+      "looting_glove_essence",
+      "lucky_capsule"
+    ],
+    [
+      "looting_glove_essence",
+      "magic_key"
+    ],
+    [
+      "looting_glove_essence",
+      "mega_chest"
+    ],
+    [
+      "looting_glove_essence",
+      "safe"
+    ],
+    [
+      "looting_glove_essence",
+      "target"
+    ],
+    [
+      "looting_glove_essence",
+      "tedium_capsule"
+    ],
+    [
+      "looting_glove_essence",
+      "thief"
+    ],
+    [
+      "looting_glove_essence",
+      "treasure_chest"
+    ],
+    [
+      "looting_glove_essence",
+      "void_creature"
+    ],
+    [
+      "looting_glove_essence",
+      "void_fruit"
+    ],
+    [
+      "looting_glove_essence",
+      "void_stone"
+    ],
+    [
+      "lucky_capsule",
+      "mobius_strip"
+    ],
+    [
+      "lucky_capsule",
+      "mobius_strip_essence"
+    ],
+    [
+      "lucky_carrot",
+      "moon"
+    ],
+    [
+      "lucky_carrot",
+      "rabbit"
+    ],
+    [
+      "lunchbox",
+      "monkey"
+    ],
+    [
+      "lunchbox",
+      "mouse"
+    ],
+    [
+      "lunchbox",
+      "mrs_fruit"
+    ],
+    [
+      "lunchbox",
+      "pirate"
+    ],
+    [
+      "lunchbox",
+      "ricky_the_banana"
+    ],
+    [
+      "lunchbox",
+      "ricky_the_banana_essence"
+    ],
+    [
+      "lunchbox",
+      "toddler"
+    ],
+    [
+      "lunchbox_essence",
+      "mrs_fruit"
+    ],
+    [
+      "magic_key",
+      "mega_chest"
+    ],
+    [
+      "magic_key",
+      "pirate"
+    ],
+    [
+      "magic_key",
+      "safe"
+    ],
+    [
+      "magic_key",
+      "treasure_chest"
+    ],
+    [
+      "magpie",
+      "tax_evasion"
+    ],
+    [
+      "magpie",
+      "tax_evasion_essence"
+    ],
+    [
+      "matryoshka_doll_1",
+      "time_machine"
+    ],
+    [
+      "matryoshka_doll_1",
+      "time_machine_essence"
+    ],
+    [
+      "matryoshka_doll_1",
+      "void_portal"
+    ],
+    [
+      "matryoshka_doll_2",
+      "time_capsule"
+    ],
+    [
+      "matryoshka_doll_2",
+      "time_machine"
+    ],
+    [
+      "matryoshka_doll_2",
+      "time_machine_essence"
+    ],
+    [
+      "matryoshka_doll_3",
+      "time_capsule"
+    ],
+    [
+      "matryoshka_doll_3",
+      "time_machine"
+    ],
+    [
+      "matryoshka_doll_3",
+      "time_machine_essence"
+    ],
+    [
+      "matryoshka_doll_4",
+      "time_capsule"
+    ],
+    [
+      "matryoshka_doll_4",
+      "time_machine"
+    ],
+    [
+      "matryoshka_doll_4",
+      "time_machine_essence"
+    ],
+    [
+      "matryoshka_doll_5",
+      "time_capsule"
+    ],
+    [
+      "mega_chest",
+      "midas_bomb"
+    ],
+    [
+      "mega_chest",
+      "mobius_strip"
+    ],
+    [
+      "mega_chest",
+      "mobius_strip_essence"
+    ],
+    [
+      "mega_chest",
+      "pirate"
+    ],
+    [
+      "midas_bomb",
+      "swapping_device"
+    ],
+    [
+      "midas_bomb",
+      "swapping_device_essence"
+    ],
+    [
+      "midas_bomb",
+      "telescope_essence"
+    ],
+    [
+      "milk",
+      "omelette"
+    ],
+    [
+      "milk",
+      "pizza_the_cat_essence"
+    ],
+    [
+      "mine",
+      "mining_pick"
+    ],
+    [
+      "miner",
+      "mining_pick"
+    ],
+    [
+      "miner",
+      "ore"
+    ],
+    [
+      "miner",
+      "x_ray_machine_essence"
+    ],
+    [
+      "miner",
+      "zaroffs_contract"
+    ],
+    [
+      "mining_pick",
+      "ore"
+    ],
+    [
+      "mining_pick_essence",
+      "ore"
+    ],
+    [
+      "mobius_strip",
+      "pirate"
+    ],
+    [
+      "mobius_strip",
+      "safe"
+    ],
+    [
+      "mobius_strip",
+      "target"
+    ],
+    [
+      "mobius_strip",
+      "tedium_capsule"
+    ],
+    [
+      "mobius_strip",
+      "thief"
+    ],
+    [
+      "mobius_strip",
+      "treasure_chest"
+    ],
+    [
+      "mobius_strip",
+      "void_creature"
+    ],
+    [
+      "mobius_strip",
+      "void_fruit"
+    ],
+    [
+      "mobius_strip",
+      "void_stone"
+    ],
+    [
+      "mobius_strip_essence",
+      "safe"
+    ],
+    [
+      "mobius_strip_essence",
+      "target"
+    ],
+    [
+      "mobius_strip_essence",
+      "tedium_capsule"
+    ],
+    [
+      "mobius_strip_essence",
+      "thief"
+    ],
+    [
+      "mobius_strip_essence",
+      "treasure_chest"
+    ],
+    [
+      "mobius_strip_essence",
+      "void_creature"
+    ],
+    [
+      "mobius_strip_essence",
+      "void_fruit"
+    ],
+    [
+      "mobius_strip_essence",
+      "void_party"
+    ],
+    [
+      "mobius_strip_essence",
+      "void_stone"
+    ],
+    [
+      "monkey",
+      "mrs_fruit"
+    ],
+    [
+      "monkey",
+      "oswald_the_monkey"
+    ],
+    [
+      "monkey",
+      "oswald_the_monkey_essence"
+    ],
+    [
+      "monkey",
+      "ricky_the_banana"
+    ],
+    [
+      "moon",
+      "owl"
+    ],
+    [
+      "moon",
+      "quigley_the_wolf"
+    ],
+    [
+      "moon",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "moon",
+      "rabbit"
+    ],
+    [
+      "moon",
+      "wolf"
+    ],
+    [
+      "mouse",
+      "ninja"
+    ],
+    [
+      "mouse",
+      "ninja_and_mouse"
+    ],
+    [
+      "mouse",
+      "ninja_and_mouse_essence"
+    ],
+    [
+      "mrs_fruit",
+      "orange"
+    ],
+    [
+      "mrs_fruit",
+      "peach"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_big"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_big_essence"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_quantum"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_quantum_essence"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_small"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_small_essence"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_very_big"
+    ],
+    [
+      "mrs_fruit",
+      "symbol_bomb_very_big_essence"
+    ],
+    [
+      "mrs_fruit",
+      "watering_can"
+    ],
+    [
+      "mrs_fruit",
+      "zaroffs_contract"
+    ],
+    [
+      "ninja",
+      "ninja"
+    ],
+    [
+      "ninja",
+      "ninja_and_mouse"
+    ],
+    [
+      "ninja",
+      "ninja_and_mouse_essence"
+    ],
+    [
+      "ninja",
+      "zaroffs_contract"
+    ],
+    [
+      "ninja_and_mouse",
+      "ninja_and_mouse"
+    ],
+    [
+      "ninja_and_mouse",
+      "ninja_and_mouse_essence"
+    ],
+    [
+      "nori_the_rabbit",
+      "rabbit"
+    ],
+    [
+      "nori_the_rabbit",
+      "rabbit_fluff"
+    ],
+    [
+      "nori_the_rabbit_essence",
+      "rabbit"
+    ],
+    [
+      "nori_the_rabbit_essence",
+      "rabbit_fluff"
+    ],
+    [
+      "omelette",
+      "omelette"
+    ],
+    [
+      "orange",
+      "pirate"
+    ],
+    [
+      "ore",
+      "x_ray_machine"
+    ],
+    [
+      "ore",
+      "x_ray_machine_essence"
+    ],
+    [
+      "owl",
+      "witch"
+    ],
+    [
+      "pear",
+      "silver_arrow"
+    ],
+    [
+      "pinata",
+      "toddler"
+    ],
+    [
+      "pirate",
+      "safe"
+    ],
+    [
+      "pirate",
+      "symbol_bomb_big"
+    ],
+    [
+      "pirate",
+      "symbol_bomb_quantum"
+    ],
+    [
+      "pirate",
+      "symbol_bomb_small"
+    ],
+    [
+      "pirate",
+      "symbol_bomb_very_big"
+    ],
+    [
+      "pirate",
+      "treasure_chest"
+    ],
+    [
+      "pirate",
+      "zaroffs_contract"
+    ],
+    [
+      "pizza_the_cat",
+      "pizza_the_cat_essence"
+    ],
+    [
+      "pizza_the_cat",
+      "witch"
+    ],
+    [
+      "present",
+      "time_machine"
+    ],
+    [
+      "present",
+      "time_machine_essence"
+    ],
+    [
+      "present",
+      "toddler"
+    ],
+    [
+      "quigley_the_wolf",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "quigley_the_wolf",
+      "wolf"
+    ],
+    [
+      "quigley_the_wolf_essence",
+      "wolf"
+    ],
+    [
+      "quiver",
+      "silver_arrow"
+    ],
+    [
+      "quiver",
+      "target"
+    ],
+    [
+      "quiver_essence",
+      "silver_arrow"
+    ],
+    [
+      "rabbit",
+      "shedding_season"
+    ],
+    [
+      "rabbit",
+      "shedding_season_essence"
+    ],
+    [
+      "rabbit",
+      "turtle_and_rabbit"
+    ],
+    [
+      "rabbit",
+      "turtle_and_rabbit_essence"
+    ],
+    [
+      "rain",
+      "rain_cloud"
+    ],
+    [
+      "rain",
+      "rain_cloud_essence"
+    ],
+    [
+      "rain",
+      "seed"
+    ],
+    [
+      "removal_capsule",
+      "sunglasses_essence"
+    ],
+    [
+      "ritual_candle",
+      "witch"
+    ],
+    [
+      "ritual_candle_essence",
+      "witch"
+    ],
+    [
+      "robin_hood",
+      "silver_arrow"
+    ],
+    [
+      "robin_hood",
+      "target"
+    ],
+    [
+      "robin_hood",
+      "tax_evasion"
+    ],
+    [
+      "robin_hood",
+      "tax_evasion_essence"
+    ],
+    [
+      "robin_hood",
+      "zaroffs_contract"
+    ],
+    [
+      "ruby",
+      "ruby"
+    ],
+    [
+      "rusty_gear",
+      "triple_coins"
+    ],
+    [
+      "rusty_gear",
+      "triple_coins_essence"
+    ],
+    [
+      "seed",
+      "sun"
+    ],
+    [
+      "seed",
+      "watering_can"
+    ],
+    [
+      "seed",
+      "watering_can_essence"
+    ],
+    [
+      "shrine",
+      "void_creature"
+    ],
+    [
+      "shrine",
+      "zaroffs_contract"
+    ],
+    [
+      "silver_arrow",
+      "target"
+    ],
+    [
+      "spades",
+      "spades"
+    ],
+    [
+      "spirit",
+      "undertaker"
+    ],
+    [
+      "spirit",
+      "undertaker_essence"
+    ],
+    [
+      "spirit",
+      "witch"
+    ],
+    [
+      "strawberry",
+      "strawberry"
+    ],
+    [
+      "tax_evasion",
+      "thief"
+    ],
+    [
+      "tax_evasion_essence",
+      "thief"
+    ],
+    [
+      "thief",
+      "wanted_poster"
+    ],
+    [
+      "thief",
+      "wanted_poster_essence"
+    ],
+    [
+      "thief",
+      "zaroffs_contract"
+    ],
+    [
+      "toddler",
+      "zaroffs_contract"
+    ],
+    [
+      "tomb",
+      "undertaker"
+    ],
+    [
+      "tomb",
+      "witch"
+    ],
+    [
+      "triple_coins",
+      "triple_coins_essence"
+    ],
+    [
+      "turtle",
+      "turtle_and_rabbit"
+    ],
+    [
+      "turtle",
+      "turtle_and_rabbit_essence"
+    ],
+    [
+      "undertaker",
+      "undertaker_essence"
+    ],
+    [
+      "undertaker",
+      "urn"
+    ],
+    [
+      "undertaker",
+      "witch"
+    ],
+    [
+      "void_creature",
+      "void_party"
+    ],
+    [
+      "void_creature",
+      "void_party_essence"
+    ],
+    [
+      "void_fruit",
+      "void_party"
+    ],
+    [
+      "void_fruit",
+      "void_party_essence"
+    ],
+    [
+      "void_party",
+      "void_party_essence"
+    ],
+    [
+      "void_party",
+      "void_stone"
+    ],
+    [
+      "void_party_essence",
+      "void_stone"
+    ],
+    [
+      "wanted_poster_essence",
+      "zaroffs_contract"
+    ],
+    [
+      "watermelon",
+      "watermelon"
+    ],
+    [
+      "witch",
+      "zaroffs_contract"
+    ],
+    [
+      "zaroffs_contract",
+      "zaroffs_contract_essence"
+    ]
+  ],
+  "red_pairs": [
+    [
+      "archaeologist",
+      "x_ray_machine"
+    ],
+    [
+      "banana_peel",
+      "bounty_hunter"
+    ],
+    [
+      "barrel_o_dwarves_essence",
+      "dwarven_anvil"
+    ],
+    [
+      "barrel_o_dwarves_essence",
+      "general_zaroff"
+    ],
+    [
+      "barrel_o_dwarves_essence",
+      "zaroffs_contract"
+    ],
+    [
+      "chicken_coop",
+      "egg_carton"
+    ],
+    [
+      "coal",
+      "hex_of_destruction"
+    ],
+    [
+      "coin_on_a_string",
+      "pirate"
+    ],
+    [
+      "coin_on_a_string",
+      "triple_coins"
+    ],
+    [
+      "coin_on_a_string_essence",
+      "pirate"
+    ],
+    [
+      "comedian",
+      "golden_carrot"
+    ],
+    [
+      "comedian",
+      "lucky_carrot"
+    ],
+    [
+      "comedian",
+      "quigley_the_wolf"
+    ],
+    [
+      "comedian",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "compost_heap_essence",
+      "dove"
+    ],
+    [
+      "crab",
+      "lefty_the_rabbit"
+    ],
+    [
+      "crab",
+      "lucky_cat"
+    ],
+    [
+      "crab",
+      "rabbit_fluff"
+    ],
+    [
+      "cultist",
+      "lefty_the_rabbit"
+    ],
+    [
+      "cultist",
+      "lucky_cat"
+    ],
+    [
+      "cultist",
+      "rabbit_fluff"
+    ],
+    [
+      "dark_humor",
+      "quigley_the_wolf"
+    ],
+    [
+      "dark_humor",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "dark_humor_essence",
+      "quigley_the_wolf_essence"
+    ],
+    [
+      "diver",
+      "fish_bowl_essence"
+    ],
+    [
+      "dove",
+      "frying_pan"
+    ],
+    [
+      "egg_carton",
+      "frying_pan"
+    ],
+    [
+      "egg_carton",
+      "frying_pan_essence"
+    ],
+    [
+      "egg_carton_essence",
+      "frying_pan"
+    ],
+    [
+      "frying_pan",
+      "mouse"
+    ],
+    [
+      "general_zaroff",
+      "guillotine"
+    ],
+    [
+      "general_zaroff",
+      "ninja_and_mouse"
+    ],
+    [
+      "general_zaroff",
+      "zaroffs_contract"
+    ],
+    [
+      "grave_robber",
+      "hooligan"
+    ],
+    [
+      "guillotine",
+      "robin_hood"
+    ],
+    [
+      "guillotine",
+      "zaroffs_contract"
+    ],
+    [
+      "hex_of_thievery",
+      "tax_evasion"
+    ],
+    [
+      "key",
+      "lockpick"
+    ],
+    [
+      "key",
+      "lockpick_essence"
+    ],
+    [
+      "key",
+      "magic_key"
+    ],
+    [
+      "key",
+      "pirate"
+    ],
+    [
+      "lefty_the_rabbit_essence",
+      "shedding_season_essence"
+    ],
+    [
+      "lemon_essence",
+      "yellow_pepper"
+    ],
+    [
+      "lockpick",
+      "lockpick_essence"
+    ],
+    [
+      "lockpick",
+      "magic_key"
+    ],
+    [
+      "lockpick",
+      "pirate"
+    ],
+    [
+      "lockpick_essence",
+      "magic_key"
+    ],
+    [
+      "lockpick_essence",
+      "pirate"
+    ],
+    [
+      "magic_key",
+      "pirate"
+    ],
+    [
+      "monkey",
+      "mrs_fruit"
+    ],
+    [
+      "monkey",
+      "ricky_the_banana"
+    ],
+    [
+      "ninja",
+      "ninja"
+    ],
+    [
+      "oswald_the_monkey",
+      "ricky_the_banana"
+    ],
+    [
+      "oswald_the_monkey_essence",
+      "ricky_the_banana"
+    ]
+  ],
+  "gray_pairs": [
+    [
+      "mouse",
+      "ninja"
+    ]
+  ],
+  "self_positive": [
+    "clubs",
+    "coal",
+    "crab",
+    "cultist",
+    "diamond",
+    "diamonds",
+    "emerald",
+    "general_zaroff",
+    "hearts",
+    "highlander",
+    "ninja",
+    "ninja_and_mouse",
+    "omelette",
+    "ruby",
+    "spades",
+    "strawberry",
+    "watermelon"
+  ],
+  "special_trigger_items": [
+    "green_pepper",
+    "green_pepper_essence",
+    "purple_pepper",
+    "purple_pepper_essence",
+    "rusty_gear",
+    "rusty_gear_essence"
+  ],
+  "still_owned_even_if_destroyed": [
+    "anthropology_degree_essence",
+    "birdhouse_essence",
+    "black_cat_essence",
+    "blue_suits_essence",
+    "chicken_coop_essence",
+    "cleaning_rag_essence",
+    "conveyor_belt_essence",
+    "copycat_essence",
+    "cursed_katana_essence",
+    "dark_humor_essence",
+    "dwarven_anvil_essence",
+    "fifth_ace_essence",
+    "fruit_basket_essence",
+    "frying_pan_essence",
+    "goldilocks_essence",
+    "grave_robber_essence",
+    "happy_hour_essence",
+    "holy_water_essence",
+    "jackolantern_essence",
+    "kyle_the_kernite_essence",
+    "maxwell_the_bear_essence",
+    "mobius_strip_essence",
+    "ninja_and_mouse_essence",
+    "nori_the_rabbit_essence",
+    "oswald_the_monkey_essence",
+    "pizza_the_cat_essence",
+    "quigley_the_wolf_essence",
+    "red_suits_essence",
+    "ricky_the_banana_essence",
+    "ritual_candle_essence",
+    "triple_coins_essence",
+    "turtle_and_rabbit_essence",
+    "undertaker_essence",
+    "void_party_essence",
+    "wanted_poster_essence"
+  ]
+}

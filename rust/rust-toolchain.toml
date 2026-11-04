@@ -1,0 +1,4 @@
+# Windows 上使用 GNU 工具链（已验证）。Linux / macOS 请删除本文件，
+# 或执行 `rustup override set stable` 后使用本机默认工具链。
+[toolchain]
+channel = "stable-x86_64-pc-windows-gnu"

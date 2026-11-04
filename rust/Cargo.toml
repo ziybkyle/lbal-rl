@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/lbal_core", "crates/lbal_cli", "crates/lbal_py"]
+resolver = "2"

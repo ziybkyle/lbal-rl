@@ -1,0 +1,45 @@
+# ---- Rust 构建产物 ----
+rust/target*/
+rust/python_bindings/*.pyd
+rust/python_bindings/*.so
+rust/python_bindings/*.dylib
+rust/python_bindings/*.dll
+
+# ---- Python 缓存 ----
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# ---- 游戏原始数据与提取脚本（版权归游戏原作者，不随仓库分发）----
+game/
+game_fresh/
+game_pristine/
+rust/reference/
+
+# ---- 运行日志与本地环境 ----
+*.log
+runs/
+runtime/
+vendor/
+patches_backup_*/
+
+# ---- Godot 工程补丁与历史性能实验（Rust 核心不需要）----
+patches/
+perf/
+SPIKE_REPORT.md
+第一阶段使用说明.md
+
+# ---- 体积较大的训练/研究产物 ----
+perf/.backup/
+perf/results/
+data/bc_v13*.jsonl
+data/*.npz
+data/reference_images/
+*.zip
+
+# ---- 编辑器与系统文件 ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

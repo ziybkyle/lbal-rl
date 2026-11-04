@@ -1,0 +1,4 @@
+# PyO3 在 Windows GNU 工具链下默认使用 raw-dylib，需要 dlltool；
+# 改成链接已安装的 CPython 导入库即可避免该依赖。对 Linux/macOS 无副作用。
+[env]
+PYO3_USE_RAW_DYLIB = "0"

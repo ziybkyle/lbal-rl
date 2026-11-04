@@ -1,0 +1,13 @@
+[package]
+name = "lbal_core"
+version = "0.1.0"
+edition = "2021"
+authors = ["群友镜中人"]
+license = "MIT"
+description = "Luck be a Landlord rule simulator core"
+
+[dependencies]
+rand = "0.8"
+rand_pcg = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
