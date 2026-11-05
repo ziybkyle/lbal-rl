@@ -1,0 +1,477 @@
+{
+ "B2AG00000000": [
+  {
+   "spin": 1,
+   "board": [
+    "dud",
+    "coin",
+    "empty",
+    "dud",
+    "empty",
+    "empty",
+    "flower",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "pearl",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "cherry",
+    "empty",
+    "dud",
+    "cat"
+   ],
+   "offers": [
+    "bee",
+    "monkey",
+    "oyster"
+   ],
+   "chosen": "bee"
+  },
+  {
+   "spin": 2,
+   "board": [
+    "empty",
+    "dud",
+    "dud",
+    "flower",
+    "empty",
+    "cat",
+    "empty",
+    "bee",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "pearl",
+    "dud",
+    "empty",
+    "empty",
+    "empty",
+    "coin",
+    "cherry"
+   ],
+   "offers": [
+    "pearl",
+    "present",
+    "toddler"
+   ],
+   "chosen": "toddler"
+  },
+  {
+   "spin": 3,
+   "board": [
+    "empty",
+    "flower",
+    "bee",
+    "empty",
+    "cherry",
+    "empty",
+    "toddler",
+    "empty",
+    "dud",
+    "cat",
+    "empty",
+    "empty",
+    "dud",
+    "coin",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "pearl",
+    "dud"
+   ],
+   "offers": [
+    "cat",
+    "cultist",
+    "goldfish"
+   ],
+   "chosen": "goldfish"
+  }
+ ],
+ "B2AG00000001": [
+  {
+   "spin": 1,
+   "board": [
+    "empty",
+    "empty",
+    "empty",
+    "cat",
+    "empty",
+    "empty",
+    "dud",
+    "empty",
+    "flower",
+    "dud",
+    "empty",
+    "empty",
+    "empty",
+    "cherry",
+    "empty",
+    "empty",
+    "coin",
+    "empty",
+    "dud",
+    "pearl"
+   ],
+   "offers": [
+    "banana_peel",
+    "beer",
+    "shiny_pebble"
+   ],
+   "chosen": "beer"
+  },
+  {
+   "spin": 2,
+   "board": [
+    "dud",
+    "beer",
+    "cherry",
+    "coin",
+    "pearl",
+    "flower",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "dud",
+    "empty",
+    "dud",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "cat"
+   ],
+   "offers": [
+    "bubble",
+    "dog",
+    "mouse"
+   ],
+   "chosen": "dog"
+  },
+  {
+   "spin": 3,
+   "board": [
+    "dud",
+    "cherry",
+    "empty",
+    "empty",
+    "empty",
+    "cat",
+    "empty",
+    "empty",
+    "dud",
+    "empty",
+    "empty",
+    "beer",
+    "empty",
+    "flower",
+    "dud",
+    "empty",
+    "dog",
+    "pearl",
+    "coin",
+    "empty"
+   ],
+   "offers": [
+    "d3",
+    "goose",
+    "owl"
+   ],
+   "chosen": "d3"
+  }
+ ],
+ "B2AG00000002": [
+  {
+   "spin": 1,
+   "board": [
+    "empty",
+    "cherry",
+    "empty",
+    "empty",
+    "empty",
+    "dud",
+    "empty",
+    "dud",
+    "pearl",
+    "empty",
+    "cat",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "flower",
+    "empty",
+    "coin",
+    "empty",
+    "dud"
+   ],
+   "offers": [
+    "banana",
+    "monkey",
+    "snail"
+   ],
+   "chosen": "monkey"
+  },
+  {
+   "spin": 2,
+   "board": [
+    "empty",
+    "empty",
+    "coin",
+    "empty",
+    "empty",
+    "empty",
+    "dud",
+    "flower",
+    "monkey",
+    "dud",
+    "dud",
+    "cat",
+    "empty",
+    "pearl",
+    "empty",
+    "empty",
+    "cherry",
+    "empty",
+    "empty",
+    "empty"
+   ],
+   "offers": [
+    "flower",
+    "light_bulb",
+    "shiny_pebble"
+   ],
+   "chosen": "light_bulb"
+  },
+  {
+   "spin": 3,
+   "board": [
+    "coin",
+    "empty",
+    "empty",
+    "empty",
+    "dud",
+    "empty",
+    "light_bulb",
+    "empty",
+    "dud",
+    "cherry",
+    "cat",
+    "flower",
+    "dud",
+    "pearl",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "monkey"
+   ],
+   "offers": [
+    "egg",
+    "oyster",
+    "present"
+   ],
+   "chosen": "present"
+  }
+ ],
+ "B2AG00000003": [
+  {
+   "spin": 1,
+   "board": [
+    "empty",
+    "dud",
+    "cherry",
+    "dud",
+    "empty",
+    "pearl",
+    "empty",
+    "empty",
+    "empty",
+    "coin",
+    "empty",
+    "empty",
+    "dud",
+    "empty",
+    "flower",
+    "cat",
+    "empty",
+    "empty",
+    "empty",
+    "empty"
+   ],
+   "offers": [
+    "cultist",
+    "d3",
+    "snail"
+   ],
+   "chosen": "d3"
+  },
+  {
+   "spin": 2,
+   "board": [
+    "empty",
+    "dud",
+    "empty",
+    "empty",
+    "dud",
+    "coin",
+    "cat",
+    "flower",
+    "cherry",
+    "empty",
+    "dud",
+    "empty",
+    "empty",
+    "pearl",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "d3"
+   ],
+   "offers": [
+    "d3",
+    "milk",
+    "present"
+   ],
+   "chosen": "milk"
+  },
+  {
+   "spin": 3,
+   "board": [
+    "cat",
+    "empty",
+    "empty",
+    "empty",
+    "coin",
+    "d3",
+    "empty",
+    "empty",
+    "pearl",
+    "empty",
+    "empty",
+    "milk",
+    "empty",
+    "dud",
+    "empty",
+    "cherry",
+    "empty",
+    "flower",
+    "dud",
+    "dud"
+   ],
+   "offers": [
+    "coal",
+    "egg",
+    "flower"
+   ],
+   "chosen": "coal"
+  }
+ ],
+ "B2AG00000004": [
+  {
+   "spin": 1,
+   "board": [
+    "empty",
+    "cherry",
+    "dud",
+    "coin",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "cat",
+    "dud",
+    "pearl",
+    "empty",
+    "flower",
+    "empty",
+    "empty",
+    "dud",
+    "empty"
+   ],
+   "offers": [
+    "banana",
+    "candy",
+    "shiny_pebble"
+   ],
+   "chosen": "shiny_pebble"
+  },
+  {
+   "spin": 2,
+   "board": [
+    "empty",
+    "empty",
+    "coin",
+    "pearl",
+    "flower",
+    "empty",
+    "cat",
+    "empty",
+    "dud",
+    "empty",
+    "dud",
+    "dud",
+    "empty",
+    "empty",
+    "cherry",
+    "empty",
+    "shiny_pebble",
+    "empty",
+    "empty",
+    "empty"
+   ],
+   "offers": [
+    "banana",
+    "dwarf",
+    "magpie"
+   ],
+   "chosen": "dwarf"
+  },
+  {
+   "spin": 3,
+   "board": [
+    "cat",
+    "empty",
+    "flower",
+    "empty",
+    "pearl",
+    "empty",
+    "dud",
+    "empty",
+    "dwarf",
+    "empty",
+    "dud",
+    "empty",
+    "empty",
+    "coin",
+    "cherry",
+    "empty",
+    "shiny_pebble",
+    "empty",
+    "dud",
+    "empty"
+   ],
+   "offers": [
+    "cat",
+    "cultist",
+    "d3"
+   ],
+   "chosen": "d3"
+  }
+ ]
+}

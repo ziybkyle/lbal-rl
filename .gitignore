@@ -36,6 +36,8 @@ perf/results/
 data/bc_v13*.jsonl
 data/*.npz
 data/reference_images/
+evaluations/
+alignment/traces/
 *.zip
 
 # ---- 编辑器与系统文件 ----

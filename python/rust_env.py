@@ -41,14 +41,21 @@ RARITY_RANK = {"none": 0, "common": 1, "uncommon": 2, "rare": 3, "very_rare": 4}
 
 
 class RustEnv:
-    def __init__(self, seed: int = 0, data_dir: str | None = None):
-        self._env = lbal_py.Env(seed, data_dir)
+    def __init__(self, seed: int = 0, data_dir: str | None = None, seed_text: str | None = None):
+        self._env = lbal_py.Env(seed, data_dir, seed_text)
         self.seed = seed
+        self.seed_text = seed_text
         self.observation = json.loads(self._env.observe())
 
     def reset(self, seed: int) -> dict:
         self.seed = seed
+        self.seed_text = None
         self.observation = json.loads(self._env.reset(seed))
+        return self.observation
+
+    def reset_text(self, seed_text: str) -> dict:
+        self.seed_text = seed_text
+        self.observation = json.loads(self._env.reset_text(seed_text))
         return self.observation
 
     def step(self, action: int) -> dict:

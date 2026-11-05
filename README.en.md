@@ -14,18 +14,22 @@ This is the first public version. The rules, numbers, policy, and APIs may still
 - Complete spin, rent, reward, token, item, essence, and landlord-fight flow.
 - A pure Rust core with a command-line batch simulator and PyO3 bindings.
 - About 3,392 games/s on 20 threads for 2,000 games; about 16,203 steps/s for a 100,000-step Gym run.
-- 152 Rust tests and 9 Python tests; 90.5% exact-income rate when replaying the first 5 spins of real-game traces.
+- 160 Rust tests (136 unit + 24 integration) and 9 Python tests; 200 seeds, first 12 spins replay: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items.
 
 ## Seed system
 
-Every run is driven by a 64-bit seed, and the RNG is PCG32. The same seed, version, and policy reproduce the same random sequence. The CLI uses `--seed N`; Python uses `lbal_py.Env(seed, data_dir)`.
+Each run is driven by an integer or string seed, and the RNG is PCG32. A string seed is hashed with FNV-1a and derives independent `reel`, `effect`, `reel_shuffle`, and `effect_shuffle` streams per `spin_{n}`, matching the BetterLandlord community seed mod's derivation; the same seed, version, and policy reproduce the same sequence.
+
+- CLI: `--seed N` for integer batch seeds; `--seed-text TEXT` to pass a string seed (used for same-seed cross-checks against the Godot game).
+- Python: `lbal_py.Env(seed, data_dir)` and `lbal_py.BatchEnv(count, seed, data_dir)`.
+- Running the same string seed as the Godot game allows spin-by-spin comparison of symbol placement, offers, and income; income matches on 96.8% of the first 12 spins across 200 seeds.
 
 There is a public community seed system for the original game that is a useful reference:
 
 - [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord): a C# seed mod that hashes a string seed with FNV-1a and derives PCG random streams.
 - It runs on the [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) modding framework.
 
-The Rust core currently uses its own PCG32 sequence and does not yet reproduce either mod's seed derivation, so its seeds cannot be compared spin-by-spin with theirs. Cross-checks and compatibility patches are welcome. See [rust/README.en.md](rust/README.en.md#seed-system) for details.
+The Rust core now reproduces this per-purpose stream derivation with the same PCG32 state progression. Remaining same-seed differences are tracked in [rust/FIDELITY.md](rust/FIDELITY.md).
 
 ## Baseline policy and test data
 
@@ -35,9 +39,9 @@ The built-in baseline, `heuristic-marginal-value-v13`, is a hand-written rule se
 | --- | --- |
 | 2,000-game benchmark, 20 threads | 3,392 games/s; 261 wins, 13.05% win rate; average rents 6.43, spins 49.2, deck 24.5 |
 | Real-game v13, 50 games | 18% win rate; average rents 7.34, spins 57.5 |
-| Real-game trace replay, first 5 spins | 190 of 210 deterministic boards matched exactly (90.5%) |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items; 78% of games have no first difference |
 | Gym random masked policy, 100,000 steps | 16,203 steps/s, about 34.3 MB resident memory |
-| Automated tests | 152 Rust tests + 9 Python tests |
+| Automated tests | 160 Rust tests (136 unit + 24 integration) + 9 Python tests |
 
 13.05% is the win rate of the built-in heuristic, not an upper bound of the simulator. A 30-game smoke test with the real v13 policy in this environment won about one third of its games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
 

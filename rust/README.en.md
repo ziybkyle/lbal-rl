@@ -10,18 +10,18 @@ This is the first public version. The rules, numbers, policy, and APIs may still
 
 ## Seed system
 
-Every run is driven by a 64-bit seed, and the random number generator is PCG32. The same seed, version, and policy reproduce the same random sequence, which makes experiments repeatable and lets you compare policies fairly.
+Every run is driven by an integer or string seed, and the random number generator is PCG32. A string seed is hashed with FNV-1a and derives independent `reel`, `effect`, `reel_shuffle`, and `effect_shuffle` streams per `spin_{n}`; the same seed, version, and policy reproduce the same sequence, which makes experiments repeatable.
 
-- CLI: `--seed N`; game *i* uses `seed + i`.
+- CLI: `--seed N` for integer batch seeds (game *i* uses `seed + i`); `--seed-text TEXT` for a string seed.
 - Python: `lbal_py.Env(seed, data_dir)` and `lbal_py.BatchEnv(count, seed, data_dir)`.
-- Bit-for-bit equality across platforms and versions is not guaranteed. Changing the rules or the RNG implementation can also change results for an old seed.
+- Changing the rules or the RNG implementation can change results for an old seed; bit-for-bit equality across platforms is not guaranteed.
 
 This project's seed system is part of the public Rust source. There is also a public community seed system for the original game that is a useful reference:
 
 - [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord): a C# seed mod with a seed system, run history, and win-rate statistics. Its seed flow hashes a string seed with FNV-1a and derives PCG streams for different purposes.
 - It runs on the [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) modding framework, which handles Godot runtime script injection and state reads.
 
-Important: the Rust core currently uses its own PCG32 seed sequence and **does not yet reproduce BetterLandlord's per-purpose derived random streams**, so its seeds cannot be compared spin-by-spin with that mod. The core contains an FNV-1a string-to-seed helper (`seed_from_text`), but the CLI and Python APIs currently accept only integer seeds. Cross-checks, compatibility patches, and algorithm discussions are welcome.
+The Rust core now reproduces BetterLandlord's per-purpose stream derivation with the same PCG32 state progression; `--seed-text` accepts the game's `B2A...` seed strings for spin-by-spin comparison of placement, offers, and income. Income matches on 96.8% of the first 12 spins across 200 seeds; remaining differences are in [FIDELITY.md](FIDELITY.md).
 
 ## Crates
 
@@ -50,8 +50,8 @@ Measured on one i7-12700F; numbers will change with hardware and compiler option
 | 2,000-game benchmark, 20 threads | 3,392 games/s; 261 wins, 13.05% win rate; average rents 6.43, spins 49.2, deck 24.5, final rent 503.1 |
 | Single thread | About 390 games/s |
 | Gym random masked policy, 100,000 steps | 16,203 steps/s, about 34.3 MB resident memory |
-| Real-game trace replay, first 5 spins | 190 of 210 deterministic boards matched income exactly (90.5%), mean absolute error 6.10 |
-| Automated tests | 152 Rust tests + 9 Python tests |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items; 78% of games have no first difference |
+| Automated tests | 160 Rust tests (136 unit + 24 integration) + 9 Python tests |
 
 13.05% is the win rate of the built-in heuristic, not an upper bound of the simulator. A 30-game smoke test with the real v13 policy adapted to this environment won about one third of its games (too small to estimate a win rate). The real-game v13 record over 50 games is 18%, with average rents 7.34 and average spins 57.5. Rule fidelity and policy strength should be evaluated separately.
 
@@ -174,12 +174,15 @@ Common options:
 | --- | --- |
 | `--games N` | Number of games; default 10000 |
 | `--seed N` | Starting seed; game *i* uses `seed + i` |
+| `--seed-text TEXT` | Pass a string seed directly (for same-seed comparisons with the game) |
 | `--threads N` | Number of threads; 0 means all logical CPUs |
 | `--max-spins N` | Maximum spins per game, to stop abnormal runs |
 | `--detail` | Print details for the first 10 games |
 | `--hist` | Print the rent-payment distribution |
 | `--replay DIR` | Replay `game_*.jsonl` real-game traces and compare income |
-| `--replay-spins N` | Replay the first N spins; default 5 |
+| `--replay-actions DIR` | Replay real actions and compare offers/deck/items/income |
+| `--action-json FILE` | Write action-replay comparison results to JSON |
+| `--replay-spins N` | Replay the first N spins; default is 5 |
 | `--data-dir DIR` | Game JSON directory |
 
 ## Python usage
@@ -223,7 +226,7 @@ The action space is a fixed 128-wide layout so a masked policy can use one outpu
 
 ## Known differences
 
-- The RNG is PCG32, not Godot's random sequence. Distribution-level comparisons are possible, but spin-by-spin alignment is not.
+- Same-seed RNG now aligns spin by spin (PCG32 with BetterLandlord derivation); a few spins still have effect-stream offsets. Income matches on 96.8% of the first 12 spins.
 - A20 fine print 31 is currently treated as a no-op. Some essences and items are approximations, and a few trigger orders differ from the real game.
 - The landlord fight models HP, the rent loop, and win/loss, but not phase skills or combat presentation.
 - The shop, item enable/disable toggles, and some per-instance state are not implemented.

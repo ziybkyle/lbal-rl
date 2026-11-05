@@ -246,6 +246,16 @@ fn names(values: &[&str]) -> Vec<String> {
     values.iter().map(|value| value.to_string()).collect()
 }
 
+fn entries(data: &GameData, values: &[&str]) -> Vec<(String, i32, u32, u32)> {
+    values
+        .iter()
+        .map(|value| {
+            let id = data.symbol_id(value).expect("symbol");
+            (value.to_string(), data.symbols[id].base_value, 0, 0)
+        })
+        .collect()
+}
+
 #[test]
 fn spin_costs_one_coin() {
     let data = data();
@@ -354,7 +364,7 @@ fn cardboard_box_grants_removal_token_every_ten_spins() {
 #[test]
 fn replay_income_applies_joker_to_adjacent_suits() {
     let data = data();
-    let deck = names(&["joker", "clubs"]);
+    let deck = entries(&data, &["joker", "clubs"]);
     let mut board = names(&["empty"; 20]);
     board[0] = "joker".to_string();
     board[1] = "clubs".to_string();
@@ -362,7 +372,7 @@ fn replay_income_applies_joker_to_adjacent_suits() {
     let clubs = data.symbol_id("clubs").expect("clubs");
     let expected = data.symbols[joker].base_value + data.symbols[clubs].base_value * 2;
     assert_eq!(
-        RunState::replay_income(&data, &deck, &[], &board),
+        RunState::replay_income(&data, &deck, &[], &board).map(|(income, _)| income),
         Some(expected)
     );
 }
@@ -370,12 +380,12 @@ fn replay_income_applies_joker_to_adjacent_suits() {
 #[test]
 fn replay_income_matches_simple_board() {
     let data = data();
-    let deck = names(&["coin", "cherry", "dud"]);
+    let deck = entries(&data, &["coin", "cherry", "dud"]);
     let mut board = names(&["empty"; 20]);
     board[0] = "coin".to_string();
     board[7] = "cherry".to_string();
     assert_eq!(
-        RunState::replay_income(&data, &deck, &[], &board),
+        RunState::replay_income(&data, &deck, &[], &board).map(|(income, _)| income),
         Some(2)
     );
 }
@@ -383,27 +393,27 @@ fn replay_income_matches_simple_board() {
 #[test]
 fn replay_income_applies_bee_adjacency() {
     let data = data();
-    let deck = names(&["bee", "flower"]);
+    let deck = entries(&data, &["bee", "flower"]);
     let mut board = names(&["empty"; 20]);
     board[0] = "bee".to_string();
     board[1] = "flower".to_string();
-    // Flower gains the bee's +1 and is doubled by the bee: 1 + (1 + 1) * 2.
+    // Flower is doubled by the bee, then gains the bee's +1: 1 * 2 + 1.
     assert_eq!(
-        RunState::replay_income(&data, &deck, &[], &board),
-        Some(5)
+        RunState::replay_income(&data, &deck, &[], &board).map(|(income, _)| income),
+        Some(4)
     );
 }
 
 #[test]
 fn replay_income_applies_dog_reverse_adjacency() {
     let data = data();
-    let deck = names(&["dog", "toddler"]);
+    let deck = entries(&data, &["dog", "toddler"]);
     let mut board = names(&["empty"; 20]);
     board[0] = "dog".to_string();
     board[1] = "toddler".to_string();
     // Toddler (doglikes) gains +2 from the adjacent dog.
     assert_eq!(
-        RunState::replay_income(&data, &deck, &[], &board),
+        RunState::replay_income(&data, &deck, &[], &board).map(|(income, _)| income),
         Some(4)
     );
 }

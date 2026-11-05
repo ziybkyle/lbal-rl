@@ -1,0 +1,33 @@
+{
+  "schema": "lbal-alignment-manifest-v1",
+  "created_at": "2026-11-05",
+  "steam_build": "16940935",
+  "steam_game_dir": "<Steam>/steamapps/common/Luck be a Landlord",
+  "pck_sha256": "006db078ebc968fd6f08c43743fb13ba3adfbafc08d7fe3d52385c8520bd6fd4",
+  "data_dir": "game/JSON",
+  "counts": {
+    "symbols": 168,
+    "items": 114,
+    "essences": 113,
+    "fine_prints_total": 37,
+    "fine_prints_a20_pool": 31
+  },
+  "data_files": {
+    "Symbols - JSON.json": "fb7e5b10de7cd26e092e6f9584f6a82710683d9921a0ec4336d1713b07011bb9",
+    "Items - JSON.json": "c72cb7d79a9e35cabe199776156a5dc31500babd825659c0c8f6e383b97b9ad4",
+    "Essences - JSON.json": "e34e5e82c9a0478fdec93d00fa47208e6822cea7548c18615ded31d9fcc1d2a3",
+    "Fine Print - JSON.json": "fb1cca979b7f2ed6f16f2087f51a0d50ffb58593ea5a83403f357e5c9174cd0f"
+  },
+  "mods": {
+    "Piraeus.BetterLandlord": "1.2.7",
+    "SlotWeave": "1.0.0",
+    "LuckyAssociations.InGame": "1.0.3",
+    "LbalAi.Rewind": "0.3.1"
+  },
+  "godot_version": "3.4.4",
+  "notes": [
+    "BetterLandlord 提供种子派生和随机数接管。",
+    "LuckyAssociations 只做界面提示，Rewind 只做练习局回溯；对齐时优先使用干净配置。",
+    "数据文件哈希以 godot_kernel/game/JSON 为准。"
+  ]
+}

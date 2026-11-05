@@ -289,12 +289,14 @@ impl Env {
 #[pymethods]
 impl Env {
     #[new]
-    #[pyo3(signature = (seed=42, data_dir=None))]
-    fn new(seed: u64, data_dir: Option<String>) -> PyResult<Self> {
+    #[pyo3(signature = (seed=42, data_dir=None, seed_text=None))]
+    fn new(seed: u64, data_dir: Option<String>, seed_text: Option<String>) -> PyResult<Self> {
         let data = load_data(data_dir)?;
-        Ok(Self {
-            state: RunState::new(data, seed),
-        })
+        let state = match seed_text {
+            Some(text) => RunState::new_with_seed_text(data, &text),
+            None => RunState::new(data, seed),
+        };
+        Ok(Self { state })
     }
 
     /// Re-roll the current reward if a token is available.
@@ -322,6 +324,12 @@ impl Env {
     /// Restart with a new seed and return the initial observation.
     fn reset(&mut self, seed: u64) -> String {
         self.state = RunState::new(self.state.data, seed);
+        self.observation()
+    }
+
+    /// Restart with a BetterLandlord seed string.
+    fn reset_text(&mut self, seed_text: String) -> String {
+        self.state = RunState::new_with_seed_text(self.state.data, &seed_text);
         self.observation()
     }
 

@@ -266,7 +266,20 @@ fn removal_target(state: &RunState) -> Option<usize> {
 }
 
 pub fn run_episode(data: &GameData, seed: u64, max_spins: u32) -> EpisodeResult {
-    let mut state = RunState::new(data, seed);
+    play_episode(RunState::new(data, seed), seed, max_spins)
+}
+
+pub fn run_episode_with_seed_text(
+    data: &GameData,
+    seed_text: &str,
+    max_spins: u32,
+) -> EpisodeResult {
+    let state = RunState::new_with_seed_text(data, seed_text);
+    let seed = state.rng.landlord_seed as u64;
+    play_episode(state, seed, max_spins)
+}
+
+fn play_episode(mut state: RunState, seed: u64, max_spins: u32) -> EpisodeResult {
     let mut rerolled_rent = 0u32;
     while !state.done() && state.total_spins < max_spins {
         match state.phase.clone() {
