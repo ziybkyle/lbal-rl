@@ -6763,6 +6763,11 @@ impl<'a> RunState<'a> {
     /// Godot evaluates these in `check_values`, after all effects and spawned
     /// symbols are resolved.
     fn apply_item_income_conditions(&mut self, income: &mut i32) {
+        // Godot accumulates `total_value` from the icons and the ordinary
+        // items first, then gates black_cat / swear_jar / white_pepper on
+        // that one snapshot.  Those special items must not see each other's
+        // payouts (or their own) through a mutating running total.
+        let total_value = *income;
         // Lucky seven pays once per group of `values[0]` held copies, during
         // check_values (not when the copy is picked up).
         if let Some(seven) = self.data.item_index.get("lucky_seven").copied() {
@@ -6836,7 +6841,7 @@ impl<'a> RunState<'a> {
                     *income += (self.destroyed_history.len() as i32 / v1.max(1)) * v0;
                 }
                 "white_pepper" | "black_cat" => {
-                    if *income % v1 == 0 {
+                    if total_value % v1 == 0 {
                         *income += v0;
                     }
                 }
@@ -6846,7 +6851,7 @@ impl<'a> RunState<'a> {
                 }
                 "swear_jar" => {
                     // The jar only swallows a coin when the spin earned little.
-                    if v2 <= 0 || *income < v2 {
+                    if v2 <= 0 || total_value < v2 {
                         *income = (*income - v0 - self.fp_value(16, 0) as i32).max(0);
                         *self.item_saved.entry(item_id).or_insert(0) += v0;
                     }
@@ -6892,7 +6897,7 @@ impl<'a> RunState<'a> {
                     def.values.get(1).copied().unwrap_or(3.0) as i32,
                 )
             };
-            if step > 0 && *income % step == 0 {
+            if step > 0 && total_value % step == 0 {
                 *income += bonus;
                 self.try_destroy_essence(white_pepper);
             }
@@ -9262,6 +9267,28 @@ mod tests {
         assert_eq!(state.spawn_multiplier(), 2.0);
         state.items_held.push(belt);
         assert_eq!(state.spawn_multiplier(), 4.0);
+    }
+
+    #[test]
+    fn special_items_gate_on_one_total_value_snapshot() {
+        // Godot computes `total_value` (icons + ordinary items) once and
+        // uses it for swear_jar and white_pepper.  Their own payouts must
+        // not change what the other one sees.
+        let data = data();
+        let mut state = RunState::new(&data, 41);
+        state.items_held.clear();
+        state
+            .items_held
+            .push(data.item_index["swear_jar"]);
+        state
+            .items_held
+            .push(data.item_index["white_pepper"]);
+        // Three icon coins plus one ordinary item coin = 4, not a multiple
+        // of three, so white_pepper must stay silent even after the jar
+        // takes the running total down to three.
+        let mut income = 4;
+        state.apply_item_income_conditions(&mut income);
+        assert_eq!(income, 3);
     }
 
     #[test]
