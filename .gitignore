@@ -11,6 +11,10 @@ __pycache__/
 .pytest_cache/
 .venv/
 
+# ---- 本地一次性诊断脚本与输出（正式工具是 python/diag_*.py）----
+python/_tmp_*.py
+python/_*.txt
+
 # ---- 游戏原始数据与提取脚本（版权归游戏原作者，不随仓库分发）----
 game/
 game_fresh/

@@ -21,7 +21,7 @@ This project's seed system is part of the public Rust source. There is also a pu
 - [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord): a C# seed mod with a seed system, run history, and win-rate statistics. Its seed flow hashes a string seed with FNV-1a and derives PCG streams for different purposes.
 - It runs on the [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) modding framework, which handles Godot runtime script injection and state reads.
 
-The Rust core now reproduces BetterLandlord's per-purpose stream derivation with the same PCG32 state progression; `--seed-text` accepts the game's `B2A...` seed strings for spin-by-spin comparison of placement, offers, and income. Across 200 seeds and the first 12 spins (v71), income matches on 98.61% of spins, board on 98.35%, deck on 98.57%, offers on 99.96%; 178/200 games have no first difference. The 100% phase-3 acceptance target is not yet met (22 games still differ); remaining differences are in [FIDELITY.md](FIDELITY.md).
+The Rust core now reproduces BetterLandlord's per-purpose stream derivation with the same PCG32 state progression; `--seed-text` accepts the game's `B2A...` seed strings for spin-by-spin comparison of placement, offers, and income. Across 200 seeds and the first 12 spins (v72), income matches on 98.61% of spins, board on 98.35%, deck on 98.57%, offers on 99.96%; 178/200 games have no first difference. The 100% phase-3 acceptance target is not yet met (22 games still differ); remaining differences are in [FIDELITY.md](FIDELITY.md).
 
 ## Crates
 
@@ -37,24 +37,25 @@ The Rust core now reproduces BetterLandlord's per-purpose stream derivation with
 - 5 columns × 4 rows, per-column draws, empty slots preserved, spin cost, and Dud growth.
 - A20 rent curve 25/50/100/150/225/300/375/450/600/650/700/777; after the 12th rent payment, the 1500-HP landlord fight begins.
 - Adjacency, suits, wildcards, destruction, and growth for symbols; per-spin and triggered item effects; essence charging and one-shot effects; rent rewards and token settlement.
+- When the post-rent reward chain finishes with the balance exactly at 0, one coin is granted (during the landlord fight the boss also takes 1 damage).
 - Valuation and policy priors can be overridden by `data/symbol_values.json` and `data/baseline_priors.json`; built-in defaults are used when those files are absent.
 
 The full rule list, approximations, and known differences are in [FIDELITY.md](FIDELITY.md). The implementation plan and acceptance notes are in [RUST_PORT_PLAN.md](RUST_PORT_PLAN.md).
 
 ## Performance and test data
 
-Measured on one i7-12700F; numbers will change with hardware and compiler options:
+Measured on one i7-12700F on 2026-11-06 with the current rule set; numbers will change with hardware and compiler options:
 
 | Item | Result |
 | --- | --- |
-| 20,000-game benchmark, 20 threads | 3,871 wins, 19.36% win rate; average rents 7.23, spins 56.0, deck 25.5, final rent 603.5 |
-| Throughput | 2,418 games/s over 2,000 games; 731–2,152 games/s over 20,000 games (same machine, varies with load) |
-| Single thread | About 265 games/s |
+| 20,000-game benchmark, 20 threads | 3,320 wins, 16.60% win rate; average rents 7.06, spins 54.6, deck 25.2, final rent 578.7 |
+| Throughput | 2,535 games/s over 20,000 games; 2,318–2,523 games/s over 2,000 games |
+| Single thread | 284 games/s |
 | Gym random masked policy, 100,000 steps | 13,783 steps/s |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds (v71): 98.61% income, 98.35% board, 99.96% offers, 98.57% deck, 99.86% items; 89.0% of games (178/200) have no first difference |
-| Automated tests | 160 Rust tests (136 unit + 24 integration) + 9 Python tests |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds (v72): 98.61% income, 98.35% board, 99.96% offers, 98.57% deck, 99.86% items; 89.0% of games (178/200) have no first difference |
+| Automated tests | 163 Rust tests (139 unit + 24 integration) + 9 Python tests |
 
-19.36% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. The real-game v13 record over 50 games is 18%, with average rents 7.34 and average spins 57.5; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
+16.60% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. Note that this is lower than the 19.7% quoted in older docs: the phase-3 fidelity fixes (registered effects of destroyed icons, same-spin resolution of spawned symbols, void/capsule/gear rules, ...) changed rule outcomes, and the baseline win rate settled at 16.6% afterwards — only post-fix numbers are trustworthy. The real-game v13 record over 50 games is 18%, with average rents 7.34 and average spins 57.5; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
 
 Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
 
@@ -161,14 +162,14 @@ The repository's `.cargo/config.toml` sets `PYO3_USE_RAW_DYLIB=0` so the Windows
 
 ```bash
 cd rust
-cargo run --release -p lbal_cli -- --games 2000 --seed 1 --threads 20 --hist
+cargo run --release -p lbal_cli -- --games 20000 --seed 42 --threads 20 --hist
 ```
 
 Example output:
 
 ```text
-games=20000 threads=20 elapsed=9.294s games_per_sec=2151.9
-wins=3946 losses=16054 win_rate=19.73% avg_rents=7.26 avg_spins=56.3 ...
+games=20000 threads=20 elapsed=7.888s games_per_sec=2535.5
+wins=3320 losses=16680 win_rate=16.60% avg_rents=7.06 avg_spins=54.6 avg_deck=25.2 avg_final_rent=578.7
 ```
 
 Common options:
@@ -229,7 +230,7 @@ The action space is a fixed 128-wide layout so a masked policy can use one outpu
 
 ## Known differences
 
-- Same-seed RNG now aligns spin by spin (PCG32 with BetterLandlord derivation). Income matches on 98.61% of the first 12 spins (v71), and 22 games still have a first difference.
+- Same-seed RNG now aligns spin by spin (PCG32 with BetterLandlord derivation). Income matches on 98.61% of the first 12 spins (v72), and 22 games still have a first difference.
 - A20 fine print 31 is currently treated as a no-op. Some essences and items are approximations, and a few trigger orders differ from the real game.
 - The landlord fight models HP, the rent loop, and win/loss, but not phase skills or combat presentation.
 - The shop, item enable/disable toggles, and some per-instance state are not implemented.
