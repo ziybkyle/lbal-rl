@@ -3439,10 +3439,10 @@ impl<'a> RunState<'a> {
         // exactly like Godot's `_rl_add_effects`.
         self.register_item_effects_pre_spin();
         let pre_rolls = self.preregister_symbol_effects(&entries);
-        // Godot runs item conditional checks right after `add_effects`, i.e.
-        // the chance roll for grave robber/lockpick happens at this point,
-        // not during the earlier symbol pre-pass.  One roll per matching
-        // spiritbox/chest icon; stacking multiplies the chance.
+        // Godot 把锁匠/盗墓者的“概率摧毁”效果挂在图标自身上，等这个图标
+        // 被检查时才掷点。所以摇号必须发生在该图标的回合，而不是所有符号
+        // 之前；否则整条 effect 流会提前错位一格。
+        let mut item_destroy_chances: Vec<(&'static str, f64)> = Vec::new();
         {
             let mut seen: Vec<String> = Vec::new();
             for item_id in self.items_held.clone() {
@@ -3463,16 +3463,7 @@ impl<'a> RunState<'a> {
                     .filter(|id| self.data.items[**id].name == name)
                     .count();
                 let chance = item.values.first().copied().unwrap_or(0.0) * copies as f64;
-                for (target, _, _) in entries.iter().copied() {
-                    if destroyed[target]
-                        || !self.has_group(self.deck[target].type_id as usize, group)
-                    {
-                        continue;
-                    }
-                    if self.rng.unit() * 100.0 < chance {
-                        destroyed[target] = true;
-                    }
-                }
+                item_destroy_chances.push((group, chance));
             }
         }
         if let Some(lefty_essence) = self
@@ -3550,6 +3541,15 @@ impl<'a> RunState<'a> {
         }
 
         for (index, x, y) in entries.iter().copied() {
+            if !destroyed[index] && !item_destroy_chances.is_empty() {
+                let type_id = self.deck[index].type_id as usize;
+                for (group, chance) in item_destroy_chances.iter().copied() {
+                    if self.has_group(type_id, group) && self.rng.unit() * 100.0 < chance {
+                        destroyed[index] = true;
+                        break;
+                    }
+                }
+            }
             if destroyed[index] {
                 continue;
             }
