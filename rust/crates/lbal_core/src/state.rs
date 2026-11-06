@@ -5726,6 +5726,18 @@ impl<'a> RunState<'a> {
             *type_counts.entry(self.deck[index].type_id).or_default() += 1;
         }
         let max_same = type_counts.values().copied().max().unwrap_or(0);
+        // `check_effects` re-runs item condition checks after icons have been
+        // destroyed, so a condition that only becomes true on the thinner
+        // board still fires that spin.
+        let mut survivor_type_counts: HashMap<u16, i32> = HashMap::new();
+        for index in &survivors {
+            *survivor_type_counts
+                .entry(self.deck[*index].type_id)
+                .or_default() += 1;
+        }
+        let survivor_max_same = survivor_type_counts.values().copied().max().unwrap_or(0);
+        let survivor_empty_count = (BOARD_SLOTS - survivors.len()) as i32;
+        let survivor_all_different = survivor_type_counts.len() == survivors.len();
         let all_different = type_counts.len() == entries.len();
         let mut triple_adjacent = false;
         for (index, x, y) in entries.iter().copied() {
@@ -5766,11 +5778,11 @@ impl<'a> RunState<'a> {
             let gain = match name {
                 "black_pepper" => v0 * destroyed_count,
                 "brown_pepper" => v0 * added_count,
-                "blue_pepper" if empty_count >= v1 => v0,
+                "blue_pepper" if empty_count >= v1 || survivor_empty_count >= v1 => v0,
                 "yellow_pepper" if empty_count == 0 => v0,
                 "green_pepper" if max_same >= v1 => v0,
-                "cyan_pepper" if max_same < v1 => v0,
-                "red_pepper" if all_different => v0,
+                "cyan_pepper" if max_same < v1 || survivor_max_same < v1 => v0,
+                "red_pepper" if all_different || survivor_all_different => v0,
                 "purple_pepper" if triple_adjacent => v0,
                 "mining_pick" => v0 * destroyed_minerlikes,
                 "lemon" => v0 * empty_count,
@@ -5805,7 +5817,7 @@ impl<'a> RunState<'a> {
             ("purple_pepper_essence", triple_adjacent),
             (
                 "cyan_pepper_essence",
-                max_same < 3 && !survivors.is_empty(),
+                (max_same < 3 || survivor_max_same < 3) && !survivors.is_empty(),
             ),
         ] {
             if !triggered || !self.has_essence(essence_name) {
