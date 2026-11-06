@@ -21,7 +21,7 @@
 - [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord)：C# 写的幸运房东种子模组，包含种子系统、运行历史和胜率统计。它的种子流程是字符串种子经 FNV-1a 哈希，再按用途派生 PCG 随机流。
 - 它运行在 [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) 模组框架上；SlotWeave 负责 Godot 运行时脚本注入和状态读取。
 
-本项目的 Rust 核心已复刻 BetterLandlord 的按用途派生多路随机流，并使用相同的 PCG32 状态推进；`--seed-text` 可直接跑真机的 `B2A...` 字符串种子，符号落位、候选与收入可逐旋对照。当前 200 个种子、前 12 旋的收入一致率为 96.8%，剩余差异见 [FIDELITY.md](FIDELITY.md)。
+本项目的 Rust 核心已复刻 BetterLandlord 的按用途派生多路随机流，并使用相同的 PCG32 状态推进；`--seed-text` 可直接跑真机的 `B2A...` 字符串种子，符号落位、候选与收入可逐旋对照。当前 200 个种子、前 12 旋的收入一致率为 98.48%（v57），棋盘 98.35%、牌组 98.57%、候选 99.96%，176/200 局无首差异；阶段 3 的 100% 验收尚未达成，剩余差异见 [FIDELITY.md](FIDELITY.md)。
 
 ## 项目组成
 
@@ -229,7 +229,7 @@ obs = json.loads(env.step(0))       # 准备阶段：旋转
 
 ## 已知差异
 
-- 同种子随机数已能逐旋对齐（PCG32 + BetterLandlord 派生），少量旋仍有 effect 流偏移；当前前 12 旋收入一致率 96.8%。
+- 同种子随机数已能逐旋对齐（PCG32 + BetterLandlord 派生），少量旋仍有 effect 流偏移；当前前 12 旋收入一致率 98.48%（v57），仍有 24 局存在首差异。
 - A20 小字第 31 条暂按无操作处理；部分精华和物品是近似实现，个别触发顺序与真机不同。
 - 房东战实现了血量、租金循环和胜负判定，但没有模拟阶段技能与战斗演出。
 - 商店、物品启用开关和部分实例状态尚未实现。

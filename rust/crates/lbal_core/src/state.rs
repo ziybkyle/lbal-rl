@@ -3051,6 +3051,9 @@ impl<'a> RunState<'a> {
         let mut mult = vec![1.0f64; deck_len];
         let mut destroyed = vec![false; deck_len];
         let mut spawned: Vec<usize> = Vec::new();
+        // (deck index, x, y, coin per empty neighbour, destroy threshold,
+        //  fine-print 36 keeps the symbol alive regardless of empty count)
+        let mut void_effects: Vec<(usize, usize, usize, i32, i32, bool)> = Vec::new();
         let mut extra_income = 0i32;
         let mut item_gains_sink: Vec<(String, i32)> = Vec::new();
         let items_at_start = self.items_held.clone();
@@ -3075,6 +3078,12 @@ impl<'a> RunState<'a> {
                 for (index, _, _) in entries.iter().copied() {
                     if self.data.symbols[self.deck[index].type_id as usize].name == "dog" {
                         self.deck[index].type_id = wolf as u16;
+                        // Godot's `change_type` keeps the dog's original
+                        // `value` and the already-applied doglikes +2 bonus.
+                        // Swapping the type id here raises base 1 -> 2 and
+                        // makes the doglikes pass below see a wolf instead of
+                        // a dog, so the net correction is +1 per conversion.
+                        spin_bonus[index] += 1;
                     }
                 }
             }
@@ -3285,20 +3294,69 @@ impl<'a> RunState<'a> {
                 }
             }
             if name == "rusty_gear" {
-                let mut displayed: HashMap<u16, usize> = HashMap::new();
+                // Godot's `make_clumps` builds connected components of
+                // adjacent identical icons (8 neighbours).  Rusty gear only
+                // fires for a clump of at least values[0] (=3) icons, and
+                // then multiplies exactly the icons of types that collected
+                // at least values[0] members in such clumps.  Counting all
+                // copies of a type on the board is not the same rule.
+                let threshold = v0.max(1.0) as usize;
+                let factor = if v1 > 1.0 { v1 } else { 2.0 };
+                let mut pos: HashMap<usize, (usize, usize)> = HashMap::new();
+                let mut by_slot: HashMap<(usize, usize), usize> = HashMap::new();
+                for (index, x, y) in entries.iter().copied() {
+                    pos.insert(index, (x, y));
+                    by_slot.insert((x, y), index);
+                }
+                let mut visited: HashSet<usize> = HashSet::new();
+                let mut clump_members: HashMap<u16, Vec<usize>> = HashMap::new();
                 for (index, _, _) in entries.iter().copied() {
-                    if !destroyed[index] {
-                        *displayed.entry(self.deck[index].type_id).or_default() += 1;
+                    if !visited.insert(index) {
+                        continue;
+                    }
+                    let mut clump = vec![index];
+                    let mut cursor = 0;
+                    while cursor < clump.len() {
+                        let cur = clump[cursor];
+                        cursor += 1;
+                        let (cx, cy) = pos[&cur];
+                        for dy in -1i32..=1 {
+                            for dx in -1i32..=1 {
+                                if dx == 0 && dy == 0 {
+                                    continue;
+                                }
+                                let nx = cx as i32 + dx;
+                                let ny = cy as i32 + dy;
+                                if nx < 0 || ny < 0 {
+                                    continue;
+                                }
+                                let Some(other) = by_slot.get(&(nx as usize, ny as usize))
+                                else {
+                                    continue;
+                                };
+                                if self.deck[*other].type_id != self.deck[index].type_id
+                                    || !visited.insert(*other)
+                                {
+                                    continue;
+                                }
+                                clump.push(*other);
+                            }
+                        }
+                    }
+                    if clump.len() >= threshold {
+                        clump_members
+                            .entry(self.deck[index].type_id)
+                            .or_default()
+                            .extend(clump);
                     }
                 }
-                let factor = if v1 > 1.0 { v1 } else { 2.0 };
-                for (index, _, _) in entries.iter().copied() {
-                    let copies = displayed
-                        .get(&self.deck[index].type_id)
-                        .copied()
-                        .unwrap_or(0);
-                    if !destroyed[index] && copies >= 2 {
-                        mult[index] *= factor;
+                for (_, members) in clump_members {
+                    if members.len() >= threshold {
+                        for index in members {
+                            if !destroyed[index] {
+                                mult[index] *= factor;
+                            }
+                        }
                     }
                 }
             }
@@ -3540,6 +3598,22 @@ impl<'a> RunState<'a> {
             spin_bonus[n] += omelette_bonus;
         }
 
+        // Every displayed void symbol registers its empty-cell effect at the
+        // start of the spin, even one destroyed before its own turn arrives.
+        for (index, x, y) in entries.iter().copied() {
+            let def = &self.data.symbols[self.deck[index].type_id as usize];
+            if matches!(def.name.as_str(), "void_fruit" | "void_creature" | "void_stone") {
+                void_effects.push((
+                    index,
+                    x,
+                    y,
+                    def.values.first().copied().unwrap_or(1.0) as i32,
+                    def.values.get(1).copied().unwrap_or(0.0) as i32,
+                    self.fp_affects(36, &def.name),
+                ));
+            }
+        }
+
         for (index, x, y) in entries.iter().copied() {
             if !destroyed[index] && !item_destroy_chances.is_empty() {
                 let type_id = self.deck[index].type_id as usize;
@@ -3550,13 +3624,111 @@ impl<'a> RunState<'a> {
                     }
                 }
             }
-            if destroyed[index] {
-                continue;
-            }
             let type_id = self.deck[index].type_id as usize;
             let name = self.data.symbols[type_id].name.clone();
             let values = self.data.symbols[type_id].values.clone();
             let neighbors = self.neighbor_indexes(x, y, index);
+            if destroyed[index] {
+                // Godot registers every icon's conditional effects before any
+                // of them resolves, so an icon destroyed earlier in the pass
+                // still applies the effects it already registered.  Only the
+                // deterministic, outgoing ones are replayed here; rolls and
+                // self-triggered effects stay with the registration phase.
+                let v0 = values.first().copied().unwrap_or(0.0);
+                match name.as_str() {
+                    "bee" | "light_bulb" | "dame" | "dwarven_anvil" | "chef" => {
+                        let tag = match name.as_str() {
+                            "bee" => "beelikes",
+                            "light_bulb" | "dame" => "gem",
+                            "chef" => "food",
+                            _ => "dwarflikes",
+                        };
+                        for n in &neighbors {
+                            if self.has_group(self.deck[*n].type_id as usize, tag) {
+                                mult[*n] *= v0.max(1.0);
+                            }
+                        }
+                    }
+                    "beastmaster" | "witch" | "farmer" | "sun" | "moon"
+                    | "king_midas" => {
+                        let tag = match name.as_str() {
+                            "beastmaster" => "animal",
+                            "witch" => "witchlikes",
+                            "farmer" => "farmerlikes",
+                            "moon" => "night",
+                            _ => "",
+                        };
+                        for n in &neighbors {
+                            let target = self.deck[*n].type_id as usize;
+                            let hit = if tag.is_empty() {
+                                self.data.symbols[target].name
+                                    == if name == "sun" { "flower" } else { "coin" }
+                            } else {
+                                self.has_group(target, tag)
+                            };
+                            if hit {
+                                mult[*n] *= if name == "sun" { 5.0 } else if name == "moon" { 3.0 } else if name == "king_midas" { 3.0 } else { v0.max(1.0) };
+                            }
+                        }
+                    }
+                    "cat" | "mouse" | "bear" | "miner" | "toddler" | "goldfish"
+                    | "hooligan" | "mrs_fruit" | "monkey" | "dwarf" => {
+                        let (tag, target_name) = match name.as_str() {
+                            "cat" => ("", "milk"),
+                            "mouse" => ("", "cheese"),
+                            "bear" => ("", "honey"),
+                            "goldfish" => ("", "bubble"),
+                            "miner" => ("minerlikes", ""),
+                            "toddler" => ("toddlerlikes", ""),
+                            "hooligan" => ("spiritbox", ""),
+                            "mrs_fruit" => ("fruitlikes", ""),
+                            "monkey" => ("monkeylikes", ""),
+                            _ => ("dwarflikes", ""),
+                        };
+                        let gain = match name.as_str() {
+                            "cat" | "miner" | "toddler" | "goldfish" | "hooligan" => v0 as i32,
+                            "mouse" | "bear" => v0 as i32,
+                            _ => 0,
+                        };
+                        for n in &neighbors {
+                            let target = self.deck[*n].type_id as usize;
+                            let hit = if tag.is_empty() {
+                                self.data.symbols[target].name == target_name
+                            } else {
+                                self.has_group(target, tag)
+                            };
+                            if !hit {
+                                continue;
+                            }
+                            destroyed[*n] = true;
+                            if name == "cat" {
+                                milk_eaten = true;
+                                spin_bonus[index] += gain;
+                            } else if name == "mrs_fruit" {
+                                self.deck[index].bonus += v0 as i32;
+                            } else if name == "monkey" {
+                                let victim_def = &self.data.symbols[target];
+                                let victim = ((self.deck[*n].bonus + victim_def.base_value) as f64
+                                    + self.permanent_bonus_for(victim_def) as f64)
+                                    * self.permanent_mult_for(victim_def);
+                                spin_bonus[index] += (victim * v0).round() as i32;
+                            } else if name == "dwarf" {
+                                let victim_def = &self.data.symbols[target];
+                                let victim = ((self.deck[*n].bonus + victim_def.base_value
+                                    + spin_bonus[*n]) as f64
+                                    + self.permanent_bonus_for(victim_def) as f64)
+                                    * self.permanent_mult_for(victim_def)
+                                    * mult[*n];
+                                spin_bonus[index] += (victim * v0).round() as i32;
+                            } else {
+                                spin_bonus[index] += gain;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                continue;
+            }
             let mut destroy_self = false;
             let chance_allowed = !self.fp_affects(13, &name);
             match name.as_str() {
@@ -3712,15 +3884,9 @@ impl<'a> RunState<'a> {
                     }
                     destroy_self = true;
                 }
-                "void_fruit" | "void_creature" | "void_stone" => {
-                    let empties = self.empty_neighbor_count(x, y);
-                    extra_income += empties * values.first().copied().unwrap_or(1.0) as i32;
-                    if !self.fp_affects(36, &name)
-                        && empties <= values.get(1).copied().unwrap_or(0.0) as i32
-                    {
-                        destroy_self = true;
-                    }
-                }
+                // Void effects are registered for every displayed icon in the
+                // pre-pass above and settled after all destructions.
+                "void_fruit" | "void_creature" | "void_stone" => {}
                 "hex_of_tedium" => {
                     let penalty = values.first().copied().unwrap_or(1.3);
                     if penalty > 0.0 {
@@ -3871,14 +4037,21 @@ impl<'a> RunState<'a> {
                         if self.has_group(self.deck[n].type_id as usize, "dwarflikes")
                         {
                             destroyed[n] = true;
-                            // Godot multiplies the dwarf's own value[0] by the
-                            // victim's `non_prev_final_value` (permanent value
-                            // without per-spin bonuses), e.g. wine 2 -> +20.
+                            // Godot multiplies the dwarf's values[0] by the
+                            // victim's `non_prev_final_value`, which is
+                            // recomputed with `get_non_prev_value("coin")` when
+                            // effects resolve.  That helper includes this
+                            // spin's `value_bonus_arr` (e.g. happy_hour +1 to
+                            // booze) and `value_multiplier_arr`, so the victim
+                            // is not just its permanent value.  A beer under
+                            // happy_hour is worth 2, giving dwarf +20, not +10.
                             let victim_def =
                                 &self.data.symbols[self.deck[n].type_id as usize];
-                            let victim = ((self.deck[n].bonus + victim_def.base_value) as f64
+                            let victim = ((self.deck[n].bonus + victim_def.base_value
+                                + spin_bonus[n]) as f64
                                 + self.permanent_bonus_for(victim_def) as f64)
-                                * self.permanent_mult_for(victim_def);
+                                * self.permanent_mult_for(victim_def)
+                                * mult[n];
                             spin_bonus[index] += (victim * gain).round() as i32;
                         }
                     }
@@ -4985,6 +5158,51 @@ impl<'a> RunState<'a> {
             }
         }
 
+        // Void symbols pay 1 coin for every adjacent empty cell and destroy
+        // themselves when none is left.  Godot decides the destruction at
+        // registration time (before anything has been destroyed this spin),
+        // while the coin bonus is a conditional effect checked later, after
+        // destroyed icons have turned into empty cells.  The two therefore
+        // see slightly different neighbourhoods.
+        if !void_effects.is_empty() {
+            let effective_empties = |x: usize, y: usize, destroyed: &[bool]| -> i32 {
+                let mut count = 0;
+                for dy in -1i32..=1 {
+                    for dx in -1i32..=1 {
+                        if (dx == 0 && dy == 0) || (dx == 0 && self.has_fine_print(22)) {
+                            continue;
+                        }
+                        let nx = x as i32 + dx;
+                        let ny = y as i32 + dy;
+                        if nx < 0
+                            || nx >= BOARD_COLS as i32
+                            || ny < 0
+                            || ny >= BOARD_ROWS as i32
+                        {
+                            continue;
+                        }
+                        match self.board.slots[ny as usize * BOARD_COLS + nx as usize] {
+                            None => count += 1,
+                            Some(other) if destroyed[other] => count += 1,
+                            _ => {}
+                        }
+                    }
+                }
+                count
+            };
+            for &(index, x, y, _, threshold, protected) in &void_effects {
+                if !protected
+                    && !destroyed[index]
+                    && self.empty_neighbor_count(x, y) <= threshold
+                {
+                    destroyed[index] = true;
+                }
+            }
+            for &(_, x, y, gain, _, _) in &void_effects {
+                extra_income += effective_empties(x, y, &destroyed) * gain;
+            }
+        }
+
         let mut reanimated: HashMap<usize, i32> = HashMap::new();
         for (index, _, _) in entries.iter().copied() {
             if !destroyed[index] {
@@ -6030,11 +6248,17 @@ impl<'a> RunState<'a> {
             "farmer" if target_has("farmerlikes") => factor = Some(v0),
             "dame" if target_has("gem") => factor = Some(v0),
             "king_midas" if target_name == "coin" => factor = Some(v0),
+            "chef" if target_has("food") => factor = Some(v0),
+            "sun" if target_name == "flower" => factor = Some(v0),
+            "moon" if target_has("night") => factor = Some(v0),
             "cat" if target_name == "milk" => destroy = Some((0.0, v0 as i32, false)),
+            "mouse" if target_name == "cheese" => destroy = Some((0.0, v0 as i32, false)),
             "toddler" if target_has("toddlerlikes") => destroy = Some((0.0, v0 as i32, false)),
             "bear" if target_name == "honey" => destroy = Some((0.0, v0 as i32, false)),
             "miner" if target_has("minerlikes") => destroy = Some((0.0, v0 as i32, false)),
             "goldfish" if target_name == "bubble" => destroy = Some((0.0, v0 as i32, false)),
+            "hooligan" if target_has("spiritbox") => destroy = Some((0.0, v0 as i32, false)),
+            "monkey" if target_has("monkeylikes") => destroy = Some((v0, 0, false)),
             "dwarf" if target_has("dwarflikes") => destroy = Some((v0, 0, false)),
             "dame" if target_name == "martini" => {
                 destroy = Some((0.0, source_values.get(1).copied().unwrap_or(0.0) as i32, false))
@@ -6237,6 +6461,7 @@ impl<'a> RunState<'a> {
             }
         }
 
+        let mut capsule_done: HashSet<usize> = HashSet::new();
         for _ in 0..3 {
             for &index in &pending {
                 if item_done.insert(index) {
@@ -6244,6 +6469,56 @@ impl<'a> RunState<'a> {
                 }
                 if !all_spawned.contains(&index) {
                     all_spawned.push(index);
+                }
+            }
+
+            // Godot re-registers effects for every symbol added during the
+            // spin, so a capsule spawned this spin also opens and destroys
+            // itself before `check_values`.
+            for &index in &all_spawned {
+                if !capsule_done.insert(index) {
+                    continue;
+                }
+                let type_id = self.spawn_type_after_items(index);
+                let name = self.data.symbols[type_id].name.clone();
+                let values = self.data.symbols[type_id].values.clone();
+                let count = (values.first().copied().unwrap_or(1.0) as i32
+                    * self.capsule_multiplier())
+                .max(1);
+                match name.as_str() {
+                    "essence_capsule" => {
+                        self.essence_tokens += count;
+                        if let Some(state) = states.get_mut(&index) {
+                            state.destroyed = true;
+                        }
+                    }
+                    "item_capsule" => {
+                        for _ in 0..count {
+                            let mut pool = self.item_pools[0].clone();
+                            pool.retain(|item| !self.items_held.contains(item));
+                            if pool.is_empty() {
+                                break;
+                            }
+                            let pick = pool[self.rng.range(0, pool.len())];
+                            self.grant_item(pick);
+                        }
+                        if let Some(state) = states.get_mut(&index) {
+                            state.destroyed = true;
+                        }
+                    }
+                    "reroll_capsule" => {
+                        self.reroll_tokens += count;
+                        if let Some(state) = states.get_mut(&index) {
+                            state.destroyed = true;
+                        }
+                    }
+                    "removal_capsule" => {
+                        self.removal_tokens += count;
+                        if let Some(state) = states.get_mut(&index) {
+                            state.destroyed = true;
+                        }
+                    }
+                    _ => {}
                 }
             }
 
@@ -6403,6 +6678,45 @@ impl<'a> RunState<'a> {
                 break;
             }
             pending = next;
+        }
+
+        // A void symbol added during the spin also registers its empty-cell
+        // effect in the next effect pass, so it pays for every adjacent empty
+        // cell that is still empty at check_values time.
+        let spawned_voids: Vec<(usize, usize, i32)> = states
+            .iter()
+            .filter_map(|(&index, state)| {
+                if !state.visible || state.destroyed {
+                    return None;
+                }
+                let def = &self.data.symbols[self.spawn_type_after_items(index)];
+                if !matches!(def.name.as_str(), "void_fruit" | "void_creature" | "void_stone") {
+                    return None;
+                }
+                let slot = self.board_slot_of(index)?;
+                Some((
+                    slot % BOARD_COLS,
+                    slot / BOARD_COLS,
+                    def.values.first().copied().unwrap_or(1.0) as i32,
+                ))
+            })
+            .collect();
+        for &(x, y, gain) in &spawned_voids {
+            for dy in -1i32..=1 {
+                for dx in -1i32..=1 {
+                    if dx == 0 && dy == 0 {
+                        continue;
+                    }
+                    let nx = x as i32 + dx;
+                    let ny = y as i32 + dy;
+                    if nx < 0 || ny < 0 || nx >= BOARD_COLS as i32 || ny >= BOARD_ROWS as i32 {
+                        continue;
+                    }
+                    if self.board.slots[ny as usize * BOARD_COLS + nx as usize].is_none() {
+                        *income += gain;
+                    }
+                }
+            }
         }
 
         for (index, state) in &states {
@@ -7938,17 +8252,40 @@ mod tests {
     }
 
     #[test]
-    fn rusty_gear_doubles_duplicate_symbol_types() {
+    fn rusty_gear_doubles_clumped_types_only() {
+        // Godot's `make_clumps` groups *adjacent* identical icons; rusty gear
+        // needs a connected clump of at least three, and only those members
+        // receive the multiplier.  Counting all copies on the board is wrong.
         let data = data();
-        let mut state = RunState::new(&data, 4);
         let cherry = data.symbol_id("cherry").expect("cherry");
-        state.deck.clear();
+
+        // Three connected cherries (0,0), (1,0), (0,1) plus one isolated one.
+        let mut clumped = RunState::new(&data, 4);
+        clumped.deck.clear();
         for _ in 0..4 {
-            state.deck.push(Symbol::new(cherry, data.symbols[cherry].base_value));
+            clumped
+                .deck
+                .push(Symbol::new(cherry, data.symbols[cherry].base_value));
         }
-        state.items_held.push(data.item_index["rusty_gear"]);
-        let outcome = state.spin();
-        assert_eq!(outcome.income, 8);
+        for (slot, index) in [(0, 0), (1, 1), (5, 2), (19, 3)] {
+            clumped.board.slots[slot] = Some(index);
+        }
+        clumped.items_held.push(data.item_index["rusty_gear"]);
+        assert_eq!(clumped.resolve_spin_effects(), 7);
+
+        // Same four copies, but none adjacent: no clump, no multiplier.
+        let mut scattered = RunState::new(&data, 4);
+        scattered.deck.clear();
+        for _ in 0..4 {
+            scattered
+                .deck
+                .push(Symbol::new(cherry, data.symbols[cherry].base_value));
+        }
+        for (slot, index) in [(0, 0), (2, 1), (4, 2), (19, 3)] {
+            scattered.board.slots[slot] = Some(index);
+        }
+        scattered.items_held.push(data.item_index["rusty_gear"]);
+        assert_eq!(scattered.resolve_spin_effects(), 4);
     }
 
     #[test]
