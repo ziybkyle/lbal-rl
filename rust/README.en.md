@@ -47,13 +47,16 @@ Measured on one i7-12700F; numbers will change with hardware and compiler option
 
 | Item | Result |
 | --- | --- |
-| 2,000-game benchmark, 20 threads | 3,392 games/s; 261 wins, 13.05% win rate; average rents 6.43, spins 49.2, deck 24.5, final rent 503.1 |
-| Single thread | About 390 games/s |
-| Gym random masked policy, 100,000 steps | 16,203 steps/s, about 34.3 MB resident memory |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items; 78% of games have no first difference |
+| 20,000-game benchmark, 20 threads | 3,871 wins, 19.36% win rate; average rents 7.23, spins 56.0, deck 25.5, final rent 603.5 |
+| Throughput | 2,418 games/s over 2,000 games; 731–2,152 games/s over 20,000 games (same machine, varies with load) |
+| Single thread | About 265 games/s |
+| Gym random masked policy, 100,000 steps | 13,783 steps/s |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.7% offers, 97.7% deck, 99.2% items; 78.5% of games have no first difference |
 | Automated tests | 160 Rust tests (136 unit + 24 integration) + 9 Python tests |
 
-13.05% is the win rate of the built-in heuristic, not an upper bound of the simulator. A 30-game smoke test with the real v13 policy adapted to this environment won about one third of its games (too small to estimate a win rate). The real-game v13 record over 50 games is 18%, with average rents 7.34 and average spins 57.5. Rule fidelity and policy strength should be evaluated separately.
+19.36% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. The real-game v13 record over 50 games is 18%, with average rents 7.34 and average spins 57.5; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
+
+Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
 
 ## Baseline policy
 
@@ -164,8 +167,8 @@ cargo run --release -p lbal_cli -- --games 2000 --seed 1 --threads 20 --hist
 Example output:
 
 ```text
-games=2000 threads=20 elapsed=0.590s games_per_sec=3392.0
-wins=261 losses=1739 win_rate=13.05% avg_rents=6.43 avg_spins=49.2 ...
+games=20000 threads=20 elapsed=9.294s games_per_sec=2151.9
+wins=3946 losses=16054 win_rate=19.73% avg_rents=7.26 avg_spins=56.3 ...
 ```
 
 Common options:

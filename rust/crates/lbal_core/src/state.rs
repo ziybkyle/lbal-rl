@@ -1,6 +1,6 @@
 use crate::data::{GameData, RENT_SCHEDULE_FLOOR_20};
 use crate::rng::{BetterLandlordRng, RngStreams};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 pub const BOARD_COLS: usize = 5;
 pub const BOARD_ROWS: usize = 4;
@@ -6898,7 +6898,9 @@ impl<'a> RunState<'a> {
         let uncommon = uncommon * factor;
         let rare = rare * factor;
         let very_rare = very_rare * factor;
-        let count = (3 - self.fp_value(30, 0) as usize).max(1);
+        let count = 3usize
+            .saturating_sub(self.fp_value(30, 0) as usize + self.shattered_mirror_penalty())
+            .max(1);
         let (forced, or_better) = self.take_symbol_forced_rarities(count);
         let mut offer = Vec::with_capacity(count);
         let mut pools: [Vec<usize>; 4] = [
@@ -7010,11 +7012,10 @@ impl<'a> RunState<'a> {
         vec![pick; 3]
     }
 
-    fn roll_symbol_reward(&mut self) -> Vec<usize> {
-        self.refresh_symbol_pools();
-        let rarities = self.rent_reward_rarities();
-        let mirror_penalty: usize = self
-            .items_held
+    /// 碎镜（每份）会让符号奖励少一个选项。真机的普通旋后奖励和交租奖励
+    /// 都会扣，所以两个入口共用这个计数。
+    fn shattered_mirror_penalty(&self) -> usize {
+        self.items_held
             .iter()
             .filter(|item_id| self.data.items[**item_id].name == "shattered_mirror")
             .map(|item_id| {
@@ -7024,7 +7025,13 @@ impl<'a> RunState<'a> {
                     .copied()
                     .unwrap_or(1.0) as usize
             })
-            .sum();
+            .sum()
+    }
+
+    fn roll_symbol_reward(&mut self) -> Vec<usize> {
+        self.refresh_symbol_pools();
+        let rarities = self.rent_reward_rarities();
+        let mirror_penalty = self.shattered_mirror_penalty();
         let count = 3usize
             .saturating_sub(self.fp_value(30, 0) as usize + mirror_penalty)
             .max(1);
@@ -9025,10 +9032,15 @@ mod tests {
         let mut state = RunState::new(&data, 29);
         let mirror = data.item_index["shattered_mirror"];
         let plain = state.roll_symbol_reward();
+        let plain_spin = state.roll_spin_reward();
         state.items_held.push(mirror);
         let reduced = state.roll_symbol_reward();
+        let reduced_spin = state.roll_spin_reward();
         assert_eq!(plain.len(), 3);
         assert_eq!(reduced.len(), 2);
+        // 普通旋后奖励也要扣：真机持有碎镜时不会给 3 个候选。
+        assert_eq!(plain_spin.len(), 3);
+        assert_eq!(reduced_spin.len(), 2);
     }
 
     #[test]

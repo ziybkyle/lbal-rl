@@ -13,7 +13,7 @@ This is the first public version. The rules, numbers, policy, and APIs may still
 - 168 symbols, 114 items (one placeholder), 113 essences, and 31 A20 fine prints.
 - Complete spin, rent, reward, token, item, essence, and landlord-fight flow.
 - A pure Rust core with a command-line batch simulator and PyO3 bindings.
-- About 3,392 games/s on 20 threads for 2,000 games; about 16,203 steps/s for a 100,000-step Gym run.
+- About 2,150 games/s on 20 threads over 20,000 games; about 13,800 steps/s for a 100,000-step Gym run.
 - 160 Rust tests (136 unit + 24 integration) and 9 Python tests; 200 seeds, first 12 spins replay: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items.
 
 ## Seed system
@@ -37,13 +37,15 @@ The built-in baseline, `heuristic-marginal-value-v13`, is a hand-written rule se
 
 | Item | Result |
 | --- | --- |
-| 2,000-game benchmark, 20 threads | 3,392 games/s; 261 wins, 13.05% win rate; average rents 6.43, spins 49.2, deck 24.5 |
+| 20,000-game benchmark, 20 threads | 3,871 wins, 19.36% win rate; average rents 7.23, spins 56.0, deck 25.5, final rent 603.5 |
 | Real-game v13, 50 games | 18% win rate; average rents 7.34, spins 57.5 |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items; 78% of games have no first difference |
-| Gym random masked policy, 100,000 steps | 16,203 steps/s, about 34.3 MB resident memory |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.7% offers, 97.7% deck, 99.2% items; 78.5% of games have no first difference |
+| Gym random masked policy, 100,000 steps | 13,783 steps/s |
 | Automated tests | 160 Rust tests (136 unit + 24 integration) + 9 Python tests |
 
-13.05% is the win rate of the built-in heuristic, not an upper bound of the simulator. A 30-game smoke test with the real v13 policy in this environment won about one third of its games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
+19.36% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. The real-game v13 record over 50 games is 18%; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
+
+Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
 
 The full strategy rules are in [当前基线策略说明.md](当前基线策略说明.md), guide trade-offs in [攻略策略取舍.md](攻略策略取舍.md), and historical batches in [进阶20基线与记录.md](进阶20基线与记录.md). These detailed notes are currently in Chinese.
 
