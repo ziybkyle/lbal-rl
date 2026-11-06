@@ -7659,6 +7659,7 @@ impl<'a> RunState<'a> {
             self.grant_item(item_id);
         }
         self.next_offer_phase(FollowUp::Ready);
+        self.zero_balance_gift();
     }
 
     pub fn skip_item(&mut self) {
@@ -7666,6 +7667,21 @@ impl<'a> RunState<'a> {
             self.token_pepper_income("pink_pepper");
             self.spend_pepper_essence("pink_pepper_essence");
             self.next_offer_phase(FollowUp::Ready);
+            self.zero_balance_gift();
+        }
+    }
+
+    /// 真机（`game/Pop-up.tscn` 的 `add_item` 分支）在交租后的「选物品」
+    /// 奖励链发完、且总余额恰好是 0 时，补 1 枚金币——下一次旋转要先花
+    /// 1 块钱。房东战另补 1 点伤害（HP Sum → landlord.take_damage）。
+    /// 只在物品链的最后一件处理完时判定；吞掉的点击不触发（真机同）。
+    fn zero_balance_gift(&mut self) {
+        if !matches!(self.phase, Phase::Ready) || self.coins != 0 {
+            return;
+        }
+        self.coins += 1;
+        if self.boss_fight {
+            self.boss_hp = (self.boss_hp - 1).max(0);
         }
     }
 
@@ -10261,6 +10277,38 @@ mod tests {
                 .any(|id| data.items[*id].rarity == "very_rare")),
             other => panic!("expected item reward, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn zero_balance_after_rent_item_chain_gifts_one_coin() {
+        let data = data();
+        let mut state = RunState::new(&data, 30);
+        state.deck.clear();
+        state.coins = 100;
+        state.pay_rent();
+        state.choose_symbol(0);
+        assert!(matches!(state.phase, Phase::ItemReward { .. }));
+        // The gift fires at the end of the post-rent item chain when the
+        // balance is exactly zero (Pop-up.tscn add_item branch).
+        state.coins = 0;
+        state.choose_item(0);
+        assert_eq!(state.coins, 1);
+        assert!(matches!(state.phase, Phase::Ready));
+    }
+
+    #[test]
+    fn zero_balance_gift_only_when_balance_is_exactly_zero() {
+        let data = data();
+        let mut state = RunState::new(&data, 30);
+        state.deck.clear();
+        state.coins = 100;
+        state.pay_rent();
+        state.choose_symbol(0);
+        assert!(matches!(state.phase, Phase::ItemReward { .. }));
+        state.coins = 2;
+        state.skip_item();
+        assert_eq!(state.coins, 2);
+        assert!(matches!(state.phase, Phase::Ready));
     }
 
     #[test]
