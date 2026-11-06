@@ -77,14 +77,19 @@ Rust 已复刻 BetterLandlord 的字符串种子派生：FNV-1a 哈希后按 `sp
 **4. 下一步的靶子**（按当前首差异分类，共 43 局）：
 
 - 宝石身份：sapphire↔shiny_pebble、pearl↔emerald、pearl↔dog，3 局。
-  怀疑 `pick_group_rarity` 的稀有度掷点或成员抽取与真机的
-  `_pick_rarity_weighted_symbol` 不同（真机是"先定稀有度再抽成员"，
-  且 `min_rarity` 的升级链、重复注册时的随机序列都可能影响）。
+  已逐行核对真机 `Slot Icon.0.gd:2243-2300`：先掷 `rand_num`，再按
+  `very_rare → rare → uncommon` 的链升级，成员从 `group_db` 筛同稀有度后单抽，
+  Rust 的 `pick_group_rarity` 三点都一致。另外确认 `symbol_rarity` 就是
+  `rarity_bonuses["symbols"]` 这个共享字典，场上闪光石/兔毛确实会抬高宝石池
+  稀有度——Rust 把它们算进 `compute_rarity_factor` 是**对的**，不要再改这里。
+  差异更可能是同一旋里此前的抽取次数不同，让 `rand_num` 落进了不同桶。
 - urn→spirit 时序与多余生成物（多一颗 cherry、多一个 pearl），5 局。
 - `missing_offer:item_capsule`：真机给 3 个不同符号的交租奖励，Rust 走了
   `roll_bonus_symbol_offer` 的"同稀有度 3 连"分支（`vec![pick; 3]`），
   给出 3 个西瓜。这一支的触发条件要单独查。
-- 矮人/矿工的多受害者计数：一旋内摧毁两格 beer 时 Rust 只计 1 个。
+- 矮人/矿工的多受害者计数：**已复核，大概率误诊**。`state.rs` 的 dwarf 分支
+  对每个相邻 `dwarflikes` 各累加一次，没有"只计 1 个"的写法；若真出现只计 1 个，
+  说明那一旋双方的盘面/销毁集合已经不同，是上游差异的连带。
 - 收入差 ±1 的 8 局（happy_hour、各色胡椒、pool_ball、lucky_seven、
   quigley、egg_carton、fish_bowl、birdhouse、zaroffs_contract 等），
   多半是上面的状态差引起的连带。
