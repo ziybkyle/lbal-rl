@@ -6714,17 +6714,6 @@ impl<'a> RunState<'a> {
             (def.name.clone(), def.values.clone())
         };
         match name.as_str() {
-            "booster_pack_essence" => {
-                let uncommon = values.first().copied().unwrap_or(2.0) as usize;
-                let very_rare = values.get(2).copied().unwrap_or(1.0) as usize;
-                for _ in 0..uncommon {
-                    self.pending_bonus_symbols.push(Some(Rarity::Uncommon));
-                }
-                for _ in 0..very_rare {
-                    self.pending_bonus_symbols.push(Some(Rarity::VeryRare));
-                }
-                self.essences_held.push(essence_id);
-            }
             "bag_of_holding_essence" => {
                 self.pending_bonus_items += values.first().copied().unwrap_or(2.0) as i32;
                 self.essences_held.push(essence_id);
@@ -8615,23 +8604,16 @@ mod tests {
     }
 
     #[test]
-    fn booster_pack_essence_queues_guaranteed_symbol_offers() {
+    fn booster_pack_essence_does_not_queue_offers_on_acquisition() {
+        // 真机（Item.0.gd:2902）的 booster_pack_essence 是个靠 saved_value
+        // 充能、到点自毁的道具，拿到时不会立刻插三选一。此前这里会凭空
+        // 塞进 3 次"同稀有度三连"，导致整局后面多出三次决策。
         let data = data();
         let mut state = RunState::new(&data, 21);
         let essence = data.essence_index["booster_pack_essence"];
         state.grant_essence(essence);
-        assert_eq!(state.pending_bonus_symbols.len(), 3);
-        state.pending_essence_offers = 1;
-        state.phase = Phase::EssenceReward { offer: Vec::new() };
-        state.choose_essence(0);
-        let Phase::SpinReward { offer } = &state.phase else {
-            panic!("expected a queued bonus symbol offer");
-        };
-        assert_eq!(offer.len(), 3);
-        assert_eq!(offer[0], offer[1]);
-        assert_eq!(offer[1], offer[2]);
-        let rarity = data.symbols[offer[0]].rarity.as_str();
-        assert!(rarity == "uncommon" || rarity == "very_rare", "{rarity}");
+        assert!(state.essences_held.contains(&essence));
+        assert!(state.pending_bonus_symbols.is_empty());
     }
 
     #[test]
