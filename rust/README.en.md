@@ -21,7 +21,7 @@ This project's seed system is part of the public Rust source. There is also a pu
 - [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord): a C# seed mod with a seed system, run history, and win-rate statistics. Its seed flow hashes a string seed with FNV-1a and derives PCG streams for different purposes.
 - It runs on the [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) modding framework, which handles Godot runtime script injection and state reads.
 
-The Rust core now reproduces BetterLandlord's per-purpose stream derivation with the same PCG32 state progression; `--seed-text` accepts the game's `B2A...` seed strings for spin-by-spin comparison of placement, offers, and income. Across 200 seeds and the first 12 spins (v72), income matches on 98.61% of spins, board on 98.35%, deck on 98.57%, offers on 99.96%; 178/200 games have no first difference. The 100% phase-3 acceptance target is not yet met (22 games still differ); remaining differences are in [FIDELITY.md](FIDELITY.md).
+The Rust core now reproduces BetterLandlord's per-purpose stream derivation with the same PCG32 state progression; `--seed-text` accepts the game's `B2A...` seed strings for spin-by-spin comparison of placement, offers, and income. Across 200 seeds and the first 12 spins (2026-11-07), income matches on 98.65% of spins, board on 98.39%, deck on 98.61%, offers on 99.96%; 179/200 games have no first difference. The 100% phase-3 acceptance target is not yet met (21 games still differ); remaining differences are in [FIDELITY.md](FIDELITY.md).
 
 ## Crates
 
@@ -33,29 +33,35 @@ The Rust core now reproduces BetterLandlord's per-purpose stream derivation with
 
 ## Rule coverage
 
-- 168 symbols (including a few unused placeholders), 114 items (one placeholder), 113 essences, and 31 A20 fine prints (fine print 31 is treated as a no-op).
+- 168 symbols (including a few unused placeholders), 114 items (one placeholder), 113 essences, and 31 A20 fine prints (fine print 31 blocks manual item toggles).
 - 5 columns × 4 rows, per-column draws, empty slots preserved, spin cost, and Dud growth.
 - A20 rent curve 25/50/100/150/225/300/375/450/600/650/700/777; after the 12th rent payment, the 1500-HP landlord fight begins.
 - Adjacency, suits, wildcards, destruction, and growth for symbols; per-spin and triggered item effects; essence charging and one-shot effects; rent rewards and token settlement.
-- When the post-rent reward chain finishes with the balance exactly at 0, one coin is granted (during the landlord fight the boss also takes 1 damage).
+- One coin is granted when the post-rent reward chain ends at exactly zero (also dealing one boss damage); the simulator also grants a coin at zero before a spin and fails a spin at negative balance. The latter behavior has not been verified against the current Steam version.
 - Valuation and policy priors can be overridden by `data/symbol_values.json` and `data/baseline_priors.json`; built-in defaults are used when those files are absent.
 
 The full rule list, approximations, and known differences are in [FIDELITY.md](FIDELITY.md). The implementation plan and acceptance notes are in [RUST_PORT_PLAN.md](RUST_PORT_PLAN.md).
 
 ## Performance and test data
 
-Measured on one i7-12700F on 2026-11-06 with the current rule set; numbers will change with hardware and compiler options:
+Measured on one i7-12700F on 2026-11-07 with the current rule set and hand-written policy, seeds 42–10041; numbers will change with hardware and compiler options:
 
 | Item | Result |
 | --- | --- |
-| 20,000-game benchmark, 20 threads | 3,320 wins, 16.60% win rate; average rents 7.06, spins 54.6, deck 25.2, final rent 578.7 |
-| Throughput | 2,535 games/s over 20,000 games; 2,318–2,523 games/s over 2,000 games |
-| Single thread | 284 games/s |
-| Gym random masked policy, 100,000 steps | 13,783 steps/s |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds (v72): 98.61% income, 98.35% board, 99.96% offers, 98.57% deck, 99.86% items; 89.0% of games (178/200) have no first difference |
-| Automated tests | 163 Rust tests (139 unit + 24 integration) + 9 Python tests |
+| 10,000-game benchmark, 20 threads | 2,047 wins, 20.47% win rate; average rents 7.72, spins 60.2, deck 28.4, final rent 659.9 |
+| Throughput | about 2,176 games/s over 10,000 games (20 threads) |
+| Single thread | about 230 games/s (1,000 games) |
+| Gym random masked policy, 100,000 steps | about 5,300 steps/s |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 98.65% income, 98.39% board, 99.96% offers, 98.61% deck, 99.91% items; 179/200 games have no first difference |
+| Automated tests | 166 Rust tests (140 unit + 26 integration) + 12 Python Gym tests (2 require optional local PPO scripts and dependencies; otherwise skipped) |
 
-16.60% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. Note that this is lower than the 19.7% quoted in older docs: the phase-3 fidelity fixes (registered effects of destroyed icons, same-spin resolution of spawned symbols, void/capsule/gear rules, ...) changed rule outcomes, and the baseline win rate settled at 16.6% afterwards — only post-fix numbers are trustworthy. The real-game v13 record over 50 games is 18%, with average rents 7.34 and average spins 57.5; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
+20.47% is the current hand-written policy’s win rate, not a simulator upper bound. Both the rules and policy changed since the previous 16.60% run, so the change cannot be attributed solely to the rules. The CLI policy does not manually toggle or destroy items. Trace replay still has 21/200 games with a first difference and 2 action mismatches; the 100% fidelity target remains unmet.
+
+Final rents paid in this batch (12+ includes the landlord fight):
+
+| Rents | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12+ |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Games | 100 | 330 | 205 | 492 | 758 | 1759 | 833 | 879 | 936 | 554 | 159 | 200 | 2795 |
 
 Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
 
@@ -68,7 +74,7 @@ The built-in baseline is called `heuristic-marginal-value-v13`. It is a hand-wri
 - **Removal**: clean up the starting symbols in the order cherry → flower → banana peel → coin → cat → pearl. From rent 300, remove negative curses such as destruction and hoarding; from 375, remove drain, dullness, and emptiness. Other low-value symbols are removed by current incremental value. Growth cores, their food, key/chest pairs, arrow/Robin Hood/target pairs, and key multiplier cores are protected. Keep at least 1 removal token from rent 300 and at least 2 for the landlord fight from rent 600.
 - **Rent-reward rerolls**: reroll tokens are reserved for rent rewards. At rent 650 and above, keep rerolling while the best offer is below 4.5 and tokens remain. At 600, reroll at most twice and keep one token; at 300–450, reroll at most once and keep one. Once the deck reaches 24 symbols, do not reroll rewards below 650.
 - **One-shot symbols and gacha**: wealth gacha, void symbols, chemical seven, and the various gacha symbols are discounted as one-time income and scaled by remaining spins. Removal, reroll, item, and essence gacha are prioritized after the deck is full. A raw-value floor is used when comparing against “skip”, so one-shot symbols are not skipped by mistake.
-- **Items and essences**: compare rarity first; within the same rarity, combine the first-pick rates in `data/baseline_priors.json`, existing positive/negative associations, and item synergies. Essences are compared within the essence pool. The oil can picks the highest-value column; the swapping device enumerates adjacent swaps and only swaps when the gain exceeds 0.2.
+- **Items and essences**: compare item rarity first; within a rarity, combine the first-pick rates in `data/baseline_priors.json`, existing positive/negative associations, and item synergies. The CLI policy currently selects the first essence. The oil can picks the highest-value column; the swapping device enumerates adjacent swaps and only swaps when the gain exceeds 0.2.
 - **Flush and coin on a string**: cards are valued as one-time cash collected before the spin when the flush item or its essence is held. Coins generated by King Midas and the Midas box are valued by generation rate when coin-on-a-string or its essence is held.
 
 The baseline is still weak at item toggles, swap timing, capsule-content expectations, dice expectations, and parts of the late-game growth engine. The full v13 rules are in [当前基线策略说明.md](../当前基线策略说明.md), the guide trade-offs are in [攻略策略取舍.md](../攻略策略取舍.md), and historical batches and report fields are in [进阶20基线与记录.md](../进阶20基线与记录.md). These detailed notes are currently in Chinese.
@@ -76,7 +82,7 @@ The baseline is still weak at item toggles, swap timing, capsule-content expecta
 Reproduce the benchmark:
 
 ```bash
-cargo run --release -p lbal_cli -- --games 2000 --seed 1 --threads 20 --hist
+cargo run --release -p lbal_cli -- --games 10000 --seed 42 --threads 20 --hist
 ```
 
 Reproduce the real v13 policy adapter (requires the `python/` directory from the full repository):
@@ -162,14 +168,14 @@ The repository's `.cargo/config.toml` sets `PYO3_USE_RAW_DYLIB=0` so the Windows
 
 ```bash
 cd rust
-cargo run --release -p lbal_cli -- --games 20000 --seed 42 --threads 20 --hist
+cargo run --release -p lbal_cli -- --games 10000 --seed 42 --threads 20 --hist
 ```
 
 Example output:
 
 ```text
-games=20000 threads=20 elapsed=7.888s games_per_sec=2535.5
-wins=3320 losses=16680 win_rate=16.60% avg_rents=7.06 avg_spins=54.6 avg_deck=25.2 avg_final_rent=578.7
+games=10000 threads=20 elapsed=4.595s games_per_sec=2176.4
+wins=2047 losses=7953 win_rate=20.47% avg_rents=7.72 avg_spins=60.2 avg_deck=28.4 avg_final_rent=659.9
 ```
 
 Common options:
@@ -216,7 +222,7 @@ print(obs["phase"], obs["coins"])
 obs = json.loads(env.step(0))       # ready phase: spin
 ```
 
-The action space is a fixed 128-wide layout so a masked policy can use one output head:
+By default, the Gym action space has a fixed 128-wide layout:
 
 ```text
 0          spin (ready phase only)
@@ -226,15 +232,17 @@ The action space is a fixed 128-wide layout so a masked policy can use one outpu
 19..127    remove deck symbol i - 19
 ```
 
+`RustGymEnv(enable_management=True, reward_mode="fixed")` opts into an extended action mask: slots 128–383 toggle item/essence stacks and 384–639 manually destroy eligible item stacks. The index identifies a sorted entry in `managed_items`; inspect its mask and state at each step. A stack may be toggled once per spin and each toggle costs −0.05; destruction has no extra penalty. Fine print 31 and some items prohibit toggling. The `fixed` reward adds 1 per successful payment of the first 12 rents and 20 for a win. The CLI baseline does not use these management actions. Direct `Env` provides `toggle_managed(essence, type_id)` and `use_item(type_id)`; `BatchEnv` and compact observations do not expose these management actions.
+
 `BatchEnv(count, seed, data_dir)` drives multiple environments in parallel, and `observe_compact()` returns a little-endian `i32` binary observation suitable for training loops. See `../python/gym_env.py` for the action mask and vectorized environment.
 
 ## Known differences
 
-- Same-seed RNG now aligns spin by spin (PCG32 with BetterLandlord derivation). Income matches on 98.61% of the first 12 spins (v72), and 22 games still have a first difference.
-- A20 fine print 31 is currently treated as a no-op. Some essences and items are approximations, and a few trigger orders differ from the real game.
+- Same-seed RNG now aligns spin by spin (PCG32 with BetterLandlord derivation). Income matches on 98.65% of the first 12 spins (2026-11-07), and 21 games still have a first difference.
+- Fine print 31 blocks item/essence toggling. Some essences and items are approximations, and a few trigger orders differ from the real game.
 - The landlord fight models HP, the rent loop, and win/loss, but not phase skills or combat presentation.
-- The shop, item enable/disable toggles, and some per-instance state are not implemented.
-- The built-in policy is weaker than real v13 after rent 900; this is the main source of the win-rate gap.
+- The shop and some per-instance item state are not implemented. Manual item management is available through `Env`, but not through `BatchEnv`.
+- The hand-written policy still has limited late-game growth and does not manage items; its win rate cannot be directly compared across different simulator versions.
 
 See [FIDELITY.md](FIDELITY.md) for details.
 

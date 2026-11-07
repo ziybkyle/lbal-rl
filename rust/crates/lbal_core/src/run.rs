@@ -57,6 +57,48 @@ fn banned_in_filling(name: &str, counts: &HashMap<String, usize>) -> bool {
         || (name == "coal" && counts.get("coal").copied().unwrap_or(0) >= 2)
 }
 
+/// 玩家关联资料的评分提示：每个已持有的正向关联 +a、负向关联 −b，
+/// 不设封顶。默认 a=1.2、b=3.0（网格搜索所得），可用
+/// LBAL_ASSOC_A / LBAL_ASSOC_B 覆盖。
+fn assoc_adjustment(
+    data: &GameData,
+    candidate: &str,
+    counts: &HashMap<String, usize>,
+    held: &HashMap<String, usize>,
+) -> f64 {
+    let mut pos = 0.0f64;
+    let mut neg = 0.0f64;
+    for (other, positive) in data.assoc.links.get(candidate).map(Vec::as_slice).unwrap_or(&[]) {
+        if other == "dog"
+            && !matches!(
+                candidate,
+                "beastmaster" | "comedian" | "quigley_the_wolf" | "quigley_the_wolf_essence"
+            )
+        {
+            continue;
+        }
+        if candidate == "copycat_essence" && other == "cat" && counts.get("cat").copied().unwrap_or(0) < 5 {
+            continue;
+        }
+        let owned =
+            counts.get(other).copied().unwrap_or(0) > 0 || held.get(other).copied().unwrap_or(0) > 0;
+        if !owned {
+            continue;
+        }
+        if *positive {
+            pos += 1.0;
+        } else {
+            neg += 1.0;
+        }
+    }
+    if data.assoc.self_positive.contains(candidate)
+        && counts.get(candidate).copied().unwrap_or(0) >= 2
+    {
+        pos += 1.0;
+    }
+    data.assoc.a * pos - data.assoc.b * neg
+}
+
 fn filling_has_chest(counts: &HashMap<String, usize>) -> bool {
     ["lockbox", "safe", "treasure_chest", "mega_chest"]
         .iter()
@@ -70,17 +112,19 @@ fn selection_value(
     ctx: &EvalContext,
 ) -> f64 {
     let def = &data.symbols[type_id];
+    let assoc = assoc_adjustment(data, &def.name, counts, &ctx.items);
     if let Some(guide) = data.filling_scores.get(&def.name) {
         let mut score = *guide;
         if def.name == "key" && !filling_has_chest(counts) {
             score = score.min(1.0);
         }
-        return score + feed_bonus(data, &def.name, counts, 1.0);
+        return score + feed_bonus(data, &def.name, counts, 1.0) + assoc;
     }
     data.policy
         .estimate(&def.name, ctx)
         .score
         .clamp(0.0, 6.5)
+        + assoc
 }
 
 fn deck_counts(data: &GameData, deck: &[crate::state::Symbol]) -> HashMap<String, usize> {
@@ -115,16 +159,18 @@ fn best_full_offer(
     for (index, type_id) in offer.iter().enumerate() {
         let def = &state.data.symbols[*type_id];
         let estimate = state.data.policy.estimate(&def.name, &ctx);
+        let score =
+            estimate.score + assoc_adjustment(state.data, &def.name, counts, &ctx.items);
         let rank = rarity_rank(def);
         let better = |current: &Option<(usize, f64, i32)>| match current {
             None => true,
-            Some((_, score, current_rank)) => {
-                estimate.score > *score + 1e-9
-                    || ((estimate.score - *score).abs() <= 1e-9 && rank > *current_rank)
+            Some((_, current_score, current_rank)) => {
+                score > *current_score + 1e-9
+                    || ((score - *current_score).abs() <= 1e-9 && rank > *current_rank)
             }
         };
         if better(&best_any) {
-            best_any = Some((index, estimate.score, rank));
+            best_any = Some((index, score, rank));
         }
         if state
             .data
@@ -135,7 +181,7 @@ fn best_full_offer(
                 one_shot_available = true;
             }
             if better(&best_allowed) {
-                best_allowed = Some((index, estimate.score, rank));
+                best_allowed = Some((index, score, rank));
             }
         }
     }
@@ -214,13 +260,15 @@ fn best_item(state: &RunState) -> usize {
     };
     let rent = state.rent_due();
     let ctx = EvalContext::new(state.data, &state.deck, &state.items_held, rent, false);
+    let counts = deck_counts(state.data, &state.deck);
     let mut best = 0;
     let mut best_key = (i32::MIN, f64::NEG_INFINITY);
     for (index, item_id) in offer.iter().enumerate() {
         let def = &state.data.items[*item_id];
         let combo = state.data.policy.item_combo(&def.name, &ctx).max(0.0);
         let early = state.data.early_item_scores.get(&def.name).copied().unwrap_or(0.0);
-        let key = (item_rarity(def), combo.max(early));
+        let assoc = assoc_adjustment(state.data, &def.name, &counts, &ctx.items);
+        let key = (item_rarity(def), combo.max(early) + assoc);
         if key > best_key {
             best_key = key;
             best = index;
@@ -263,6 +311,94 @@ fn removal_target(state: &RunState) -> Option<usize> {
                 .unwrap_or(def.base_value as f64)
                 < 1.5
     })
+}
+
+/// 手工策略对当前每个候选的估值（行为克隆的特权特征）：填充期用
+/// `selection_value`，满 20 张后用估值+关联分，物品用 combo/early+关联分。
+pub fn expert_offer_scores(state: &RunState) -> Vec<f64> {
+    match &state.phase {
+        Phase::SpinReward { offer } | Phase::SymbolReward { offer } => {
+            let counts = deck_counts(state.data, &state.deck);
+            let filling = state.deck.len() < 20;
+            let ctx = EvalContext::new(
+                state.data,
+                &state.deck,
+                &state.items_held,
+                state.rent_due(),
+                filling,
+            );
+            offer
+                .iter()
+                .map(|type_id| {
+                    let def = &state.data.symbols[*type_id];
+                    if filling {
+                        selection_value(state.data, *type_id, &counts, &ctx)
+                    } else {
+                        state.data.policy.estimate(&def.name, &ctx).score
+                            + assoc_adjustment(state.data, &def.name, &counts, &ctx.items)
+                    }
+                })
+                .collect()
+        }
+        Phase::ItemReward { offer } => {
+            let counts = deck_counts(state.data, &state.deck);
+            let ctx =
+                EvalContext::new(state.data, &state.deck, &state.items_held, state.rent_due(), false);
+            offer
+                .iter()
+                .map(|item_id| {
+                    let def = &state.data.items[*item_id];
+                    let combo = state.data.policy.item_combo(&def.name, &ctx).max(0.0);
+                    let early = state.data.early_item_scores.get(&def.name).copied().unwrap_or(0.0);
+                    combo.max(early) + assoc_adjustment(state.data, &def.name, &counts, &ctx.items)
+                })
+                .collect()
+        }
+        Phase::EssenceReward { offer } => vec![0.0; offer.len()],
+        _ => Vec::new(),
+    }
+}
+
+/// 教师（手工策略）跨决策的小状态，供行为克隆逐决策取示范用。
+#[derive(Debug, Default, Clone)]
+pub struct ExpertMemory {
+    pub rerolled_rent: Option<u32>,
+    pub pending_removal: bool,
+}
+
+/// 手工策略在 gym 动作空间（0=旋转 1=跳过 2=重掷 3+候选位置 19+牌组下标）
+/// 中的一步决策，语义与 `play_episode` 一致：选完符号/跳过后若有移除代币
+/// 就先移除，租金 ≥6 后每次符号奖励重掷一次。
+pub fn expert_gym_action(state: &RunState, mem: &mut ExpertMemory) -> u32 {
+    match &state.phase {
+        Phase::Ready => 0,
+        Phase::SpinReward { .. } | Phase::SymbolReward { .. } => {
+            if mem.pending_removal {
+                mem.pending_removal = false;
+                if state.removal_tokens >= state.removal_cost() {
+                    if let Some(index) = removal_target(state) {
+                        return 19 + index as u32;
+                    }
+                }
+            }
+            if matches!(state.phase, Phase::SymbolReward { .. })
+                && state.rents_paid >= 6
+                && state.reroll_tokens >= state.reroll_cost()
+                && mem.rerolled_rent != Some(state.rents_paid)
+            {
+                mem.rerolled_rent = Some(state.rents_paid);
+                return 2;
+            }
+            mem.pending_removal = true;
+            match best_offer(state) {
+                Some(position) => 3 + position as u32,
+                None => 1,
+            }
+        }
+        Phase::ItemReward { .. } => 3 + best_item(state) as u32,
+        Phase::EssenceReward { .. } => 3,
+        Phase::Done => 0,
+    }
 }
 
 pub fn run_episode(data: &GameData, seed: u64, max_spins: u32) -> EpisodeResult {

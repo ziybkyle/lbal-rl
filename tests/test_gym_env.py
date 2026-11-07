@@ -1,7 +1,9 @@
 """Action-mask and Gym-wrapper checks for the Rust environment."""
 from pathlib import Path
+import copy
 import random
 import sys
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +21,59 @@ from rust_env import BatchRustEnv  # noqa: E402
 
 
 class GymEnvTests(unittest.TestCase):
+    def test_forced_reward_cannot_be_skipped(self):
+        env = RustGymEnv(0)
+        obs, _ = env.reset()
+        obs = copy.deepcopy(obs)
+        obs.update(phase="spin_reward", must_take_symbol=True,
+                   offer=[{"index": 0}], can_reroll=False)
+        mask = env.action_mask(obs)
+        self.assertFalse(mask[1])
+        self.assertTrue(mask[OFFER_BASE])
+        obs["must_take_symbol"] = False
+        self.assertTrue(env.action_mask(obs)[1])
+
+    def test_observation_distinguishes_removal_targets_and_extra_offers(self):
+        try:
+            import numpy as np
+            from train_ppo import featurize, LEGACY_OBS_DIM, OBS_DIM
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"optional local PPO dependencies unavailable: {exc.name}")
+        env = RustGymEnv(0)
+        obs, _ = env.reset()
+        left = copy.deepcopy(obs)
+        right = copy.deepcopy(obs)
+        right["deck"][0], right["deck"][1] = right["deck"][1], right["deck"][0]
+        self.assertNotEqual(left["deck"][0]["type_id"], right["deck"][0]["type_id"])
+        np.testing.assert_array_equal(featurize(left)[:LEGACY_OBS_DIM], featurize(right)[:LEGACY_OBS_DIM])
+        self.assertFalse(np.array_equal(featurize(left), featurize(right)))
+        left["offer"] = [{"type_id": i, "index": i} for i in range(4)]
+        right = copy.deepcopy(left)
+        right["offer"][3]["type_id"] = 42
+        np.testing.assert_array_equal(featurize(left)[:LEGACY_OBS_DIM], featurize(right)[:LEGACY_OBS_DIM])
+        self.assertFalse(np.array_equal(featurize(left), featurize(right)))
+        self.assertEqual(len(featurize(left)), OBS_DIM)
+
+    def test_legacy_actor_migration_preserves_logits(self):
+        try:
+            import torch
+            from train_ppo import LEGACY_OBS_DIM, OBS_DIM
+            from train_bc_ppo import load_bc_actor
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"optional local PPO dependencies unavailable: {exc.name}")
+        torch.manual_seed(1)
+        legacy = torch.nn.Sequential(torch.nn.Linear(LEGACY_OBS_DIM, 256), torch.nn.Tanh(),
+                                     torch.nn.Linear(256, 256), torch.nn.Tanh(),
+                                     torch.nn.Linear(256, ACTION_SIZE))
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "actor.pt"
+            torch.save(legacy.state_dict(), path)
+            migrated = load_bc_actor(path)
+            original_obs = torch.randn(3, LEGACY_OBS_DIM)
+            new_features = torch.randn(3, OBS_DIM - LEGACY_OBS_DIM)
+            with torch.no_grad():
+                torch.testing.assert_close(legacy(original_obs), migrated(torch.cat([original_obs, new_features], dim=1)))
+
     def test_ready_mask_only_allows_spin_without_tokens(self):
         env = RustGymEnv(0)
         env.reset()

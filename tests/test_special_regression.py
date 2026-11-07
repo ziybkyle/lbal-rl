@@ -65,8 +65,8 @@ class SpecialItemRegression(unittest.TestCase):
         text = driver.read_text(encoding="utf-8")
         text = replace_once(text, "func _emit(main):", AUDIT_HOOK + "func _emit(main):")
         text = replace_once(text, '\tif kind == "probe_grant":', RICH_HOOK + '\tif kind == "probe_grant":')
-        text = replace_once(text, '"income_trace": trace}})',
-                            '"income_trace": trace, "special_test": _special_test_audit(main)}})')
+        text = replace_once(text, '"income_trace": trace,',
+                            '"special_test": _special_test_audit(main), "income_trace": trace,')
         driver.write_text(text, encoding="utf-8", newline="")
         cls.items_db = json.loads((cls.game / "JSON" / "Items - JSON.json").read_text(encoding="utf-8"))
         with socket.socket() as probe:

@@ -49,6 +49,20 @@ fn same_seed_is_reproducible() {
 }
 
 #[test]
+fn full_episodes_with_essences_and_landlord_are_reproducible() {
+    let data = data();
+    for seed in [48, 56, 79, 80, 85, 101, 389] {
+        let expected = run_episode(&data, seed, 20_000);
+        for _ in 0..4 {
+            let actual = run_episode(&data, seed, 20_000);
+            assert_eq!((actual.won, actual.rents_paid, actual.coins, actual.total_spins, actual.deck_len, actual.final_rent),
+                       (expected.won, expected.rents_paid, expected.coins, expected.total_spins, expected.deck_len, expected.final_rent),
+                       "seed {seed} produced a different complete episode");
+        }
+    }
+}
+
+#[test]
 fn different_seeds_usually_differ() {
     let data = data();
     let results: Vec<_> = (1..=20)
@@ -271,8 +285,43 @@ fn spin_costs_one_coin() {
     while matches!(state.phase, Phase::SpinReward { .. }) {
         state.skip_spin();
     }
+    let spins_before = state.total_spins;
     state.spin();
     assert_eq!(state.coins, 0);
+    assert_eq!(state.total_spins, spins_before + 1);
+    assert!(!state.done());
+    while matches!(state.phase, Phase::SpinReward { .. }) { state.skip_spin(); }
+    state.coins = -1;
+    let spins_before = state.total_spins;
+    state.spin();
+    assert_eq!(state.coins, -1);
+    assert_eq!(state.total_spins, spins_before);
+    assert!(matches!(state.phase, Phase::Done));
+    assert_eq!(state.failure_reason, Some("out_of_money"));
+}
+
+#[test]
+fn zero_balance_gift_preserves_spin_income_and_negative_balance_blocks_it() {
+    let data = data();
+    let coin = data.symbol_id("coin").expect("coin");
+    let mut zero = RunState::new(&data, 11);
+    zero.deck.clear();
+    zero.deck.push(Symbol::new(coin, data.symbols[coin].base_value));
+    zero.coins = 0;
+    let spin = zero.spin();
+    assert!(spin.income > 0);
+    assert_eq!(zero.coins, spin.income);
+    assert_eq!(zero.total_spins, 1);
+
+    let mut negative = RunState::new(&data, 11);
+    negative.deck.clear();
+    negative.deck.push(Symbol::new(coin, data.symbols[coin].base_value));
+    negative.coins = -1;
+    negative.spin();
+    assert_eq!(negative.coins, -1);
+    assert_eq!(negative.total_spins, 0);
+    assert!(negative.done());
+    assert_eq!(negative.failure_reason, Some("out_of_money"));
 }
 
 #[test]

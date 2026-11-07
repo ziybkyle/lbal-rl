@@ -242,6 +242,79 @@ fn load_fine_prints(path: &Path) -> HashMap<u32, FinePrintDef> {
     result
 }
 
+/// 玩家关联资料（data/association_rules.json）：正向 pairs、负向 red_pairs、
+/// 自身复制增益 self_positive。灰色与 lunchbox 关联按导出方约定忽略。
+#[derive(Debug, Clone)]
+pub struct AssocRules {
+    pub links: HashMap<String, Vec<(String, bool)>>,
+    pub self_positive: std::collections::HashSet<String>,
+    /// 每个正向关联的加分（LBAL_ASSOC_A 可覆盖）。
+    pub a: f64,
+    /// 每个负向关联的减分（LBAL_ASSOC_B 可覆盖）。
+    pub b: f64,
+}
+
+impl Default for AssocRules {
+    fn default() -> Self {
+        Self {
+            links: HashMap::new(),
+            self_positive: std::collections::HashSet::new(),
+            // 2026-11-06 网格搜索（每组 1~2 万局）：无封顶后 a=1.2、b≈2~3
+            // 稳定在 20.8%~20.9%；a=2.0 开始过头回落。取平台中值。
+            a: env_f64("LBAL_ASSOC_A", 1.2),
+            b: env_f64("LBAL_ASSOC_B", 3.0),
+        }
+    }
+}
+
+fn env_f64(key: &str, fallback: f64) -> f64 {
+    std::env::var(key)
+        .ok()
+        .and_then(|text| text.parse::<f64>().ok())
+        .unwrap_or(fallback)
+}
+
+fn load_association_rules(path: &Path) -> AssocRules {
+    let Ok(text) = fs::read_to_string(path) else {
+        return AssocRules::default();
+    };
+    let Ok(root) = serde_json::from_str::<Value>(&text) else {
+        return AssocRules::default();
+    };
+    let mut rules = AssocRules::default();
+    if let Some(list) = root.get("self_positive").and_then(Value::as_array) {
+        for name in list.iter().filter_map(Value::as_str) {
+            rules.self_positive.insert(name.to_string());
+        }
+    }
+    let mut push_pair = |left: String, right: String, positive: bool, rules: &mut AssocRules| {
+        if left == right || left == "lunchbox" || right == "lunchbox" {
+            return;
+        }
+        rules
+            .links
+            .entry(left.clone())
+            .or_default()
+            .push((right.clone(), positive));
+        rules.links.entry(right).or_default().push((left, positive));
+    };
+    for (key, positive) in [("pairs", true), ("red_pairs", false)] {
+        let Some(list) = root.get(key).and_then(Value::as_array) else {
+            continue;
+        };
+        for pair in list.iter().filter_map(Value::as_array) {
+            if pair.len() != 2 {
+                continue;
+            }
+            let (Some(left), Some(right)) = (pair[0].as_str(), pair[1].as_str()) else {
+                continue;
+            };
+            push_pair(left.to_string(), right.to_string(), positive, &mut rules);
+        }
+    }
+    rules
+}
+
 #[derive(Debug, Clone)]
 pub struct GameData {
     pub symbols: Vec<Def>,
@@ -258,6 +331,7 @@ pub struct GameData {
     pub filling_scores: HashMap<String, f64>,
     pub feed_pairs: HashMap<String, Vec<(String, f64)>>,
     pub early_item_scores: HashMap<String, f64>,
+    pub assoc: AssocRules,
     pub fine_prints: HashMap<u32, FinePrintDef>,
     pub policy: PolicyData,
 }
@@ -354,6 +428,11 @@ impl GameData {
             .as_deref()
             .map(load_early_item_scores)
             .unwrap_or_default();
+        let assoc = directory
+            .parent()
+            .and_then(Path::parent)
+            .map(|root| load_association_rules(&root.join("data").join("association_rules.json")))
+            .unwrap_or_default();
         let policy = directory
             .parent()
             .and_then(Path::parent)
@@ -374,6 +453,7 @@ impl GameData {
             filling_scores,
             feed_pairs,
             early_item_scores,
+            assoc,
             fine_prints,
             policy,
         })

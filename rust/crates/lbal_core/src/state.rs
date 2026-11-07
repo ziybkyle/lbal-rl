@@ -445,6 +445,14 @@ enum FollowUp {
     SymbolReward,
 }
 
+#[derive(Clone, Copy)]
+enum BonusOffer {
+    Any,
+    Rarity(Rarity),
+    Group(&'static str),
+    Passed,
+}
+
 pub struct RunState<'a> {
     pub data: &'a GameData,
     pub rng: RngStreams,
@@ -461,7 +469,7 @@ pub struct RunState<'a> {
     essence_saved: HashMap<usize, i32>,
     pending_essence_offers: i32,
     pending_extra_symbol_offers: i32,
-    pending_bonus_symbols: Vec<Option<Rarity>>,
+    pending_bonus_symbols: Vec<BonusOffer>,
     pending_bonus_items: i32,
     pre_spin_income: i32,
     spin_column_mult: [f64; BOARD_COLS],
@@ -484,6 +492,13 @@ pub struct RunState<'a> {
     pub won: bool,
     pub seed: u64,
     pub items_held: Vec<usize>,
+    /// Disabled stacks stay owned but are excluded from active effect loops.
+    pub disabled_items: Vec<usize>,
+    pub disabled_essences: Vec<usize>,
+    toggled_this_spin: HashSet<(bool, usize)>,
+    passed_symbols: HashSet<usize>,
+    taken_symbols: HashSet<usize>,
+    pub failure_reason: Option<&'static str>,
     pub fine_prints: Vec<u32>,
     /// Real clauses name one dynamic icon per reliant clause; effects only hit
     /// that symbol/item type.
@@ -604,6 +619,12 @@ impl<'a> RunState<'a> {
             won: false,
             seed,
             items_held: Vec::new(),
+            disabled_items: Vec::new(),
+            disabled_essences: Vec::new(),
+            toggled_this_spin: HashSet::new(),
+            passed_symbols: data.symbol_id("coin").into_iter().collect(),
+            taken_symbols: HashSet::new(),
+            failure_reason: None,
             fine_prints: Vec::new(),
             fine_print_icons: HashMap::new(),
             fine_print_counter: 0,
@@ -1180,8 +1201,6 @@ impl<'a> RunState<'a> {
     }
 
     fn tick_items(&mut self) -> Vec<usize> {
-        let mut spawned = Vec::new();
-        let mut removed = Vec::new();
         for item_id in self.items_held.clone() {
             let (name, threshold) = {
                 let def = &self.data.items[item_id];
@@ -1232,10 +1251,13 @@ impl<'a> RunState<'a> {
                 }
                 _ => {}
             }
-            let adds: &[&str] = match name.as_str() {
-                "treasure_map" => &["key", "treasure_chest"],
-                "blue_suits" => &["clubs", "spades"],
-                "red_suits" => &["diamonds", "hearts"],
+            match name.as_str() {
+                "treasure_map" | "blue_suits" | "red_suits" => {
+                    // These charge up, then remain available for manual use.
+                    let age = self.item_ages.entry(item_id).or_insert(0);
+                    *age = (*age + 1).min(threshold.max(1));
+                    continue;
+                }
                 "cardboard_box" => {
                     let threshold = self.data.items[item_id]
                         .values
@@ -1258,23 +1280,8 @@ impl<'a> RunState<'a> {
                 }
                 _ => continue,
             };
-            let age = self.item_ages.entry(item_id).or_insert(0);
-            *age += 1;
-            if *age < threshold.max(1) {
-                continue;
-            }
-            removed.push(item_id);
-            self.item_ages.remove(&item_id);
-            for tag in adds {
-                if let Some(type_id) = self.data.symbol_id(tag) {
-                    spawned.push(type_id);
-                }
-            }
         }
-        self.items_held.retain(|id| !removed.contains(id));
-        self.item_saved
-            .retain(|id, _| self.items_held.contains(id));
-        spawned
+        Vec::new()
     }
 
     pub fn spin(&mut self) -> SpinOutcome {
@@ -1285,6 +1292,16 @@ impl<'a> RunState<'a> {
             self.phase = Phase::Done;
             return SpinOutcome::default();
         }
+        // A zero balance receives a coin; a negative balance ends the run.
+        // Deduct the spin cost before any income or other spin effects.
+        if self.coins < 0 {
+            self.phase = Phase::Done;
+            self.failure_reason = Some("out_of_money");
+            return SpinOutcome { coins: self.coins, spins_left: self.spins_left, ..SpinOutcome::default() };
+        }
+        if self.coins == 0 { self.coins = 1; }
+        self.coins -= 1;
+        self.toggled_this_spin.clear();
         if !self.boss_fight
             && self.spins_left == 2
             && self.has_essence("comfy_pillow_essence")
@@ -1363,8 +1380,7 @@ impl<'a> RunState<'a> {
                 .map(|symbol| symbol.type_id as i16)
                 .unwrap_or(-1);
         }
-        // Real runs start with 1 coin, and every spin costs 1 coin.
-        self.coins = (self.coins + income - 1).max(0);
+        self.coins += income;
         self.spins_left -= 1;
         self.total_spins += 1;
 
@@ -1400,7 +1416,7 @@ impl<'a> RunState<'a> {
                 .position(|id| self.data.items[*id].name == "devils_deal")
             {
                 self.items_held.remove(position);
-                self.item_saved.retain(|id, _| self.items_held.contains(id));
+                self.item_saved.retain(|id, _| self.items_held.contains(id) || self.disabled_items.contains(id));
                 self.pay_rent_waived();
                 rent_paid = true;
             } else if self.has_essence("coffee_essence") {
@@ -1426,7 +1442,7 @@ impl<'a> RunState<'a> {
                     self.essences_held.remove(position);
                 }
                 self.essence_saved
-                    .retain(|id, _| self.essences_held.contains(id));
+                    .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
                 self.spins_left += extra;
             } else if let Some(position) = self
                 .items_held
@@ -1435,10 +1451,11 @@ impl<'a> RunState<'a> {
             {
                 // Coffee buys exactly one more spin before the next rent check.
                 self.items_held.remove(position);
-                self.item_saved.retain(|id, _| self.items_held.contains(id));
+                self.item_saved.retain(|id, _| self.items_held.contains(id) || self.disabled_items.contains(id));
                 self.spins_left += 1;
             } else {
                 self.phase = Phase::Done;
+                self.failure_reason = Some("unpaid_rent");
             }
         } else if self.force_skip_reward {
             self.force_skip_reward = false;
@@ -1463,9 +1480,15 @@ impl<'a> RunState<'a> {
         if self.essences_held.is_empty() {
             return 0;
         }
-        let mut counts: HashMap<usize, i32> = HashMap::new();
-        for id in &self.essences_held {
-            *counts.entry(*id).or_insert(0) += 1;
+        // Preserve acquisition order: randomized HashMap iteration must not
+        // change effect ordering or consume the seeded RNG in another order.
+        let mut counts = Vec::<(usize, i32)>::new();
+        for &id in &self.essences_held {
+            if let Some((_, copies)) = counts.iter_mut().find(|(held, _)| *held == id) {
+                *copies += 1;
+            } else {
+                counts.push((id, 1));
+            }
         }
         let mut booze_displayed = false;
         let mut chest_displayed = false;
@@ -1716,9 +1739,15 @@ impl<'a> RunState<'a> {
         }
         let name_count = |name: &str| name_counts.get(name).copied().unwrap_or(0);
         let group_count = |group: &str| group_counts.get(group).copied().unwrap_or(0);
-        let mut counts: HashMap<usize, i32> = HashMap::new();
-        for id in &self.essences_held {
-            *counts.entry(*id).or_insert(0) += 1;
+        // Preserve acquisition order: randomized HashMap iteration must not
+        // change effect ordering or consume the seeded RNG in another order.
+        let mut counts = Vec::<(usize, i32)>::new();
+        for &id in &self.essences_held {
+            if let Some((_, copies)) = counts.iter_mut().find(|(held, _)| *held == id) {
+                *copies += 1;
+            } else {
+                counts.push((id, 1));
+            }
         }
         let mut fired: Vec<(usize, String, i32, f64)> = Vec::new();
         for (essence_id, copies) in counts {
@@ -1807,7 +1836,7 @@ impl<'a> RunState<'a> {
             self.try_destroy_essence(essence_id);
         }
         self.essence_saved
-            .retain(|id, _| self.essences_held.contains(id));
+            .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
     }
 
     fn tick_permanent_essences(
@@ -1819,9 +1848,15 @@ impl<'a> RunState<'a> {
         if self.essences_held.is_empty() {
             return 0;
         }
-        let mut counts: HashMap<usize, i32> = HashMap::new();
-        for id in &self.essences_held {
-            *counts.entry(*id).or_insert(0) += 1;
+        // Preserve acquisition order: randomized HashMap iteration must not
+        // change effect ordering or consume the seeded RNG in another order.
+        let mut counts = Vec::<(usize, i32)>::new();
+        for &id in &self.essences_held {
+            if let Some((_, copies)) = counts.iter_mut().find(|(held, _)| *held == id) {
+                *copies += 1;
+            } else {
+                counts.push((id, 1));
+            }
         }
         let destroyed_boxes = self
             .destroyed_history
@@ -2039,6 +2074,66 @@ impl<'a> RunState<'a> {
         self.fine_prints.contains(&number)
     }
 
+    /// The original interface groups copies of a type into one item stack.
+    pub fn management_stacks(&self) -> Vec<(bool, usize, bool, usize)> {
+        let mut stacks = BTreeMap::<(bool, usize), (bool, usize)>::new();
+        for (essence, disabled, inventory) in [
+            (false, false, &self.items_held), (false, true, &self.disabled_items),
+            (true, false, &self.essences_held), (true, true, &self.disabled_essences),
+        ] {
+            for &id in inventory {
+                let entry = stacks.entry((essence, id)).or_insert((disabled, 0));
+                entry.1 += 1;
+            }
+        }
+        stacks.into_iter().map(|((essence, id), (disabled, count))| (essence, id, disabled, count)).collect()
+    }
+
+    pub fn can_toggle_managed(&self, essence: bool, id: usize) -> bool {
+        if self.phase != Phase::Ready || self.has_fine_print(31) || self.toggled_this_spin.contains(&(essence, id)) {
+            return false;
+        }
+        let (defs, active, inactive) = if essence {
+            (&self.data.essences, &self.essences_held, &self.disabled_essences)
+        } else {
+            (&self.data.items, &self.items_held, &self.disabled_items)
+        };
+        let Some(def) = defs.get(id) else { return false; };
+        if matches!(def.name.as_str(), "popsicle" | "popsicle_essence" | "frozen_pizza_essence") {
+            return false;
+        }
+        active.contains(&id) || inactive.contains(&id)
+    }
+
+    pub fn toggle_managed(&mut self, essence: bool, id: usize) -> bool {
+        if !self.can_toggle_managed(essence, id) { return false; }
+        let (active, inactive) = if essence {
+            (&mut self.essences_held, &mut self.disabled_essences)
+        } else {
+            (&mut self.items_held, &mut self.disabled_items)
+        };
+        let (source, target) = if active.contains(&id) { (active, inactive) } else { (inactive, active) };
+        let count = source.iter().filter(|held| **held == id).count();
+        source.retain(|held| *held != id);
+        target.extend(std::iter::repeat(id).take(count));
+        self.toggled_this_spin.insert((essence, id));
+        true
+    }
+
+    pub fn can_use_managed_item(&self, item_id: usize) -> bool {
+        if self.phase != Phase::Ready || !self.items_held.contains(&item_id) { return false; }
+        let Some(def) = self.data.items.get(item_id) else { return false; };
+        match def.name.as_str() {
+            "symbol_bomb_small" | "symbol_bomb_big" | "symbol_bomb_very_big" | "symbol_bomb_quantum" |
+            "booster_pack" | "piggy_bank" | "swear_jar" | "barrel_o_dwarves" |
+            "lunchbox" | "adoption_papers" | "goldilocks" => true,
+            "treasure_map" | "blue_suits" | "red_suits" => {
+                self.item_ages.get(&item_id).copied().unwrap_or(0) >= def.values.first().copied().unwrap_or(0.0) as i32
+            }
+            _ => false,
+        }
+    }
+
     pub fn has_item(&self, name: &str) -> bool {
         self.items_held
             .iter()
@@ -2093,12 +2188,12 @@ impl<'a> RunState<'a> {
         self.essences_held.retain(|held| *held != essence_id);
         self.essence_destroy_counters.remove(&essence_id);
         self.essence_saved
-            .retain(|held, _| self.essences_held.contains(held));
+            .retain(|held, _| self.essences_held.contains(held) || self.disabled_essences.contains(held));
         if let Some(popsicle) = self.data.essence_index.get("popsicle_essence").copied() {
             if popsicle != essence_id && self.essences_held.contains(&popsicle) {
                 self.essences_held.retain(|held| *held != popsicle);
                 self.essence_saved
-                    .retain(|held, _| self.essences_held.contains(held));
+                    .retain(|held, _| self.essences_held.contains(held) || self.disabled_essences.contains(held));
             }
         }
     }
@@ -2391,7 +2486,7 @@ impl<'a> RunState<'a> {
                 }
             }
             self.essence_saved
-                .retain(|id, _| self.essences_held.contains(id));
+                .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
             if self.coins >= due {
                 return;
             }
@@ -2511,11 +2606,14 @@ impl<'a> RunState<'a> {
         let Some(highest) = counts.values().copied().max() else {
             return Vec::new();
         };
-        counts
-            .into_iter()
-            .filter(|(_, count)| *count == highest)
-            .map(|(name, _)| name.to_string())
-            .collect()
+        let mut result = Vec::new();
+        for symbol in &self.deck {
+            let name = self.data.symbols[symbol.type_id as usize].name.as_str();
+            if counts.get(name) == Some(&highest) && !result.iter().any(|existing| existing == name) {
+                result.push(name.to_string());
+            }
+        }
+        result
     }
 
     fn most_common_item<F>(&self, matches: F) -> Vec<String>
@@ -2532,11 +2630,14 @@ impl<'a> RunState<'a> {
         let Some(highest) = counts.values().copied().max() else {
             return Vec::new();
         };
-        counts
-            .into_iter()
-            .filter(|(_, count)| *count == highest)
-            .map(|(name, _)| name.to_string())
-            .collect()
+        let mut result = Vec::new();
+        for id in &self.items_held {
+            let name = self.data.items[*id].name.as_str();
+            if counts.get(name) == Some(&highest) && !result.iter().any(|existing| existing == name) {
+                result.push(name.to_string());
+            }
+        }
+        result
     }
 
     fn fp_applicable(&self, number: u32) -> bool {
@@ -4899,7 +5000,7 @@ impl<'a> RunState<'a> {
                     .max(1);
                     for _ in 0..count {
                         let mut pool = self.item_pools[0].clone();
-                        pool.retain(|item| !self.items_held.contains(item));
+                        pool.retain(|item| !self.items_held.contains(item) && !self.disabled_items.contains(item));
                         if pool.is_empty() {
                             break;
                         }
@@ -5871,7 +5972,7 @@ impl<'a> RunState<'a> {
             self.essences_held
                 .retain(|id| self.data.essences[*id].name != "pizza_the_cat_essence");
             self.essence_saved
-                .retain(|id, _| self.essences_held.contains(id));
+                .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
         }
 
         extra_income += self.tick_essences(&entries, destroyed_count);
@@ -6507,7 +6608,7 @@ impl<'a> RunState<'a> {
                     "item_capsule" => {
                         for _ in 0..count {
                             let mut pool = self.item_pools[0].clone();
-                            pool.retain(|item| !self.items_held.contains(item));
+                            pool.retain(|item| !self.items_held.contains(item) && !self.disabled_items.contains(item));
                             if pool.is_empty() {
                                 break;
                             }
@@ -7023,7 +7124,7 @@ impl<'a> RunState<'a> {
         let filtered: Vec<usize> = domain
             .iter()
             .copied()
-            .filter(|id| !self.essences_held.contains(id))
+            .filter(|id| !self.essences_held.contains(id) && !self.disabled_essences.contains(id))
             .collect();
         let mut offer = Vec::with_capacity(3);
         for _ in 0..3 {
@@ -7040,6 +7141,7 @@ impl<'a> RunState<'a> {
     }
 
     fn grant_essence(&mut self, essence_id: usize) {
+        if self.disabled_essences.contains(&essence_id) { self.disabled_essences.push(essence_id); return; }
         let (name, values) = {
             let def = &self.data.essences[essence_id];
             (def.name.clone(), def.values.clone())
@@ -7258,6 +7360,7 @@ impl<'a> RunState<'a> {
                 .name
                 .cmp(&self.data.symbols[*right].name)
         });
+        self.note_offered(&offer);
         offer
     }
 
@@ -7271,6 +7374,7 @@ impl<'a> RunState<'a> {
             let index = self.deck.len() - 1;
             self.board.add_symbol(index, &mut self.rng.reel());
             self.note_symbol_added(type_id);
+            if self.data.symbols[type_id].name != "coin" { self.taken_symbols.insert(type_id); self.passed_symbols.remove(&type_id); }
         }
         self.finish_spin_choice();
     }
@@ -7291,8 +7395,8 @@ impl<'a> RunState<'a> {
     /// Routes the next queued bonus offer (item/essence acquisition can queue
     /// guaranteed symbol offers), then falls back to the normal reward flow.
     fn next_offer_phase(&mut self, fallback: FollowUp) {
-        if let Some(rarity) = self.pending_bonus_symbols.pop() {
-            let offer = self.roll_bonus_symbol_offer(rarity);
+        if let Some(bonus) = self.pending_bonus_symbols.pop() {
+            let offer = match bonus { BonusOffer::Any => self.roll_spin_reward(), BonusOffer::Rarity(rarity) => self.roll_bonus_symbol_offer(rarity), BonusOffer::Group(group) => self.roll_restricted_offer(Some(group)), BonusOffer::Passed => self.roll_restricted_offer(None) };
             self.phase = Phase::SpinReward { offer };
             return;
         }
@@ -7319,17 +7423,42 @@ impl<'a> RunState<'a> {
         };
     }
 
-    fn roll_bonus_symbol_offer(&mut self, rarity: Option<Rarity>) -> Vec<usize> {
-        let Some(rarity) = rarity else {
-            return self.roll_spin_reward();
-        };
+    fn roll_bonus_symbol_offer(&mut self, rarity: Rarity) -> Vec<usize> {
         self.refresh_symbol_pools();
         let pool = &self.rarity_pools[rarity as usize];
         if pool.is_empty() {
             return self.roll_spin_reward();
         }
         let pick = pool[self.rng.range(0, pool.len())];
-        vec![pick; 3]
+        let offer = vec![pick; 3]; self.note_offered(&offer); offer
+    }
+
+    fn note_offered(&mut self, offer: &[usize]) {
+        for &id in offer { if !self.taken_symbols.contains(&id) { self.passed_symbols.insert(id); } }
+    }
+
+    fn roll_restricted_offer(&mut self, group: Option<&str>) -> Vec<usize> {
+        self.refresh_symbol_pools();
+        let mut pools: [Vec<usize>; 4] = std::array::from_fn(|i| self.rarity_pools[i].iter().copied().filter(|&id| match group {
+            Some(g) => self.has_group(id, g), None => self.passed_symbols.contains(&id)
+        }).collect());
+        let (mut uncommon, mut rare, mut very_rare) = self.spin_rarity_chances();
+        let factor = self.rarity_lucky_factor() * self.spin_rarity_penalty * if self.has_fine_print(23) { 1.0 / self.fp_value(23, 0).max(1.0) } else { 1.0 };
+        uncommon *= factor; rare *= factor; very_rare *= factor;
+        let count = 3usize.saturating_sub(self.fp_value(30, 0) as usize + self.shattered_mirror_penalty()).max(1);
+        let mut offer = Vec::with_capacity(count);
+        for _ in 0..count {
+            let roll = self.rng.symbol_rarity_roll();
+            let rarity = if roll < very_rare && !pools[3].is_empty() { Rarity::VeryRare }
+                else if roll < very_rare + rare && !pools[2].is_empty() { Rarity::Rare }
+                else if roll < very_rare + rare + uncommon && !pools[1].is_empty() { Rarity::Uncommon }
+                else { Rarity::Common };
+            if !self.pick_offer_symbol(rarity, &mut pools, &mut offer) {
+                if let Some(coin) = self.data.symbol_id("coin") { offer.push(coin); }
+            }
+        }
+        offer.sort_by(|a, b| self.data.symbols[*a].name.cmp(&self.data.symbols[*b].name));
+        self.note_offered(&offer); offer
     }
 
     /// 碎镜（每份）会让符号奖励少一个选项。真机的普通旋后奖励和交租奖励
@@ -7413,6 +7542,7 @@ impl<'a> RunState<'a> {
                 .name
                 .cmp(&self.data.symbols[*right].name)
         });
+        self.note_offered(&offer);
         offer
     }
 
@@ -7479,7 +7609,7 @@ impl<'a> RunState<'a> {
             let filtered: Vec<usize> = self.item_pools[rarity as usize]
                 .iter()
                 .copied()
-                .filter(|item| !self.items_held.contains(item))
+                .filter(|item| !self.items_held.contains(item) && !self.disabled_items.contains(item))
                 .collect();
             let name = match rarity {
                 Rarity::Common => "common",
@@ -7506,7 +7636,7 @@ impl<'a> RunState<'a> {
                 let mut candidates: Vec<usize> = (min_index..4)
                     .flat_map(|rarity| self.item_pools[rarity].clone())
                     .filter(|item| {
-                        !self.items_held.contains(item) && !offer.contains(item)
+                        !self.items_held.contains(item) && !self.disabled_items.contains(item) && !offer.contains(item)
                     })
                     .collect();
                 for slot in offer.iter_mut() {
@@ -7540,6 +7670,7 @@ impl<'a> RunState<'a> {
             let index = self.deck.len() - 1;
             self.board.add_symbol(index, &mut self.rng.reel());
             self.note_symbol_added(type_id);
+            if self.data.symbols[type_id].name != "coin" { self.taken_symbols.insert(type_id); self.passed_symbols.remove(&type_id); }
         }
         self.finish_symbol_choice();
     }
@@ -7573,81 +7704,44 @@ impl<'a> RunState<'a> {
         // Items stay in the inventory.  Godot only fires the one-shot effects
         // (barrel of dwarves, lunchbox, symbol bombs, ...) when the player
         // destroys the item, so they must not be cashed in on pickup.
-        self.items_held.push(item_id);
+        if self.disabled_items.contains(&item_id) { self.disabled_items.push(item_id); } else { self.items_held.push(item_id); }
     }
 
     /// Destroys an item the way the player's "use item" button does.
     pub fn use_item(&mut self, item_id: usize) -> bool {
-        let Some(position) = self
-            .items_held
-            .iter()
-            .position(|id| *id == item_id)
-        else {
-            return false;
-        };
-        let def = &self.data.items[item_id];
-        let name = def.name.clone();
-        let needed = def.values.first().copied().unwrap_or(0.0) as usize;
-        let payout = def.values.get(1).copied().unwrap_or(0.0) as i32;
+        if !self.can_use_managed_item(item_id) { return false; }
+        let position = self.items_held.iter().position(|id| *id == item_id).unwrap();
+        let def = &self.data.items[item_id]; let name = def.name.clone(); let values = def.values.clone();
+        let needed = values.first().copied().unwrap_or(0.0).max(0.0) as usize;
         match name.as_str() {
-            "coffee" => self.spins_left += 1,
-            "devils_deal" => {
-                let count = needed.min(20) as i32;
-                self.add_symbols("dud", count);
-            }
-            "barrel_o_dwarves" => {
-                let count = needed.min(20) as i32;
-                self.add_symbols("dwarf", count);
-            }
-            "goldilocks" => {
-                let count = needed.min(20) as i32;
-                self.add_symbols("bear", count);
-            }
-            "lunchbox" | "adoption_papers" => {
-                let group = if name == "lunchbox" { "food" } else { "animal" };
-                for _ in 0..needed.max(1) {
-                    if let Some(type_id) = self.pick_group(group) {
-                        let value = self.data.symbols[type_id].base_value;
-                        self.deck.push(Symbol::new(type_id, value));
-                        self.note_symbol_added(type_id);
-                    }
-                }
-            }
+            "barrel_o_dwarves" => self.add_symbols("dwarf", needed as i32),
+            "goldilocks" => self.add_symbols("bear", needed as i32),
+            "lunchbox" | "adoption_papers" => { let group = if name == "lunchbox" { "food" } else { "animal" }; for _ in 0..needed { self.pending_bonus_symbols.push(BonusOffer::Group(group)); } }
             "booster_pack" => {
-                let common = needed as i32;
-                let uncommon = def.values.get(1).copied().unwrap_or(3.0) as i32;
-                let rare = def.values.get(2).copied().unwrap_or(1.0) as i32;
-                for _ in 0..common {
-                    self.pending_bonus_symbols.push(Some(Rarity::Common));
-                }
-                for _ in 0..uncommon {
-                    self.pending_bonus_symbols.push(Some(Rarity::Uncommon));
-                }
-                for _ in 0..rare {
-                    self.pending_bonus_symbols.push(Some(Rarity::Rare));
-                }
+                for _ in 0..values.get(2).copied().unwrap_or(1.0) as usize { self.pending_bonus_symbols.push(BonusOffer::Rarity(Rarity::Rare)); }
+                for _ in 0..values.get(1).copied().unwrap_or(3.0) as usize { self.pending_bonus_symbols.push(BonusOffer::Rarity(Rarity::Uncommon)); }
+                for _ in 0..needed { self.pending_bonus_symbols.push(BonusOffer::Rarity(Rarity::Common)); }
             }
-            "symbol_bomb_small" | "symbol_bomb_big" | "symbol_bomb_very_big" => {
-                for _ in 0..needed as i32 {
-                    self.pending_bonus_symbols.push(None);
-                }
-            }
+            "symbol_bomb_small" | "symbol_bomb_big" | "symbol_bomb_very_big" => for _ in 0..needed { self.pending_bonus_symbols.push(BonusOffer::Any); },
+            "symbol_bomb_quantum" => for _ in 0..needed { self.pending_bonus_symbols.push(BonusOffer::Passed); },
             "piggy_bank" | "swear_jar" => {
                 let saved = self.item_saved.get(&item_id).copied().unwrap_or(0);
-                self.coins += (saved * payout).max(0);
-            }
-            "treasure_map" => {
-                let saved = self.item_saved.get(&item_id).copied().unwrap_or(0);
-                if saved < needed as i32 {
-                    return false;
+                let payout = ((saved as f64 * values.get(1).copied().unwrap_or(0.0)).round() as i32).max(0);
+                self.coins += payout;
+                if self.boss_fight {
+                    self.apply_boss_damage(payout.min(self.boss_hp));
+                    self.boss_hp = (self.boss_hp - payout).max(0);
+                    if self.boss_hp == 0 { self.won = true; self.phase = Phase::Done; }
                 }
-                self.add_symbols("key", 1);
-                self.add_symbols("treasure_chest", 1);
             }
-            _ => {}
+            "treasure_map" => { self.add_symbols("key", 1); self.add_symbols("treasure_chest", 1); }
+            "blue_suits" => { self.add_symbols("clubs", 1); self.add_symbols("spades", 1); }
+            "red_suits" => { self.add_symbols("hearts", 1); self.add_symbols("diamonds", 1); }
+            _ => unreachable!(),
         }
         self.items_held.remove(position);
-        self.item_saved.remove(&item_id);
+        if !self.items_held.contains(&item_id) { self.item_saved.remove(&item_id); self.item_ages.remove(&item_id); }
+        if !self.pending_bonus_symbols.is_empty() { self.next_offer_phase(FollowUp::Ready); }
         true
     }
 
@@ -10403,38 +10497,41 @@ mod tests {
     }
 
     #[test]
+    fn management_toggles_are_locked_until_next_spin() {
+        let data = data();
+        let mut state = RunState::new(&data, 44);
+        let id = data.item_index["lunchbox"];
+        state.items_held.push(id);
+        assert!(state.toggle_managed(false, id));
+        assert!(!state.has_item("lunchbox"));
+        assert!(!state.toggle_managed(false, id));
+        assert!(!state.use_item(id));
+        state.spin();
+        while matches!(state.phase, Phase::SpinReward { .. }) { state.skip_spin(); }
+        assert!(state.toggle_managed(false, id));
+        assert!(state.has_item("lunchbox"));
+        assert!(!state.toggle_managed(false, id));
+    }
+
+    #[test]
     fn lunchbox_and_adoption_papers_add_symbols_when_used() {
         let data = data();
         let mut state = RunState::new(&data, 94);
-        let lunchbox = data.item_index["lunchbox"];
-        let before = state.deck.len();
-        state.grant_item(lunchbox);
-        assert!(state.items_held.contains(&lunchbox));
-        assert_eq!(state.deck.len(), before);
-        state.use_item(lunchbox);
-        assert_eq!(state.deck.len(), before + 3);
-        assert!(state.deck[before..]
-            .iter()
-            .all(|symbol| data.symbols[symbol.type_id as usize]
-                .groups
-                .iter()
-                .any(|group| group == "food")));
-        assert!(!state.items_held.contains(&lunchbox));
-
-        let papers = data.item_index["adoption_papers"];
-        let before = state.deck.len();
-        state.grant_item(papers);
-        assert!(state.items_held.contains(&papers));
-        assert_eq!(state.deck.len(), before);
-        state.use_item(papers);
-        assert_eq!(state.deck.len(), before + 3);
-        assert!(state.deck[before..]
-            .iter()
-            .all(|symbol| data.symbols[symbol.type_id as usize]
-                .groups
-                .iter()
-                .any(|group| group == "animal")));
-        assert!(!state.items_held.contains(&papers));
+        for (name, group) in [("lunchbox", "food"), ("adoption_papers", "animal")] {
+            let id = data.item_index[name];
+            let before = state.deck.len();
+            state.grant_item(id);
+            assert!(state.use_item(id));
+            for _ in 0..3 {
+                let Phase::SpinReward { offer } = &state.phase else { panic!("missing group offer"); };
+                assert!(!offer.is_empty());
+                assert!(offer.iter().all(|id| data.symbols[*id].name == "coin" || data.symbols[*id].groups.iter().any(|g| g == group)));
+                state.choose_spin(0);
+            }
+            assert_eq!(state.deck.len(), before + 3);
+            assert!(matches!(state.phase, Phase::Ready));
+            assert!(!state.items_held.contains(&id));
+        }
     }
 
     #[test]

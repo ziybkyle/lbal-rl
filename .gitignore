@@ -49,3 +49,6 @@ alignment/traces/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# ---- 人类存档（62MB，本地分析用，不入库）----
+data/human_save/

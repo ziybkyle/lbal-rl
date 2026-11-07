@@ -74,6 +74,18 @@ class RustEnv:
             self.observation = json.loads(self._env.observe())
         return ok
 
+    def toggle_managed(self, essence: bool, type_id: int) -> bool:
+        ok = self._env.toggle_managed(essence, type_id)
+        if ok:
+            self.observation = json.loads(self._env.observe())
+        return ok
+
+    def use_item(self, type_id: int) -> bool:
+        ok = self._env.use_item(type_id)
+        if ok:
+            self.observation = json.loads(self._env.observe())
+        return ok
+
 
 class BatchRustEnv:
     """Runs many Rust environments and resolves their steps in parallel."""

@@ -13,8 +13,8 @@ This is the first public version. The rules, numbers, policy, and APIs may still
 - 168 symbols, 114 items (one placeholder), 113 essences, and 31 A20 fine prints.
 - Complete spin, rent, reward, token, item, essence, and landlord-fight flow.
 - A pure Rust core with a command-line batch simulator and PyO3 bindings.
-- About 2,150 games/s on 20 threads over 20,000 games; about 13,800 steps/s for a 100,000-step Gym run.
-- 160 Rust tests (136 unit + 24 integration) and 9 Python tests; 200 seeds, first 12 spins replay: 96.8% income, 97.6% board, 99.6% offers, 97.7% deck, 99.2% items.
+- About 2,176 games/s on 20 threads over 10,000 games; about 5,300 steps/s for a 100,000-step Gym run (hardware-dependent).
+- 166 Rust tests (140 unit + 26 integration) and 12 Python Gym tests (2 require optional local PPO scripts and dependencies; otherwise skipped); 200 seeds, first 12 spins replay: 98.65% income, 98.39% board, 99.96% offers, 98.61% deck, 99.91% items.
 
 ## Seed system
 
@@ -22,7 +22,7 @@ Each run is driven by an integer or string seed, and the RNG is PCG32. A string 
 
 - CLI: `--seed N` for integer batch seeds; `--seed-text TEXT` to pass a string seed (used for same-seed cross-checks against the Godot game).
 - Python: `lbal_py.Env(seed, data_dir)` and `lbal_py.BatchEnv(count, seed, data_dir)`.
-- Running the same string seed as the Godot game allows spin-by-spin comparison of symbol placement, offers, and income; income matches on 96.8% of the first 12 spins across 200 seeds.
+- Running the same string seed as the Godot game allows spin-by-spin comparison of symbol placement, offers, and income; income matches on 98.65% of the first 12 spins across 200 seeds.
 
 There is a public community seed system for the original game that is a useful reference:
 
@@ -33,17 +33,19 @@ The Rust core now reproduces this per-purpose stream derivation with the same PC
 
 ## Baseline policy and test data
 
+Measured 2026-11-07 on Windows, i7-12700F, release build, seeds 42–10041 and 20 threads. Both the hand-written policy and simulator rules changed, so the win-rate difference cannot be attributed solely to the rules. Complete outcomes matched across two runs for all 10,000 seeds, including 1,000 seeds across single- and 20-thread runs; 21 trace-replayed games still have a first difference.
+
 The built-in baseline, `heuristic-marginal-value-v13`, is a hand-written rule set, not a trained neural network. It always plays floor 20. In short: the filling phase ranks offers by rarity and a common-symbol priority table; after the deck reaches 20 symbols it switches to incremental valuation; removal cleans up low-value starting symbols while protecting growth cores; reroll tokens are reserved for rent rewards; one-shot symbols are discounted by remaining spins.
 
 | Item | Result |
 | --- | --- |
-| 20,000-game benchmark, 20 threads | 3,871 wins, 19.36% win rate; average rents 7.23, spins 56.0, deck 25.5, final rent 603.5 |
+| 10,000-game benchmark, 20 threads | 2,047 wins, 20.47% win rate; average rents 7.72, spins 60.2, deck 28.4, final rent 659.9 |
 | Real-game v13, 50 games | 18% win rate; average rents 7.34, spins 57.5 |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 96.8% income, 97.6% board, 99.7% offers, 97.7% deck, 99.2% items; 78.5% of games have no first difference |
-| Gym random masked policy, 100,000 steps | 13,783 steps/s |
-| Automated tests | 160 Rust tests (136 unit + 24 integration) + 9 Python tests |
+| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 98.65% income, 98.39% board, 99.96% offers, 98.61% deck, 99.91% items; 179/200 games have no first difference |
+| Gym random masked policy, 100,000 steps | about 5,300 steps/s |
+| Automated tests | 166 Rust tests (140 unit + 26 integration) + 12 Python Gym tests (2 require optional local PPO scripts and dependencies; otherwise skipped) |
 
-19.36% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. The real-game v13 record over 50 games is 18%; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
+20.47% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. The real-game v13 record over 50 games is 18%; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
 
 Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
 

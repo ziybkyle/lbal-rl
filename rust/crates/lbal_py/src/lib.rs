@@ -3,6 +3,7 @@
 //! The environment exposes a JSON observation and integer actions so a Python
 //! policy can drive full games without reimplementing the rules.
 
+use lbal_core::run::{expert_gym_action, expert_offer_scores, ExpertMemory};
 use lbal_core::{default_data_dir, GameData, Phase, RunState};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
@@ -123,6 +124,7 @@ fn phase_name(phase: &Phase) -> &'static str {
 }
 
 fn observation_for(state: &RunState<'_>) -> String {
+    let expert_scores = expert_offer_scores(state);
     let offer: Vec<Value> = match &state.phase {
             Phase::SpinReward { offer } | Phase::SymbolReward { offer } => offer
                 .iter()
@@ -136,6 +138,7 @@ fn observation_for(state: &RunState<'_>) -> String {
                         "rarity": def.rarity,
                         "base_value": def.base_value,
                         "kind": "symbol",
+                        "expert_score": expert_scores.get(index).copied().unwrap_or(0.0),
                     })
                 })
                 .collect(),
@@ -150,6 +153,7 @@ fn observation_for(state: &RunState<'_>) -> String {
                         "name": def.name,
                         "rarity": def.rarity,
                         "kind": "item",
+                        "expert_score": expert_scores.get(index).copied().unwrap_or(0.0),
                     })
                 })
                 .collect(),
@@ -209,11 +213,19 @@ fn observation_for(state: &RunState<'_>) -> String {
                 "kind": "essence",
             })
         }));
+        let managed_items: Vec<Value> = state.management_stacks().into_iter().map(|(essence, id, disabled, count)| {
+            let def = if essence { &state.data.essences[id] } else { &state.data.items[id] };
+            json!({"kind": if essence {"essence"} else {"item"}, "type_id": id, "name": def.name,
+                "disabled": disabled, "count": count, "can_toggle": state.can_toggle_managed(essence, id),
+                "can_use": !essence && state.can_use_managed_item(id)})
+        }).collect();
         let board: Vec<i64> = state.last_board.iter().map(|id| *id as i64).collect();
         json!({
             "phase": phase_name(&state.phase),
             "done": matches!(state.phase, Phase::Done),
             "won": state.won,
+            "failure_reason": state.failure_reason,
+            "managed_items": managed_items,
             "coins": state.coins,
             "rents_paid": state.rents_paid,
             "rent_due": state.rent_due(),
@@ -278,6 +290,7 @@ fn apply_action(state: &mut RunState<'_>, action: i64) {
 #[pyclass]
 struct Env {
     state: RunState<'static>,
+    teacher: ExpertMemory,
 }
 
 impl Env {
@@ -296,7 +309,15 @@ impl Env {
             Some(text) => RunState::new_with_seed_text(data, &text),
             None => RunState::new(data, seed),
         };
-        Ok(Self { state })
+        Ok(Self {
+            state,
+            teacher: ExpertMemory::default(),
+        })
+    }
+
+    /// 手工策略教师在 gym 动作空间中的一步决策（供行为克隆收集示范）。
+    fn expert_action(&mut self) -> u64 {
+        expert_gym_action(&self.state, &mut self.teacher) as u64
     }
 
     /// Re-roll the current reward if a token is available.
@@ -321,15 +342,20 @@ impl Env {
         }
     }
 
+    fn toggle_managed(&mut self, essence: bool, id: usize) -> bool { self.state.toggle_managed(essence, id) }
+    fn use_item(&mut self, id: usize) -> bool { self.state.use_item(id) }
+
     /// Restart with a new seed and return the initial observation.
     fn reset(&mut self, seed: u64) -> String {
         self.state = RunState::new(self.state.data, seed);
+        self.teacher = ExpertMemory::default();
         self.observation()
     }
 
     /// Restart with a BetterLandlord seed string.
     fn reset_text(&mut self, seed_text: String) -> String {
         self.state = RunState::new_with_seed_text(self.state.data, &seed_text);
+        self.teacher = ExpertMemory::default();
         self.observation()
     }
 
