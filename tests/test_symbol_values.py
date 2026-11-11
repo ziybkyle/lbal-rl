@@ -112,10 +112,11 @@ class SymbolValueTests(unittest.TestCase):
         at1000 = {name: self.estimate(name, deck, rent=1000)["gross"] for name in at300}
         self.assertLess(at300["lucky_capsule"], 5)
         self.assertLess(at300["void_stone"], 5)
-        self.assertLess(at300["tedium_capsule"], 1.2)
-        self.assertGreater(at300["chemical_seven"], at300["lucky_capsule"])
-        self.assertGreater(at300["removal_capsule"], at300["rarity_capsule"])
-        self.assertGreater(at300["rarity_capsule"], at300["reroll_capsule"])
+        cash_horizon = self.values.one_shot_horizon_for("cash", 300)
+        self.assertAlmostEqual(at300["tedium_capsule"], 5 / 4 * cash_horizon)
+        self.assertAlmostEqual(at300["lucky_capsule"], 10 / 4 * cash_horizon)
+        self.assertEqual(at300["removal_capsule"], at300["rarity_capsule"])
+        self.assertEqual(at300["rarity_capsule"], at300["reroll_capsule"])
         self.assertLess(at1000["lucky_capsule"], at300["lucky_capsule"])
         self.assertLess(at1000["rarity_capsule"], at300["rarity_capsule"])
         machine = self.estimate("lucky_capsule", deck, {"capsule_machine": 1}, rent=300)
@@ -135,10 +136,10 @@ class SymbolValueTests(unittest.TestCase):
     def test_one_shot_filling_and_skip_values(self):
         frame, deck = self.frame(["coin"] * 8, rent=100)
         filling = self.values.filling_one_shot_score("lucky_capsule", frame, self.client, deck, Counter())
-        self.assertAlmostEqual(filling, 4.2 * 0.54)
+        self.assertAlmostEqual(filling, 10 / 4 * 0.5)
         frame, deck = self.frame(["coin"] * 19, rent=100)
         near_full = self.values.filling_one_shot_score("lucky_capsule", frame, self.client, deck, Counter())
-        self.assertAlmostEqual(near_full, 4.2)
+        self.assertAlmostEqual(near_full, 10 / 4)
         self.assertEqual(self.values.one_shot_skip_value("lucky_capsule"), 10.0)
         self.assertEqual(self.values.one_shot_skip_value("chemical_seven"), 7.0)
         self.assertEqual(self.values.one_shot_skip_value("void_stone"), 8.0)
@@ -157,14 +158,6 @@ class SymbolValueTests(unittest.TestCase):
         self.assertEqual(policy.choose(frame)[0], strong)
         frame, _ = self.frame(["coin"] * 20, (coin, skip), rent=777)
         self.assertEqual(policy.choose(frame)[0], skip)
-
-    def test_one_shot_filling_rate_uses_rent_bucket(self):
-        policy = BaselinePolicy(self.client, 1)
-        policy.current_due = 50
-        early = policy._filling_rate("lucky_capsule", Candidate(0, 0, None, 18, (0,) * 6))
-        policy.current_due = 1000
-        late = policy._filling_rate("lucky_capsule", Candidate(0, 0, None, 18, (0,) * 6))
-        self.assertGreater(late, early)
 
     def test_rent_reward_reroll_policy(self):
         coin = Candidate(0, 0, None, self.names.index("coin"), (0,) * 6)

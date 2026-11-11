@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "source": "用户提供的社区图片及收益估算；部分图标经本地游戏图标核对",
+  "notes": "数值是基线排序参数，不是收益或胜率。图片中不确定的图标没有纳入；喂食收益为粗略单回合参考。",
+  "filling_symbol_scores": {
+    "coal": 6.0, "anchor": 5.7, "cheese": 5.6, "mouse": 5.5, "gambler": 5.4,
+    "d3": 5.2, "dog": 5.0,
+    "toddler": 4.4, "light_bulb": 4.35,
+    "goldfish": 4.2, "beer": 4.15, "key": 4.1, "lockbox": 4.05, "dwarf": 4.0,
+    "banana": 3.5, "banana_peel": 3.45, "candy": 3.4, "monkey": 3.35,
+    "crab": 3.3, "turtle": 3.25, "magpie": 3.2, "bee": 3.15, "owl": 3.1,
+    "urn": 2.7, "shiny_pebble": 2.65, "ore": 2.6, "miner": 2.55,
+    "bounty_hunter": 2.5, "goose": 2.45, "crow": 2.4, "seed": 2.35, "snail": 2.3,
+    "cat": 2.0, "coin": 1.95, "egg": 1.9, "cherry": 1.85, "flower": 1.8,
+    "milk": 3.4, "present": 3.3, "bubble": 3.2,
+    "cultist": 0.2, "oyster": 0.1
+  },
+  "early_item_scores": {
+    "quigley_the_wolf": 6.0, "green_pepper": 5.9, "ricky_the_banana": 5.8,
+    "yellow_pepper": 5.0, "jackolantern": 5.0, "lucky_cat": 5.0,
+    "checkered_flag": 5.0, "grave_robber": 5.0, "fish_bowl": 5.0,
+    "nori_the_rabbit": 5.0, "dwarven_anvil": 5.0, "pizza_the_cat": 5.0,
+    "lunchbox": 5.0, "oswald_the_monkey": 5.0
+  },
+  "feed_pairs": {
+    "candy": [["toddler", 6]],
+    "milk": [["cat", 9]],
+    "bubble": [["toddler", 6], ["goldfish", 15]],
+    "beer": [["dwarf", 10]],
+    "coconut_half": [["monkey", 12]],
+    "cheese": [["mouse", 20]],
+    "wine": [["dwarf", 20]],
+    "honey": [["bear", 40]]
+  },
+  "transient_symbols": ["milk", "bubble", "candy", "cheese", "beer", "coconut_half", "present", "wealthy_capsule", "removal_capsule", "reroll_capsule", "lucky_capsule", "item_capsule", "essence_capsule", "time_capsule", "void_stone"]
+}

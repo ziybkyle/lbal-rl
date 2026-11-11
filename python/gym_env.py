@@ -21,7 +21,6 @@ instead of silently no-oping.
 from __future__ import annotations
 
 import argparse
-import json
 import math
 import random
 import sys
@@ -34,7 +33,7 @@ if str(HERE) not in sys.path:
 
 from rust_env import RustEnv  # noqa: E402
 from item_toggle_policy import normalize_allowlist  # noqa: E402
-from reward_schemes import (PROGRESSIVE_SCALE, DEFAULT_PROGRESSIVE_RENTS, DEFAULT_PROGRESSIVE_LOSS,
+from reward_schemes import (REWARD_MODE, PROGRESSIVE_SCALE, DEFAULT_PROGRESSIVE_RENTS, DEFAULT_PROGRESSIVE_LOSS,
                             DEFAULT_PROGRESSIVE_WIN, validate_progressive_rents, validate_progressive_outcomes)  # noqa: E402
 
 ACTION_SIZE = 128
@@ -59,142 +58,38 @@ def offer_index(action: int) -> int | None:
         return MAX_OFFERS + action - EXTRA_OFFER_BASE
     return None
 
-# ---- 奖励公式（v3，2026-11-06）-----------------------------------------
-# 目标优先级：先最大化通关率（打死房东），胜率 ≥99% 后再放大金钱项微调"赢得
-# 更富"。金钱奖励有三个层次（用户要求金钱要有奖励，v3 起全部启用）：
-#   1. Φ 金钱进度（权重最大、最安全）：min(金币,本期租金)/租金 的差分。这是
-#      势函数塑形，奖得再重也不会教出囤钱/刷分（差分望远镜求和，原地不动赚
-#      不到分），且租金归一化天然对暴击旋减力；
-#   2. 安全垫奖励 RENT_COVER_BONUS：余额首次跨过"够付下一次租金"时 +2，
-#      一次性触发、反复进出无利可图；
-#   3. 每旋金钱项（小额）：log1p(income/50) + 单步截断，只当"顺手赚的钱"
-#      的甜头，总量 ≈1 个付租里程碑，不会盖过通关目标。
-# 付租那一步不做 Φ 塑形（租金上涨导致的 Φ 重置不是退步），由里程碑奖励
-# 单独覆盖。
-# 物品管理模式在每次旋转前对同一组只允许切换一次，并对每次切换扣分。
-RENT_MILESTONE = 10.0  # 每付清一次租金
-WIN_REWARD = 100.0  # 击杀房东
-LOSS_REWARD = -5.0  # 付不起租输掉
-SHAPE_COEF = 4.0  # ΔΦ 权重（Φ 本身即金钱进度奖励，v3 加大）
-SHAPE_CLIP = 1.0  # 单步塑形上限（防单次暴击主导梯度）
-BOSS_COEF = 5.0  # 房东战内 Δ(伤害/1500) 权重
-RENT_COVER_BONUS = 2.0  # 余额首次够付下一次租金（安全垫）
-MONEY_BONUS_COEF = 1.0  # 每旋金钱项权重（log+clip，单步 ≤0.15）
-MONEY_BONUS_SCALE = 50.0  # log1p(income / SCALE)：对暴击旋减力
-MONEY_BONUS_CLIP = 0.15  # 单步金钱项上限
-TOGGLE_COST = -0.05  # 每次成功开关物品或精华
-
-
-def rent_progress(obs: dict) -> float:
-    """Φ：离付清本期租金还有多近，∈ [0,1]。租金归一化自带减力。"""
-    rent = max(1.0, float(obs.get("rent_due", 1) or 1))
-    coins = max(0.0, float(obs.get("coins", 0) or 0))
-    return min(coins, rent) / rent
-
-
-def boss_progress(obs: dict) -> float:
-    """已对房东造成的伤害比例（A20 血量 1500）。"""
-    hp = max(0.0, float(obs.get("boss_hp", 0) or 0))
-    return min(max(0.0, 1500.0 - hp), 1500.0) / 1500.0
-
-
-REWARD_MODES = ("legacy", "sparse", "potential", "fixed", "win_potential", "progressive", "progress_potential")
-WIN_POTENTIAL_FILE = HERE.parent / "data" / "scratch_win_potential_8000.json"
-WIN_POTENTIAL_DATA = (json.loads(WIN_POTENTIAL_FILE.read_text(encoding="utf-8"))
-                      if WIN_POTENTIAL_FILE.is_file() else None)
-WIN_POTENTIALS = (tuple(float(row["probability"]) for row in WIN_POTENTIAL_DATA["stages"])
-                  if WIN_POTENTIAL_DATA is not None else ())
-if WIN_POTENTIAL_DATA is not None and (len(WIN_POTENTIALS) != 13 or
-        any(not math.isfinite(p) or not 0 <= p <= 1 for p in WIN_POTENTIALS)):
-    raise ValueError("Invalid scratch win-potential table")
-
-
-def win_stage_potential(obs: dict) -> float:
-    """Terminal potential is zero; truncation alone does not make a state terminal."""
-    if not WIN_POTENTIALS:
-        raise ValueError("win_potential requires a local stage-potential table")
-    if obs.get("done", False):
-        return 0.0
-    index = max(0, min(12, int(obs.get("rents_paid", 0) or 0)))
-    return WIN_POTENTIALS[index]
-
-
-def progress_potential(obs: dict) -> float:
-    """Rent/boss progress advance; only a genuine terminal clears it."""
-    if obs.get("done", False):
-        return 0.0
-    if obs.get("boss_fight", False):
-        hp = obs.get("boss_hp")
-        hp = 1500.0 if hp is None else max(0.0, min(1500.0, float(hp)))
-        return 0.25 + 0.25 * (1500.0 - hp) / 1500.0
-    rents = max(0, min(12, int(obs.get("rents_paid", 0) or 0)))
-    return 0.25 * rents * (rents + 1) / 156.0
-
-
-def reward_potential(obs: dict) -> float:
-    """Bounded state potential; only true terminal states have zero potential."""
-    if obs.get("done", False):
-        return 0.0
-    rent = max(1.0, float(obs.get("rent_due", 1) or 1))
-    coins = max(0.0, float(obs.get("coins", 0) or 0))
-    covered = min(coins / rent, 1.0)
-    surplus = max(0.0, coins - rent)
-    cushion = surplus / (rent + surplus)
-    boss = boss_progress(obs) if obs.get("boss_fight", False) else 0.0
-    return 0.06 * covered + 0.02 * cushion + 0.06 * boss
+TOGGLE_COST = -0.05  # Raw points per manual item or essence toggle.
 
 
 def outcome_reward_breakdown(previous: dict, current: dict, mode: str, gamma: float,
                              progressive_rents=None, progressive_loss=DEFAULT_PROGRESSIVE_LOSS,
                              progressive_win=DEFAULT_PROGRESSIVE_WIN) -> dict[str, float]:
-    """Win-only reward, optionally with gamma-consistent potential shaping."""
-    if mode == "progress_potential":
-        if gamma != 1.0:
-            raise ValueError("Progress-potential rewards require gamma=1")
-        terminal = float(bool(current.get("done")) and bool(current.get("won")) and not previous.get("done"))
-        return {"terminal": terminal, "progress_potential": progress_potential(current) - progress_potential(previous)}
-    if mode == "win_potential":
-        if gamma != 1.0:
-            raise ValueError("Win-potential rewards require gamma=1")
-        terminal = float(bool(current.get("done")) and bool(current.get("won")) and not previous.get("done"))
-        return {"terminal": terminal, "stage_potential": win_stage_potential(current) - win_stage_potential(previous)}
-    if mode == "progressive":
-        before = max(0, min(int(previous.get("rents_paid", 0) or 0), 12))
-        after = max(0, min(int(current.get("rents_paid", 0) or 0), 12))
-        rewards = DEFAULT_PROGRESSIVE_RENTS if progressive_rents is None else progressive_rents
-        rent = sum(rewards[k - 1] for k in range(before + 1, after + 1))
-        ended = bool(current.get("done")) and not previous.get("done")
-        terminal = (progressive_win if current.get("won") else progressive_loss) if ended else 0.0
-        return {"rent": rent / PROGRESSIVE_SCALE, "terminal": terminal / PROGRESSIVE_SCALE}
-    if mode == "fixed":
-        rent = max(0, min(int(current.get("rents_paid", 0)), 12) - min(int(previous.get("rents_paid", 0)), 12))
-        win = bool(current.get("done")) and bool(current.get("won")) and not previous.get("done")
-        return {"rent": float(rent), "terminal": 20.0 if win else 0.0}
-    if mode not in ("sparse", "potential"):
-        raise ValueError(f"Unsupported outcome reward mode: {mode}")
+    """Pay each of the first twelve rents once, and score a genuine terminal."""
+    if mode != REWARD_MODE:
+        raise ValueError(f"Only progressive rent rewards are supported: {mode}")
     if not 0.0 < gamma <= 1.0:
         raise ValueError("Reward discount must be in (0, 1]")
-    terminal = float(bool(current.get("done")) and bool(current.get("won")) and not previous.get("done"))
-    shaping = gamma * reward_potential(current) - reward_potential(previous) if mode == "potential" else 0.0
-    return {"terminal": terminal, "potential": shaping}
+    before = max(0, min(int(previous.get("rents_paid", 0) or 0), 12))
+    after = max(0, min(int(current.get("rents_paid", 0) or 0), 12))
+    rewards = DEFAULT_PROGRESSIVE_RENTS if progressive_rents is None else progressive_rents
+    rent = sum(rewards[before:after])
+    ended = bool(current.get("done")) and not previous.get("done")
+    terminal = (progressive_win if current.get("won") else progressive_loss) if ended else 0.0
+    return {"rent": rent / PROGRESSIVE_SCALE, "terminal": terminal / PROGRESSIVE_SCALE}
 
 
 class RustGymEnv:
     def __init__(self, seed: int = 0, max_steps: int = 2000, data_dir: str | None = None,
-                 reward_mode: str = "legacy", reward_gamma: float = 0.99, enable_management: bool = False,
+                 reward_mode: str = REWARD_MODE, reward_gamma: float = 1.0, enable_management: bool = False,
                  toggle_reward: float = TOGGLE_COST, allow_item_toggle: bool = True,
                  progressive_rents=None, progressive_loss=DEFAULT_PROGRESSIVE_LOSS,
                  progressive_win=DEFAULT_PROGRESSIVE_WIN, offer_capacity: int = MAX_OFFERS,
                  limited_item_toggles: bool = False, item_toggle_allowlist=None, training_practice=None,
                  training_shaping=None, shaping_snapshot=None, full_history: bool = False):
-        if reward_mode not in REWARD_MODES:
-            raise ValueError(f"Unsupported reward mode: {reward_mode}")
-        if reward_mode == "win_potential" and not WIN_POTENTIALS:
-            raise ValueError("win_potential requires a local stage-potential table")
+        if reward_mode != REWARD_MODE:
+            raise ValueError(f"Only progressive rent rewards are supported: {reward_mode}")
         if not 0.0 < reward_gamma <= 1.0:
             raise ValueError("Reward discount must be in (0, 1]")
-        if reward_mode in ("win_potential", "progress_potential") and reward_gamma != 1.0:
-            raise ValueError("Win-aligned potential rewards require gamma=1")
         if not math.isfinite(toggle_reward):
             raise ValueError("Toggle reward must be finite")
         self.limited_item_toggles = bool(limited_item_toggles)
@@ -312,20 +207,16 @@ class RustGymEnv:
             self.practice.apply(self.env)
             new_obs = self.env.observation
         self.steps_taken += 1
-        if self.reward_mode == "legacy":
-            reward_parts = self.reward_breakdown(previous, new_obs)
-        else:
-            reward_parts = outcome_reward_breakdown(previous, new_obs, self.reward_mode, self.reward_gamma,
-                                                     self.progressive_rents, self.progressive_loss, self.progressive_win)
+        reward_parts = outcome_reward_breakdown(previous, new_obs, self.reward_mode, self.reward_gamma,
+                                                 self.progressive_rents, self.progressive_loss, self.progressive_win)
         if TOGGLE_BASE <= action < USE_BASE:
-            reward_parts["item_toggle"] = self.toggle_reward / (PROGRESSIVE_SCALE if self.reward_mode == "progressive" else 1.0)
+            reward_parts["item_toggle"] = self.toggle_reward / PROGRESSIVE_SCALE
         shaping_raw, shaping_detail = {}, {}
         if self.training_shaper:
             target = offer_index(action)
             chosen = next((entry for entry in previous.get('offer', []) if entry['index'] == target), None) if target is not None else None
             shaping_raw, shaping_detail = self.training_shaper.step(previous, new_obs, chosen)
-            scale = PROGRESSIVE_SCALE if self.reward_mode == 'progressive' else 1.0
-            reward_parts.update({key: value / scale for key, value in shaping_raw.items()})
+            reward_parts.update({key: value / PROGRESSIVE_SCALE for key, value in shaping_raw.items()})
         reward = sum(reward_parts.values())
         terminated = bool(new_obs["done"])
         truncated = (not terminated) and self.steps_taken >= self.max_steps
@@ -476,50 +367,6 @@ class RustGymEnv:
                 ('reroll_tokens', 'removal_tokens', 'essence_tokens',
                  'destroyed_symbols', 'removed_symbols', 'failure_reason')}
         return record
-
-    @staticmethod
-    def reward(previous: dict, current: dict) -> float:
-        return sum(RustGymEnv.reward_breakdown(previous, current).values())
-
-    @staticmethod
-    def reward_breakdown(previous: dict, current: dict) -> dict[str, float]:
-        parts = {
-            "rent": 0.0,
-            "money_progress": 0.0,
-            "boss_progress": 0.0,
-            "rent_cover": 0.0,
-            "spin_income": 0.0,
-            "terminal": 0.0,
-        }
-        rents = max(0, current["rents_paid"] - previous["rents_paid"])
-        parts["rent"] = RENT_MILESTONE * rents
-        if rents == 0:
-            # 付租那一步跳过 Φ 塑形：租金上涨导致的 Φ 重置不是退步。
-            delta = rent_progress(current) - rent_progress(previous)
-            parts["money_progress"] = SHAPE_COEF * max(
-                -SHAPE_CLIP, min(SHAPE_CLIP, delta)
-            )
-            if current.get("boss_fight"):
-                delta = boss_progress(current) - boss_progress(previous)
-                parts["boss_progress"] = BOSS_COEF * max(0.0, min(1.0, delta))
-        # 安全垫：余额首次跨过"够付下一次租金"给一次性奖励。反复进出无利
-        # （只有从不够→够 的那一次触发）。
-        prev_due = max(1.0, float(previous.get("rent_due", 1) or 1))
-        cur_due = max(1.0, float(current.get("rent_due", 1) or 1))
-        prev_coins = max(0.0, float(previous.get("coins", 0) or 0))
-        cur_coins = max(0.0, float(current.get("coins", 0) or 0))
-        if prev_coins < prev_due and cur_coins >= cur_due:
-            parts["rent_cover"] = RENT_COVER_BONUS
-        spins = current["total_spins"] - previous["total_spins"]
-        income = current.get("last_income", 0) if spins > 0 else 0
-        if MONEY_BONUS_COEF > 0 and income > 0:
-            bonus = math.log1p(income / MONEY_BONUS_SCALE)
-            parts["spin_income"] = MONEY_BONUS_COEF * min(bonus, MONEY_BONUS_CLIP)
-        if current["won"] and not previous["won"]:
-            parts["terminal"] = WIN_REWARD
-        elif current["done"] and not current["won"]:
-            parts["terminal"] = LOSS_REWARD
-        return parts
 
 
 class VecRustEnv:

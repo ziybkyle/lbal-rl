@@ -24,11 +24,7 @@ def main():
     root = args.directory
     result = json.loads((root/'summary.json').read_text(encoding='utf-8'))
     reward_mode = result['manifest'].get('reward_mode', 'fixed')
-    if reward_mode == 'win_potential':
-        reward_description = ('本轮采用胜负对齐的阶段奖励：根据从零模型历史评估的粗略统计，交租时给阶段分，'
-                              '结束时按胜负结算。开关奖赏为 0 时，完整一局的总奖励只由胜负决定。'
-                              '阶段统计来自不同训练时期的模型，样本较少，不能当作当前模型的真实胜率。')
-    elif reward_mode == 'progressive':
+    if reward_mode == 'progressive':
         meta = result['manifest']
         rents = validate_progressive_rents(meta.get('progressive_rents', DEFAULT_PROGRESSIVE_RENTS))
         loss, win = validate_progressive_outcomes(meta.get('progressive_loss', DEFAULT_PROGRESSIVE_LOSS),
@@ -37,10 +33,8 @@ def main():
         reward_description = (f'本轮采用方案二：前 12 次成功交租的原始分数依次为 {rent_text}；'
                               f'正常失败 {loss:+g}，击败房东 {win:+g}；所有分数（包括开关奖赏）统一除以 20 后送给模型。'
                               '步数上限截断不额外扣失败分。该方案兼顾生存进度和通关，不保证只优化胜率。')
-    elif reward_mode == 'progress_potential':
-        reward_description = '本轮采用方案四：交租和房东伤害预支进度分，终局收回，通关额外 +1；完整一局的总分在开关奖赏为 0 时只由胜负决定。'
     else:
-        reward_description = '本轮奖励：前 12 次交租每次 +1，击败房东 +20。'
+        reward_description = '此历史记录使用早期奖励配置。'
     toggle = float(result['manifest'].get('toggle_reward', -0.05))
     toggle_description = (f'手动开关物品或精华每次原始 {toggle:+g}，实际计入 {toggle / PROGRESSIVE_SCALE:+g}。'
                           if reward_mode == 'progressive' else f'手动开关物品或精华每次 {toggle:+g}。')

@@ -44,23 +44,6 @@ class PanelProgressTests(unittest.TestCase):
         self.assertEqual([o for _, o in staged_decisions(dict(decisions=decisions))],
                          [1, 1, 1, 1, 1, 1, 2, 2, 2, 2])
 
-    def test_comparison_preserves_reference_counts_and_exposes_original_basis(self):
-        from prior_analysis import compare_records
-        prior = dict(buckets=[dict(ordinal=1), dict(ordinal=2)], rows=[
-            dict(kind='symbol', name='coal', rarity='common', buckets={'1': dict(offers=10, picks=8)})])
-        choice = dict(name='coal', kind='symbol', rarity='common')
-        records = [dict(decisions=[
-            dict(rents_paid=1, phase='symbol_reward', action='reroll', candidates=[choice]),
-            dict(rents_paid=1, phase='symbol_reward', action='take', choice='coal', candidates=[choice]),
-            dict(rents_paid=1, phase='spin_reward', action='take', choice='coal', candidates=[choice])])]
-        rows, _, missing = compare_records(records, prior)
-        a, b = rows
-        self.assertEqual((a['model_n'], a['model_k'], b['model_n'], b['model_k']), (2, 1, 1, 1))
-        self.assertEqual((a['reference_n'], a['reference_k']), (10, 8))
-        self.assertEqual((a['legacy_model_n'], b['legacy_model_n']), (0, 3))
-        self.assertIsNone(a['gap'])  # Never claim a cross-basis difference is meaningful.
-        self.assertEqual(missing, 0)
-
     def test_ui_restores_history_and_formats_eval_speed_win_rate(self):
         import training_ui as ui
         with tempfile.TemporaryDirectory() as tmp, \
@@ -106,7 +89,7 @@ class PanelProgressTests(unittest.TestCase):
                 patch.object(trainer, 'features_for_model', return_value=[0]), \
                 contextlib.redirect_stdout(output):
             result = trainer.evaluate(Path(tmp)/'unused.zip', Path(tmp), 'after_continuation',
-                                      range(3), scratch=False, reward_mode='fixed', gamma=1)
+                                      range(3), scratch=False, reward_mode='progressive', gamma=1)
         self.assertEqual((result['wins'], result['valid_games'], result['truncated_games']), (1, 2, 1))
         self.assertIn('wins=1; valid_games=2; games_per_min=', output.getvalue())
 

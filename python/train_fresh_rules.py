@@ -15,7 +15,6 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 
 from candidate_policy import RuleCandidatePolicy
 from candidate_rules import LATEST_VERSION, catalog
-from gym_env import WIN_POTENTIAL_DATA, WIN_POTENTIAL_FILE
 from item_toggle_policy import toggle_policy_metadata
 from resume_scratch import ContinueBudget, sha
 from reward_schemes import (REWARD_NAMES, PROGRESSIVE_SCALE, DEFAULT_PROGRESSIVE_RENTS,
@@ -50,6 +49,8 @@ def load_ancestors(previous, rules_version, simulator_sha256, route=ROUTE):
             raise ValueError('只能续训当前路线、当前规则的完整身份与物品状态模型，不能混入其他路线。')
         if not checkpoint_compatible(meta.get('rules_version'), meta.get('simulator_sha256'), rules_version, simulator_sha256):
             raise ValueError('该模型使用的游戏规则与当前版本不同。请选择“全新起点”，原模型仍会保留。')
+        if not ancestors and meta.get('reward_mode') != 'progressive':
+            raise ValueError('此模型使用已停用的奖励方案，请选择方案二的保存点。')
         if not meta.get('experiment_id'):
             raise ValueError('缺少本路线的独立实验标识。')
         experiment = experiment or meta['experiment_id']
@@ -110,7 +111,6 @@ def main(route=ROUTE, initial_model=None):
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--training-options', help='explicit JSON snapshot: fixed-strength assistance and optional practice')
-    parser.add_argument('--branch-config', type=Path, help='immutable paired-experiment branch snapshot')
     parser.add_argument('--games', type=int, default=1000)
     parser.add_argument('--eval-games', type=int, default=1000)
     parser.add_argument('--train-seed-start', type=int, default=2_000_000)
@@ -150,51 +150,26 @@ def main(route=ROUTE, initial_model=None):
         initial_meta = json.loads((initial_model.parent/'summary.json').read_text(encoding='utf8'))['manifest'] if initial_model else None
         if initial_meta and route != 'baseline':
             raise ValueError('手工模仿起点只能用于独立的手工模仿路线。')
-        options = validate_options(args.training_options) if args.training_options is not None else None
-        if options is not None and args.branch_config:
-            raise ValueError('简单训练设置不能与旧的对照分支设置同时使用。')
+        options = validate_options(args.training_options)
         if options and options['practice'] and not hasattr(lbal_py.Env, 'training_grant'):
             raise ValueError('当前 Rust 模块未提供指定内容练习接口。请更新后重开训练面板。')
-        branch = None
-        if args.branch_config:
-            from prior_experiments import read_branch, SETTING_KEYS
-            branch = read_branch(args.branch_config)
-            if (branch['rules_version'] != rules_version or branch['simulator_sha256'] != simulator_hash):
-                raise ValueError('实验使用的 Rust 规则已改变，请建立新的实验。')
-            if ancestors and (ancestors[0][1]['manifest'].get('experiment_id') != branch['experiment_id']
-                    or ancestors[0][1]['manifest'].get('branch_config_sha256') != sha(args.branch_config)):
-                raise ValueError('模型与所选分支或辅助配置不一致，不能混用。')
-            actual = dict(reward_mode=args.reward_mode, toggle_reward=args.toggle_reward,
-                allow_item_toggle=not args.no_toggle_actions, limited_item_toggles=args.limited_item_toggles,
-                progressive_rents=list(args.progressive_rents), progressive_loss=args.progressive_loss,
-                progressive_win=args.progressive_win)
-            for key in SETTING_KEYS:
-                if key.startswith('progressive_') and actual['reward_mode'] != 'progressive':
-                    continue
-                if actual[key] != branch['settings'][key]:
-                    raise ValueError('对照实验设置已锁定；修改奖励或动作权限请新建实验。')
-        elif ancestors and ancestors[0][1]['manifest'].get('branch_id') and options is None:
-            raise ValueError('该模型属于独立实验，请从对应实验分支续训。')
         train = range(args.train_seed_start, args.train_seed_start + args.games + 2)
         evaluation = range(args.eval_seed_start, args.eval_seed_start + args.eval_games)
         validate_seeds(train, evaluation, ancestors)
         if initial_meta and any((train.start < hi and lo < train.stop) or (evaluation.start < hi and lo < evaluation.stop)
                                 for lo,hi in initial_meta.get('origin_seed_ranges', [])):
             raise ValueError('训练或评估种子不能与手工示范种子重合。')
-        if branch and any((train.start < hi and lo < train.stop) or (evaluation.start < hi and lo < evaluation.stop)
-                          for lo, hi in branch.get('origin_seed_ranges', [])):
-            raise ValueError('训练或评估种子与共同起点历史训练重复。')
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.error(str(exc))
     args.out.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(args.torch_threads)
     rules = catalog()
     from training_shaping import freeze_snapshot, enabled as shaping_enabled
-    shaping_config = options['shaping'] if options else None
+    shaping_config = options['shaping']
     shaping_snapshot = freeze_snapshot(args.out, ancestors, shaping_config)
     if shaping_enabled(shaping_config):
         print(f'training shaping: status={shaping_snapshot["status"]}; '
-              f'reference rows={len(shaping_snapshot["rows"])}; evaluation rewards=unmodified', flush=True)
+              'evaluation rewards=unmodified', flush=True)
     def make_env():
         env = LbalGym(args.sampling_seed, seed_sequence=list(train), reward_mode=args.reward_mode,
                       reward_gamma=1.0, use_expert_scores=False, enable_management=True,
@@ -203,13 +178,13 @@ def main(route=ROUTE, initial_model=None):
                       progressive_rents=args.progressive_rents, progressive_loss=args.progressive_loss,
                       progressive_win=args.progressive_win, candidate_rules=LATEST_VERSION,
                       item_state_version=ITEM_STATE_VERSION,
-                      training_practice=options['practice'] if options else None,
+                      training_practice=options['practice'],
                       training_shaping=shaping_config, shaping_snapshot=shaping_snapshot,
                       full_history=args.full_history)
         return ActionMasker(env, lambda e: e.action_masks())
     vec = DummyVecEnv([make_env])
     inherited_base = int(ancestors[-1][1]['manifest'].get('origin_training_games', 0)) if ancestors else 0
-    previous_total = sum(len(records) for _, _, records in ancestors) + (branch['origin_training_games'] if branch else inherited_base)
+    previous_total = sum(len(records) for _, _, records in ancestors) + inherited_base
     if ancestors:
         checkpoint = args.previous / 'model_final.zip'
         initial = Path(ancestors[-1][1]['manifest'].get('initial_checkpoint') or ancestors[-1][0] / 'model_initial.zip')
@@ -230,26 +205,6 @@ def main(route=ROUTE, initial_model=None):
         else:
             model.set_env(vec)
         initial_seed = previous_meta['random_model_seed']
-        model.set_random_seed(args.sampling_seed)
-    elif branch:
-        experiment_id = branch['experiment_id']
-        initial_seed = branch['random_model_seed']
-        initial = checkpoint = source_checkpoint = Path(branch['common_checkpoint'])
-        model = MaskablePPO.load(str(checkpoint), device='cpu')
-        if getattr(model.policy, 'candidate_rules_version', None) != LATEST_VERSION or model.gamma != 1.0:
-            raise ValueError('共同起点不是当前身份规则模型。')
-        item_state_upgraded = getattr(model.policy, 'item_state_version', None) != ITEM_STATE_VERSION
-        if item_state_upgraded:
-            from candidate_policy import upgrade_item_state_model
-            model = upgrade_item_state_model(model, vec, args.sampling_seed)
-            checkpoint = args.out / 'model_upgraded.zip'
-            model.save(str(checkpoint))
-        else:
-            model.set_env(vec)
-        prior_updated = 0
-        if branch['origin_run']:
-            original = json.loads((Path(branch['origin_run'])/'summary.json').read_text(encoding='utf8'))
-            prior_updated = original['checkpoints'][-1]['updated_decisions']
         model.set_random_seed(args.sampling_seed)
     elif initial_model is not None:
         experiment_id = uuid.uuid4().hex
@@ -282,31 +237,8 @@ def main(route=ROUTE, initial_model=None):
         initial = checkpoint = args.out / 'model_initial.zip'
         source_checkpoint = checkpoint
         model.save(str(initial))
-    prior = None
-    prior_config = branch['prior_config'] if branch else None
-    branch_added = previous_total - branch['origin_training_games'] if branch else 0
-    if branch:
-        from exploration_prior import configure_policy
-        from statistical_prior import strength_at
-        prior = json.loads(Path(branch['prior_path']).read_text(encoding='utf8')) if branch['branch_id'] == 'guided' else None
-        model.exploration_prior = prior
-        model.exploration_state = dict(config=prior_config, added_games=branch_added,
-            alpha=strength_at(prior_config, branch_added) if prior else 0.0)
-        configure_policy(model.policy, prior, model.exploration_state['alpha'])
-    if options is not None:
-        from exploration_prior import configure_policy
-        from statistical_prior import digest
-        prior = None
-        if options['use_prior']:
-            prior_path = Path(options.get('prior_path', ''))
-            if not prior_path.is_file() or digest(prior_path) != options.get('prior_sha256'):
-                raise ValueError('参考统计快照不存在或校验失败，请重新开始这一轮训练。')
-            prior = json.loads(prior_path.read_text(encoding='utf8'))
-        alpha = options['strength'] if prior else 0.0
-        configure_policy(model.policy, prior, alpha)
-        model.exploration_prior = prior
-        model.exploration_state = dict(added_games=previous_total, alpha=alpha, schedule='constant')
-        model.training_options = options
+    for legacy_key in ('exploration_prior', 'exploration_state', 'training_options'):
+        model.__dict__.pop(legacy_key, None)
     start_steps = model.num_timesteps
     vec._reset_seeds()
     sources = [Path(__file__), ROOT/'python/resume_scratch.py', ROOT/'python/train_from_scratch.py',
@@ -318,22 +250,12 @@ def main(route=ROUTE, initial_model=None):
                ROOT/'python/item_state_features.py', ROOT/'python/simulator_compatibility.py', COMPATIBILITY_FILE,
                ROOT/'python/published_checkpoint.py',
                checkpoint, initial, source_checkpoint, *rules.sources]
-    if args.reward_mode == 'win_potential':
-        sources.append(WIN_POTENTIAL_FILE)
-    if branch:
-        sources.extend([args.branch_config, Path(branch['prior_path']), ROOT/'python/statistical_prior.py',
-                        ROOT/'python/exploration_prior.py', ROOT/'python/prior_experiments.py'])
-    if options is not None:
-        sources.extend([ROOT/'python/training_options.py', ROOT/'python/exploration_prior.py'])
-        if options['use_prior']: sources.append(Path(options['prior_path']))
     if shaping_enabled(shaping_config):
-        sources.extend([args.out/'training_shaping_snapshot.json', ROOT/'python/statistical_prior.py',
-                        ROOT/'python/prior_analysis.py', ROOT/'python/training_analytics.py',
-                        ROOT/'python/candidate_stages.py', ROOT/'python/evaluation_history.py'])
+        sources.append(args.out/'training_shaping_snapshot.json')
     manifest = {
         'purpose': 'isolated PPO lineage under current rules; no expert score input',
-        'training_route': route, 'experiment_id': experiment_id, 'model_id': save_id(args.out), 'initialization': 'checkpoint_branch' if branch else (ancestors[-1][1]['manifest'].get('initialization','random_weights') if ancestors else 'behavior_cloned' if initial_model else 'random_weights'),
-        'fresh_start': not ancestors and not branch, 'previous_run': str(args.previous.resolve()) if args.previous else None,
+        'training_route': route, 'experiment_id': experiment_id, 'model_id': save_id(args.out), 'initialization': (ancestors[-1][1]['manifest'].get('initialization','random_weights') if ancestors else 'behavior_cloned' if initial_model else 'random_weights'),
+        'fresh_start': not ancestors, 'previous_run': str(args.previous.resolve()) if args.previous else None,
         'checkpoint': str(checkpoint.resolve()), 'initial_checkpoint': str(initial.resolve()),
         'source_checkpoint': str(source_checkpoint.resolve()),
         'random_model_seed': initial_seed, 'previous_training_games': previous_total,
@@ -348,11 +270,10 @@ def main(route=ROUTE, initial_model=None):
         'training_shaping_snapshot_sha256': sha(args.out/'training_shaping_snapshot.json') if shaping_enabled(shaping_config) else None,
         'toggle_reward': args.toggle_reward, 'allow_item_toggle': not args.no_toggle_actions,
         **toggle_policy_metadata(args.limited_item_toggles),
-        'reward_scale_divisor': PROGRESSIVE_SCALE if args.reward_mode == 'progressive' else 1.0,
-        'progressive_rents': list(args.progressive_rents) if args.reward_mode == 'progressive' else None,
-        'progressive_loss': args.progressive_loss if args.reward_mode == 'progressive' else None,
-        'progressive_win': args.progressive_win if args.reward_mode == 'progressive' else None,
-        'win_potential': WIN_POTENTIAL_DATA if args.reward_mode == 'win_potential' else None,
+        'reward_scale_divisor': PROGRESSIVE_SCALE,
+        'progressive_rents': list(args.progressive_rents),
+        'progressive_loss': args.progressive_loss,
+        'progressive_win': args.progressive_win,
         'candidate_rules_version': LATEST_VERSION, 'candidate_rules_schema': rules.schema_hash,
         'candidate_offer_capacity': rules.max_offers, 'rules_version': rules_version,
         'item_state_version': ITEM_STATE_VERSION, 'item_state_schema': ITEM_STATE_SCHEMA,
@@ -370,22 +291,9 @@ def main(route=ROUTE, initial_model=None):
         manifest.update(purpose='current-rules behavior cloning followed by independent PPO continuation',
                         baseline_initial_directory=str(initial_model.parent.resolve()),
                         origin_seed_ranges=initial_meta.get('origin_seed_ranges', []))
-    if branch:
-        manifest.update(pair_id=branch['pair_id'], branch_id=branch['branch_id'],
-            branch_config=str(args.branch_config.resolve()), branch_config_sha256=sha(args.branch_config),
-            origin_training_games=branch['origin_training_games'], origin_run=branch['origin_run'],
-            origin_seed_ranges=branch.get('origin_seed_ranges', []),
-            exploration_prior_enabled=bool(prior), exploration_config=prior_config,
-            prior_snapshot_sha256=branch['prior_path_sha256'],
-            branch_added_before=branch_added, exploration_alpha_start=model.policy.exploration_alpha)
-        manifest['purpose'] = 'independent paired experiment; unassisted evaluation; rewards unchanged'
-    if options is not None:
-        manifest.update(training_options=options, exploration_prior_enabled=bool(prior),
-                        exploration_config=dict(schedule='constant', strength=options['strength']),
-                        exploration_alpha_start=model.policy.exploration_alpha,
-                        normal_start_evaluation=True, source_checkpoint_sha256=sha(source_checkpoint))
-        manifest['purpose'] = 'PPO continuation with explicit optional training assistance; normal unassisted evaluation'
-        manifest['model_label'] = model_label(manifest, previous_total + args.games)
+    manifest.update(training_options=options, normal_start_evaluation=True,
+                    source_checkpoint_sha256=sha(source_checkpoint))
+    manifest['model_label'] = model_label(manifest, previous_total + args.games)
     (args.out/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
     # Finish the current saved stage. The UI checks its stop request before
     # starting the next one; stopping midway would discard the final rollout.
@@ -393,31 +301,16 @@ def main(route=ROUTE, initial_model=None):
     print(f'{("starting current-rules imitation model" if initial_model else "starting fresh random model") if not ancestors else "continuing new-rules model"}: '
           f'{args.games} games; prior decisions={start_steps}; rules={rules_version}', flush=True)
     start = time.perf_counter()
-    callbacks = cb
-    if branch:
-        from exploration_prior import PriorSchedule
-        callbacks = [cb, PriorSchedule(cb, prior, prior_config, branch_added)]
-        print(f'exploration branch={branch["branch_id"]}; added={branch_added}; alpha={model.policy.exploration_alpha:.4f}; evaluations=unassisted', flush=True)
-    if options is not None:
-        print(f'training options: {manifest["model_label"]}; evaluations=normal_unassisted', flush=True)
-    model.learn(total_timesteps=100_000_000, callback=callbacks, reset_num_timesteps=False)
+    print(f'training options: {manifest["model_label"]}', flush=True)
+    model.learn(total_timesteps=100_000_000, callback=cb, reset_num_timesteps=False)
     elapsed = time.perf_counter() - start
-    if options is not None:
-        model.exploration_state['added_games'] = previous_total + cb.finished
     final = args.out/'model_final.zip'
     model.save(str(final))
     vec.close()
     manifest['train_games'] = cb.finished
-    if branch:
-        manifest.update(branch_added_after=branch_added + cb.finished,
-                        exploration_alpha_last=model.policy.exploration_alpha,
-                        exploration_state=model.exploration_state)
-    (args.out/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
-    if options is not None:
-        manifest['model_label'] = model_label(manifest, previous_total + cb.finished)
-        manifest['exploration_alpha_last'] = model.policy.exploration_alpha
-        (args.out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
-        (args.out/'模型说明.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
+    manifest['model_label'] = model_label(manifest, previous_total + cb.finished)
+    (args.out/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf8')
+    (args.out/'模型说明.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf8')
     initial_stats = (ancestors[-1][1]['checkpoints'][0] if ancestors and
                      is_published_origin(ancestors[-1][1]['manifest']) else {})
     checkpoints = [

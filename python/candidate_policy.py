@@ -240,9 +240,6 @@ class RuleCandidatePolicy(MaskableActorCriticPolicy):
 
     def _distribution(self, observations, action_masks=None, *, need_values=True):
         logits, values = self._parts(observations, critic=need_values)
-        if getattr(self, 'exploration_alpha', 0.0) > 0:
-            from exploration_prior import apply_prior
-            logits = apply_prior(self, observations, logits, action_masks)
         distribution = self.action_dist.proba_distribution(action_logits=logits)
         if action_masks is not None:
             distribution.apply_masking(action_masks)
@@ -312,8 +309,6 @@ def expand_rule_model(source, env, seed):
             optimizer.state[new_parameters[name]] = copy.deepcopy(old_optimizer.state[parameter])
     model.num_timesteps = source.num_timesteps
     model._n_updates = source._n_updates
-    from exploration_prior import copy_exploration
-    copy_exploration(source, model)
     return model
 
 

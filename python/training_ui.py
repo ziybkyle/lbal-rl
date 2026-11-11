@@ -20,7 +20,7 @@ import uuid
 import webbrowser
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-from reward_schemes import (REWARD_EXPLANATIONS, REWARD_NAMES, REWARD_NAME_ALIASES,
+from reward_schemes import (REWARD_EXPLANATION, REWARD_MODE, REWARD_NAMES,
                             DEFAULT_PROGRESSIVE_RENTS, validate_progressive_rents, parse_progressive_rents,
                             DEFAULT_PROGRESSIVE_LOSS, DEFAULT_PROGRESSIVE_WIN, validate_progressive_outcomes)
 from seed_policy import FIXED_EVAL_START, FIXED_EVAL_STOP, MAX_EVAL_GAMES, overlaps_fixed_evaluation
@@ -53,7 +53,7 @@ COLUMN_SETTINGS = ROOT / '训练面板表头设置.json'
 PREFERENCE_SETTINGS = ROOT / '训练面板偏好设置.json'
 WINDOW_SETTINGS = ROOT / '训练面板窗口设置.json'
 PROGRESS_DIRECTORY = ROOT / '运行进度记录'
-PREFERENCE_FIELDS = ('train_games', 'eval_games', 'compute_threads', 'toggle_reward', 'allow_item_toggle', 'limited_item_toggles', 'reward_choice', 'trend_range', 'trend_window', 'periodic_enabled', 'periodic_interval', 'progressive_rents_json', 'progressive_loss', 'progressive_win', 'candidate_rules', 'continuous_limit_enabled', 'continuous_limit_games', 'continuous_end_eval_enabled')
+PREFERENCE_FIELDS = ('train_games', 'eval_games', 'compute_threads', 'toggle_reward', 'allow_item_toggle', 'limited_item_toggles', 'trend_range', 'trend_window', 'periodic_enabled', 'periodic_interval', 'progressive_rents_json', 'progressive_loss', 'progressive_win', 'candidate_rules', 'continuous_limit_enabled', 'continuous_limit_games', 'continuous_end_eval_enabled')
 HISTORY_COLUMNS = (
     ('total', '累计训练局数', 100), ('round', '本轮训练局数', 110), ('train_rents', '本轮训练结果', 145),
     ('initial_eval', '初始模型评估', 150), ('before_eval', '续训前评估', 150),
@@ -168,9 +168,6 @@ def valid_preference(name, value):
     if not isinstance(value, str):
         return None
     value = value.strip()
-    if name == 'reward_choice':
-        value = REWARD_NAME_ALIASES.get(value, value)
-        return value if value in REWARD_NAMES.values() else None
     if name == 'progressive_rents_json':
         try:
             return json.dumps(parse_progressive_rents(value), ensure_ascii=False)
@@ -254,8 +251,6 @@ def completed_runs(runs: Path = RUNS, route: str = 'scratch') -> list[tuple[int,
     if not runs.is_dir():
         return found
     directories = list(runs.iterdir())
-    if route == 'fresh_rules':
-        directories.extend(runs.glob('experiments/*/*/ui_training_*'))
     for directory in directories:
         if not directory.is_dir() or directory.name.startswith('_') or 'smoke' in directory.name.lower():
             continue
@@ -838,7 +833,6 @@ class TrainingApp:
         self.allow_item_toggle = tk.BooleanVar(value=True)
         self.limited_item_toggles = tk.BooleanVar(value=False)
         self.candidate_rules = tk.BooleanVar(value=self.route in ('scratch', 'fresh_rules', 'baseline'))
-        self.reward_choice = tk.StringVar(value=REWARD_NAMES['progressive' if route in ('fresh_rules','baseline') else 'fixed'])
         self.progressive_rents_json = tk.StringVar(value=json.dumps(DEFAULT_PROGRESSIVE_RENTS))
         self.progressive_loss = tk.StringVar(value=str(DEFAULT_PROGRESSIVE_LOSS))
         self.progressive_win = tk.StringVar(value=str(DEFAULT_PROGRESSIVE_WIN))
@@ -896,9 +890,6 @@ class TrainingApp:
         build_training_page(self)
 
     def open_advanced_settings(self):
-        if self.experiments and self.experiments.branch:
-            self.experiments.explain_locked()
-            return
         if self.training_active:
             messagebox.showinfo('训练正在运行', '奖励与动作权限请在停止并保存后修改；计算线程可以直接在主页面调整。', parent=self.root)
             return
@@ -1065,8 +1056,7 @@ class TrainingApp:
         self.history_table.delete(*self.history_table.get_children())
         for index, row in enumerate(self.display_history):
             mixed = row.get('mixed_fields', set())
-            reward_name = {'fixed': '方案 1', 'progressive': '方案 2', 'win_potential': '方案 3',
-                           'progress_potential': '方案 4'}.get(row['reward_mode'], '未知')
+            reward_name = '方案 2' if row['reward_mode'] == REWARD_MODE else '早期奖励配置'
             if 'reward_mode' in mixed:
                 reward_name = '多种'
             elif row['reward_mode'] == 'progressive':
@@ -1208,8 +1198,6 @@ class TrainingApp:
 
     def draw_chart(self, metric, canvas=None):
         canvas = canvas or self.canvases[metric]
-        if self.experiments and self.experiments.draw_pair(canvas, metric, training=False):
-            return
         key = metric if canvas is self.canvases[metric] else (metric, str(canvas))
         canvas.delete('all')
         width, height = max(canvas.winfo_width(), 100), max(canvas.winfo_height(), 100)
@@ -1262,8 +1250,6 @@ class TrainingApp:
         self.draw_training_charts()
 
     def draw_training_chart(self, canvas, metric):
-        if self.experiments and self.experiments.draw_pair(canvas, metric, training=True):
-            return
         canvas.delete('all')
         width, height = max(canvas.winfo_width(), 100), max(canvas.winfo_height(), 60)
         left, right, top, bottom = 48, width - 15, 10, height - 26
@@ -1678,37 +1664,19 @@ class TrainingApp:
             f'当前保存位置：{self.runs_dir}\n'
             f'此前新规则实验：{LEGACY_FRESH_RUNS}', parent=self.root)
 
-    def selected_reward_mode(self):
-        return next((mode for mode, label in REWARD_NAMES.items() if label == self.reward_choice.get()), None)
-
     def update_reward_caption(self):
-        captions = {
-            'fixed': '方案 1：前 12 次交租各 +1；击败房东 +20。',
-            'progressive': '方案 2：交租 +0.5 至 +1.5、失败 −3、通关 +20；所有分数包括开关奖赏除以 20。',
-            'win_potential': '方案 3：交租给阶段分，结束按胜负结算；开关为 0 时完整一局总分只取决于胜负。',
-            'progress_potential': '方案 4：交租和房东伤害预支进度分，结束时收回；通关 +1。',
-        }
-        mode = self.selected_reward_mode()
-        if mode == 'progressive':
-            try:
-                rents = parse_progressive_rents(self.progressive_rents_json.get())
-                loss, win = validate_progressive_outcomes(float(self.progressive_loss.get()), float(self.progressive_win.get()))
-                captions['progressive'] = (f'方案 2：第 6 次交租 +{rents[5]:.3f}；失败 {loss:+g}、通关 {win:+g}；'
-                                           '所有分数包括开关奖赏除以 20。')
-            except ValueError:
-                captions['progressive'] = '方案二设置无效，请重新调整。'
-        self.reward_caption.set(captions.get(mode, '请选择奖励方案。'))
-        if mode in ('win_potential', 'progress_potential'):
-            self.toggle_hint.set('建议先用 0；非 0 会改变整局总奖赏。')
-        else:
-            self.toggle_hint.set('建议先用 0；小幅试验 −0.05 至 0，输入原始分数。')
+        try:
+            rents = parse_progressive_rents(self.progressive_rents_json.get())
+            loss, win = validate_progressive_outcomes(float(self.progressive_loss.get()), float(self.progressive_win.get()))
+            caption = (f'第 6 次交租 +{rents[5]:.3f}，失败 {loss:+g}，通关 {win:+g}。'
+                       '所有分数包括开关奖赏除以 20。')
+        except ValueError:
+            caption = '方案二设置无效，请重新调整。'
+        self.reward_caption.set(caption)
+        self.toggle_hint.set('建议先用 0。小幅试验 −0.05 至 0，输入原始分数。')
 
     def show_reward_help(self):
-        mode = self.selected_reward_mode()
-        if mode in REWARD_EXPLANATIONS:
-            messagebox.showinfo('奖励方案说明', REWARD_EXPLANATIONS[mode] +
-                                '\n\n切换方案后仍从所选模型继续训练。由于奖励的数值和目标可能变化，'
-                                '模型需要时间适应，短期表现可能波动；建议用评估结果比较。', parent=self.root)
+        messagebox.showinfo('奖励方案说明', REWARD_EXPLANATION, parent=self.root)
 
     def open_progressive_settings(self):
         if self.training_active:
@@ -1834,7 +1802,6 @@ class TrainingApp:
                 return
         labels = [('最新规则 · 基线初始模型（重新模仿手工）' if self.route == 'baseline' and path == self.runs_dir
                    else '分组起点（从零训练 19000 局）' if self.route == 'grouped' and path == self.runs_dir
-                   else '共同起点（未开始本分支训练）' if self.route == 'fresh_rules' and path == self.runs_dir and self.experiments and self.experiments.branch
                    else '全新开始（0 局，不加载已有模型）' if self.route == 'fresh_rules' and path == self.runs_dir
                    else self.saved_model_label(path, count) if self.route in ('fresh_rules','baseline')
                    else f'累计训练 {count} 局  ·  {path.name}') for count, path in self.run_options]
@@ -1868,12 +1835,10 @@ class TrainingApp:
                 self.set_toggle_policy(meta.get('allow_item_toggle', True), meta.get('limited_item_toggles', False))
                 if meta.get('candidate_rules_version'):
                     self.candidate_rules.set(True)
-                self.reward_choice.set(REWARD_NAMES.get(meta.get('reward_mode'), REWARD_NAMES['fixed']))
                 self.update_reward_caption()
             except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
                 self.toggle_reward.set('0')
                 self.set_toggle_policy(True, False)
-                self.reward_choice.set(REWARD_NAMES['fixed'])
                 self.update_reward_caption()
 
     def model_changed(self, event=None):
@@ -1904,7 +1869,6 @@ class TrainingApp:
             directory = Path(result.stdout.strip())
             meta = json.loads((directory/'summary.json').read_text(encoding='utf8'))['manifest']
             self.refresh_runs(select=directory)
-            self.reward_choice.set(REWARD_NAMES[meta['reward_mode']])
             self.toggle_reward.set(str(meta['toggle_reward']))
             self.allow_item_toggle.set(meta['allow_item_toggle'])
             self.limited_item_toggles.set(meta['limited_item_toggles'])
@@ -1954,10 +1918,6 @@ class TrainingApp:
             return
         try:
             values = {name: getattr(self, name).get() for name in PREFERENCE_FIELDS}
-            if self.experiments and self.experiments.branch:
-                locked = {'reward_choice', 'toggle_reward', 'allow_item_toggle', 'limited_item_toggles',
-                          'progressive_rents_json', 'progressive_loss', 'progressive_win'}
-                values = {key:value for key,value in values.items() if key not in locked}
             save_preferences(PREFERENCE_SETTINGS, self.route, values)
             self.preferences_dirty = False
         except (OSError, tk.TclError) as exc:
@@ -2014,7 +1974,6 @@ class TrainingApp:
         if busy and self.continuous_mode and not self.stop_requested.is_set():
             self.threads_entry.configure(state='normal')
         self.run_select.configure(state='disabled' if busy else 'readonly')
-        self.reward_select.configure(state='disabled' if busy or (self.experiments and self.experiments.branch) else 'readonly')
         if self.continuous_button:
             self.continuous_button.configure(state='normal' if not busy or self.continuous_mode else 'disabled',
                                              text=('取消停止，继续训练' if self.stop_requested.is_set() else '停止并保存')
@@ -2026,12 +1985,8 @@ class TrainingApp:
             self.progress.stop()
         self.update_thread_hint()
 
-        if self.experiments and hasattr(self.experiments, 'set_busy'):
+        if self.experiments:
             self.experiments.set_busy(busy)
-        elif self.experiments:
-            self.experiments.select.configure(state='disabled' if busy else 'readonly')
-            self.experiments.create_button.configure(state=normal)
-            if self.experiments.branch:self.progressive_button.configure(state='disabled')
 
     def update_continuous_controls(self, *_):
         if not hasattr(self, 'limit_check'):
@@ -2184,13 +2139,8 @@ class TrainingApp:
         training_options = None
         try:
             if self.experiments and hasattr(self.experiments, 'options'):
-                training_options = self.experiments.options(freeze=True)
+                training_options = self.experiments.options()
                 self.experiments.note_selection()
-            if self.experiments and self.experiments.branch:
-                self.experiments.apply_settings()
-                saved = completed_runs(self.runs_dir, self.route)
-                if saved and previous != saved[0][1]:
-                    raise ValueError('本实验分支请从最新保存点续训；要从旧模型或共同起点重新尝试，请新建对照实验。')
             session_limit = None
             if continuous and self.continuous_limit_enabled.get():
                 value = valid_preference('continuous_limit_games', self.continuous_limit_games.get())
@@ -2215,9 +2165,7 @@ class TrainingApp:
                 raise ValueError('计算线程请输入 1 到 64 之间的整数。') from None
             if not 1 <= threads <= 64:
                 raise ValueError('计算线程请输入 1 到 64 之间的整数。')
-            reward_mode = self.selected_reward_mode()
-            if reward_mode is None:
-                raise ValueError('请选择奖励方案。')
+            reward_mode = REWARD_MODE
             progressive_rents = parse_progressive_rents(self.progressive_rents_json.get())
             progressive_loss, progressive_win = validate_progressive_outcomes(
                 float(self.progressive_loss.get()), float(self.progressive_win.get()))
@@ -2243,9 +2191,6 @@ class TrainingApp:
                 raise ValueError('此路线暂不支持持续训练，或缺少训练报告程序。')
             if continuous and previous != self.runs_dir:
                 total = saved_total(previous)
-                games = min(CONTINUOUS_CHUNK, max(2, next_evaluation_total(total)-total))
-            elif continuous and self.experiments and self.experiments.branch:
-                total = self.experiments.branch['origin_training_games']
                 games = min(CONTINUOUS_CHUNK, max(2, next_evaluation_total(total)-total))
             train_seed, eval_seed = choose_seeds(games, eval_games)
             trainer = (BASELINE_TRAINER if self.route == 'baseline' else GROUPED_TRAINER if self.route == 'grouped'
@@ -2317,13 +2262,10 @@ class TrainingApp:
             command.append('--candidate-rules')
         if self.route in ('fresh_rules','baseline'):
             command.extend(['--expected-rules-version', self.rules_version])
-            if self.experiments and self.experiments.branch:
-                command.extend(['--branch-config', str(self.runs_dir/'branch.json')])
         if training_options is not None:
             command.extend(['--training-options', json.dumps(training_options, ensure_ascii=False)])
-        if reward_mode == 'progressive':
-            command.extend(['--progressive-rents', json.dumps(progressive_rents),
-                            '--progressive-loss', str(progressive_loss), '--progressive-win', str(progressive_win)])
+        command.extend(['--progressive-rents', json.dumps(progressive_rents),
+                        '--progressive-loss', str(progressive_loss), '--progressive-win', str(progressive_win)])
         if continuous:
             command.extend(['--no-eval', '--stop-file', str(self.stop_file)])
         self.worker = threading.Thread(target=self._run_continuous if continuous else self._run,
@@ -2383,9 +2325,7 @@ class TrainingApp:
         """Save every 1000 games; optional evaluation runs between stages."""
         log_path = self.runs_dir / (out.name + '.log')
         previous = Path(command[command.index('--previous')+1]) if '--previous' in command else None
-        controls = getattr(self, 'experiments', None)
-        initial_total = saved_total(previous) if previous else (controls.branch['origin_training_games']
-            if controls and controls.branch else 0)
+        initial_total = saved_total(previous) if previous else 0
         next_eval = next_evaluation_total(initial_total, self.periodic_config['interval'] if self.periodic_config else 10000)
         last_saved = None
         session_games = 0
@@ -2544,7 +2484,7 @@ class TrainingApp:
                     self.append('定期评估完成，结果已保存。')
                 elif kind == 'end_eval_started':
                     self.status.set('训练已完成，正在评估刚保存的模型…')
-                    self.append(f'开始训练结束评估：只评估刚训练好的模型，固定种子 {value:,} 局，正常开局且关闭辅助。')
+                    self.append(f'开始训练结束评估：只评估刚训练好的模型，固定种子 {value:,} 局，使用正常开局。')
                 elif kind == 'end_eval_done':
                     self.refresh_runs(Path(value))
                     self.append('训练结束评估完成，已计入该模型的续训后评估及浏览器分析。')
@@ -2572,14 +2512,6 @@ class TrainingApp:
                     self.analysis_running = False
                     for button in self.analysis_buttons:button.configure(state='normal')
                     messagebox.showerror('无法生成分析',value,parent=self.root)
-                elif kind == 'experiment_created':
-                    self.experiments.created(value)
-                elif kind == 'experiment_report':
-                    webbrowser.open(Path(value).resolve().as_uri())
-                elif kind == 'experiment_error':
-                    window = getattr(self.experiments, 'pending_window', None)
-                    if window and window.winfo_exists():window.destroy()
-                    messagebox.showerror('实验操作未完成', value, parent=self.root)
                 elif kind == 'continuous_done':
                     self.finish_elapsed()
                     self.set_busy(False)
@@ -2607,23 +2539,9 @@ class TrainingApp:
 
     def _progress_line(self, line: str):
         if line.startswith('training options: '):
-            line = line.replace('training options: ', '本次训练设置：', 1).replace('; evaluations=normal_unassisted', '；评估正常开局且关闭辅助')
+            line = line.replace('training options: ', '本次训练设置：', 1).replace('; evaluations=normal_unassisted', '；评估使用正常开局')
         if line.startswith('training shaping: '):
-            status = re.search(r'status=(\w+)', line)
-            count = re.search(r'reference rows=(\d+)', line)
-            if status and status[1] == 'waiting_for_evaluation':
-                line = '奖励塑形：暂未找到本分支可用评估；差值引导暂不计分，评估后自动启用。'
-            elif status and status[1] == 'ready':
-                line = f'奖励塑形：已固定最新评估差值，{count[1] if count else "—"} 个候选阶段达到样本要求；评估不加入塑形分数。'
-            else:
-                line = '奖励塑形：已启用储物间超额扣分；评估不加入塑形分数。'
-        if self.experiments and self.experiments.branch and 'exploration alpha=' in line:
-            match = re.search(r'alpha=([\d.]+); added=(\d+)', line)
-            if match:
-                alpha = float(match[1])
-                title = ('A 纯 PPO' if self.experiments.branch['branch_id']=='control' else
-                         'B 辅助已撤除' if alpha==0 else f'B 统计辅助强度 {alpha:.3f}')
-                self.experiments.caption.set(f'{title} · 本分支新增约 {int(match[2]):,} 局 · 正式评估关闭辅助')
+            line = '奖励塑形已启用储物间超额扣分。正式评估按正常设置运行。'
         train = re.search(r'training (\d+)/(\d+); wins=(\d+)', line)
         evaluation = re.search(r'eval (\w+): (\d+)/(\d+)', line)
         average = re.search(r'\bavg_rents=(\d+(?:\.\d+)?)', line)
@@ -2725,9 +2643,8 @@ class TrainingApp:
         from training_shaping import label as shaping_label
         shaping = shaping_label(meta.get('training_shaping') or (meta.get('training_options') or {}).get('shaping'))
         lines += [f'训练奖励塑形：{shaping or "未启用"}',
-                  f'塑形差值状态：{meta.get("training_shaping_status", "未启用")}',
                   f'每次开关奖励：{meta.get("toggle_reward", 0)}',
-                  '正式评估：正常开局，关闭统计辅助、控牌扣分与差值奖励，不额外添加指定内容。', '',
+                  '正式评估使用正常开局，禁用指定内容练习和控牌扣分。', '',
                   '保存位置：'+str(directory),
                   '完整设置与来源校验信息见保存文件夹里的“模型说明.json”或“summary.json”。']
         window = tk.Toplevel(self.root);window.title('所选模型的保存设置');window.geometry('820x450')

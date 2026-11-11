@@ -43,7 +43,11 @@ def import_checkpoint(bundle, runs_dir=None):
     with zipfile.ZipFile(bundle) as archive:
         if sorted(archive.namelist()) != ['checkpoint.json', 'model.zip']:
             raise ValueError('请选择本项目发布的模型包（包含 checkpoint.json 和 model.zip）。')
-        if archive.getinfo('checkpoint.json').file_size > 131072 or json.loads(archive.read('checkpoint.json')) != expected:
+        if archive.getinfo('checkpoint.json').file_size > 131072:
+            raise ValueError('模型包的检查点信息过大。')
+        bundled = json.loads(archive.read('checkpoint.json'))
+        identity = ('schema', 'id', 'sha256', 'rules_version', 'training_games')
+        if not isinstance(bundled, dict) or any(bundled.get(key) != expected[key] for key in identity):
             raise ValueError('模型包与本项目发布的检查点信息不一致。')
         if archive.getinfo('model.zip').file_size != expected['bytes']:
             raise ValueError('模型文件大小不符，请重新下载。')

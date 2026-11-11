@@ -126,7 +126,7 @@ class GymEnvTests(unittest.TestCase):
             before = env.observation["rents_paid"]
             _, reward, _, _, _ = env.step(random_policy(env, rng))
             if env.observation["rents_paid"] > before:
-                self.assertGreaterEqual(reward, 10.0)
+                self.assertAlmostEqual(reward, 0.5 / 20)
                 paid = True
                 break
         self.assertTrue(paid)

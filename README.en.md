@@ -10,7 +10,7 @@
 | --- | --- |
 | Open the panel and evaluate a released model | [Installation and walkthrough](docs/TRAINING.en.md), then import the [142,000-game checkpoint](https://github.com/ziybkyle/lbal-rl/releases/tag/scratch-142k) |
 | Continue the released model or start with random weights | [Train, save, and roll back](docs/TRAINING.en.md#train-save-and-roll-back) |
-| Understand observations, rewards, and seeds | [Training method](docs/METHOD.en.md) |
+| Understand observations, configure progressive rent rewards, and use fixed seeds | [Training method](docs/METHOD.en.md) |
 | Inspect individual games, pick rates, failures, or deck sizes | [Statistics and reports](docs/STATISTICS.en.md) |
 | Simulate games in Rust or connect your own policy | [Build, CLI, and Python API](rust/README.en.md) |
 | Reproduce a difference from the original game | [Fidelity and verification](rust/FIDELITY.md) |
@@ -27,7 +27,7 @@ The release includes a prebuilt Rust module for Windows x64 and CPython 3.12. Pr
 | Evaluation conditions | Seeds `1900000000` through `1900000999`, normal starts, highest-scoring legal actions, zero truncations |
 | Simulator rules | `2026-11-09-prespin-overflow-rent-offer-v15` |
 
-Statistical exploration assistance was enabled for 2,000 historical training games. The last 1,000 games used neither assistance nor additional reward shaping. The table gives a separate evaluation of the saved checkpoint. An import starts the counter at 142,000 and writes local per-game records once you resume. [Parameters, data hashes, and evaluation metadata](data/published_scratch_142k.json)
+The training history includes 2,000 games with an experimental exploration bias. The last 1,000 games used standard exploration and progressive rent rewards. The table gives a separate evaluation of the saved checkpoint. An import starts the counter at 142,000 and writes local per-game records once you resume. [Parameters, data hashes, and evaluation metadata](data/published_scratch_142k.json)
 
 Download the [sample analysis](https://github.com/ziybkyle/lbal-rl/releases/download/scratch-142k/scratch-142k-analysis.html) and open it in a browser to explore pick rates from those 1,000 games. The [per-game CSV](https://github.com/ziybkyle/lbal-rl/releases/download/scratch-142k/scratch-142k-evaluation.csv) contains their outcomes and terminal data.
 
@@ -38,7 +38,7 @@ Download the [sample analysis](https://github.com/ziybkyle/lbal-rl/releases/down
 - **Items and rent.** The engine handles pre-spin removal payouts, essence charge and consumption, item toggling, and renewed rent checks after cashing in a rescue item. Comfy Pillow and its essence can be used at their decision points.
 - **Landlord and replay.** Fine-print draws, targets, and activation timing have been corrected. Observations expose clauses, item progress, separate history pools, and candidate pre-spin effects. Verification against the original game covers recorded seeds and action paths. Other paths can still differ. [Fidelity notes](rust/FIDELITY.md)
 
-The built-in Rust heuristic won 645 of 10,000 games on seeds `42` through `10041`, with a mean of 6.51 paid rents. The release build took about 3.9 seconds on Windows with an i7-12700F and 20 simulation threads. That benchmark uses a separate seed range and policy. PPO training also performs network inference, parameter updates, and logging. [Reproduction commands](rust/README.en.md#batch-simulation-and-replay)
+The built-in heuristic won 512 of 10,000 games (5.12%) on seeds `42` through `10041`, with a mean of 6.73 paid rents. The Rust release build took about 3.9 seconds on the test machine with 20 threads. PPO training also performs network inference, parameter updates, and logging. [Benchmark commands](rust/README.en.md#batch-simulation-and-replay)
 
 ## Project map
 

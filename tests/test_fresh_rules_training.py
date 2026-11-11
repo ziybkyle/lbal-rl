@@ -12,7 +12,6 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'python'))
 from training_ui import TrainingApp, completed_runs, training_history, read_preferences, current_rules_directory, tk
-from reward_schemes import REWARD_NAMES
 from train_fresh_rules import load_ancestors, validate_seeds
 
 
@@ -52,7 +51,7 @@ class FreshRulesPanelTests(unittest.TestCase):
         app = TrainingApp(self.root, route='fresh_rules')
         self.assertEqual(app.selected_run(), self.fresh_dir)
         self.assertEqual(app.train_games.get(), '1000')
-        self.assertEqual(app.reward_choice.get(), REWARD_NAMES['progressive'])
+        self.assertFalse(hasattr(app, 'reward_select'))
         self.assertTrue(app.candidate_rules.get())
         self.assertFalse(app.history)
         self.assertIn('0 局', app.origin_caption.get())
@@ -62,6 +61,7 @@ class FreshRulesPanelTests(unittest.TestCase):
             command, out = thread.call_args.kwargs['args']
         self.assertEqual(Path(command[2]).name, 'train_fresh_rules.py')
         self.assertNotIn('--previous', command)
+        self.assertEqual(command[command.index('--reward-mode') + 1], 'progressive')
         self.assertIn('--candidate-rules', command)
         self.assertEqual(command[command.index('--expected-rules-version')+1], app.rules_version)
         self.assertTrue(out.is_relative_to(self.fresh_dir))

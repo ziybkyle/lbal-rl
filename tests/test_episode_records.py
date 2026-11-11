@@ -42,7 +42,7 @@ class EpisodeRecordTests(unittest.TestCase):
                 item_types=(), item_features=(), item_mask=(),
                 info={"deck_len": len(deck) if count is None else count, "spins": 1, "rent_due": due})
         selected, _ = policy.choose(frame([candidate(0), candidate(1), candidate(2)]))
-        self.assertEqual(selected.type_id, 0)  # dog's filling rank beats mouse and dwarf
+        self.assertEqual(selected.type_id, 1)  # mouse's guide score beats dog and dwarf
         selected, _ = policy.choose(frame([candidate(168), candidate(169)]))
         self.assertEqual(selected.type_id, 168)  # early community item prior
         self.assertAlmostEqual(policy._feeding_estimate("candy", Counter(toddler=1), 19), 6 * 11 / 38)
@@ -61,18 +61,12 @@ class EpisodeRecordTests(unittest.TestCase):
                                                     {"milk"}, Counter(milk=1), set()))
         self.assertEqual(policy._rarity_rank(candidate(282)), 0)
         self.assertEqual(policy._rarity_rank(candidate(284)), 0)
-        selected, _ = policy.choose(frame([candidate(282), candidate(284)], [6]))
-        self.assertEqual(selected.type_id, 282)  # essence first-pick rate wins; one cat gives no false boost
         self.assertEqual(policy._association_score("copycat_essence", {"cat"}, Counter(cat=1), set())[0], 0)
         self.assertGreater(policy._association_score("copycat_essence", {"cat"}, Counter(cat=5), set())[0], 0)
         policy.client.hello["vocab"]["rarity"]["symbols"][2] = "rare"
         selected, _ = policy.choose(frame([candidate(0), candidate(2)]))
         self.assertEqual(selected.type_id, 2)  # a rare symbol outranks a common symbol
-        self.assertGreater(policy._first_rate("coal", "symbol", "common")[0],
-                           policy._first_rate("cheese", "symbol", "common")[0])
-        row = policy.external["rows"]["green_pepper"]
-        self.assertAlmostEqual(policy._first_rate("green_pepper", "item", "common")[0],
-                               row["first_pick_n"] / row["first_offer_n"])
+        self.assertGreater(policy._filling_base_score("coal"), policy._filling_base_score("cheese"))
         self.assertTrue(policy._is_transient("milk", Counter(cat=1)))
         self.assertFalse(policy._is_transient("milk", Counter()))
         self.assertTrue(policy._is_transient("bubble", Counter()))
@@ -94,6 +88,7 @@ class EpisodeRecordTests(unittest.TestCase):
         self.assertEqual(selected.type_id, 0)  # second card cannot be coal
         selected, _ = policy.choose(frame([candidate(9), candidate(0)], [9, 0]))
         self.assertEqual(selected.type_id, 9)  # no restriction from the third card
+        policy.client.hello["vocab"]["rarity"]["symbols"][10] = "rare"
         selected, _ = policy.choose(frame([candidate(10), candidate(1)]))
         self.assertEqual(selected.type_id, 1)  # cow without cat is banned
         selected, _ = policy.choose(frame([candidate(10), candidate(1)], [6]))

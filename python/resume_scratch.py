@@ -16,7 +16,6 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 
 from train_from_scratch import ScratchBudget, evaluate
 from train_ppo import LbalGym
-from gym_env import WIN_POTENTIAL_DATA, WIN_POTENTIAL_FILE
 from item_toggle_policy import toggle_policy_metadata
 from item_state_features import VERSION as ITEM_STATE_VERSION, SCHEMA_HASH as ITEM_STATE_SCHEMA
 from reward_schemes import (PROGRESSIVE_SCALE, REWARD_NAMES, DEFAULT_PROGRESSIVE_RENTS, parse_progressive_rents,
@@ -83,7 +82,7 @@ def main() -> None:
     parser.add_argument('--no-toggle-actions', action='store_true', help='disallow manual item/essence toggles')
     parser.add_argument('--limited-item-toggles', action='store_true', help='only toggle the player-selected items and essences')
     parser.add_argument('--candidate-rules', action='store_true', help='upgrade a legacy scratch model to shared identity/rule candidate scoring')
-    parser.add_argument('--reward-mode', choices=tuple(REWARD_NAMES), default='fixed')
+    parser.add_argument('--reward-mode', choices=tuple(REWARD_NAMES), default='progressive')
     parser.add_argument('--progressive-rents', type=parse_progressive_rents, default=DEFAULT_PROGRESSIVE_RENTS)
     parser.add_argument('--progressive-loss', type=float, default=DEFAULT_PROGRESSIVE_LOSS)
     parser.add_argument('--progressive-win', type=float, default=DEFAULT_PROGRESSIVE_WIN)
@@ -112,7 +111,9 @@ def main() -> None:
         seen_paths.add(directory)
         summary = json.loads((directory / 'summary.json').read_text(encoding='utf-8'))
         meta = summary['manifest']
-        if (meta.get('reward_mode') not in REWARD_NAMES or meta.get('expert_score_input') is not False
+        if not ancestors and meta.get('reward_mode') != 'progressive':
+            parser.error('choose a checkpoint that uses progressive rent rewards')
+        if (meta.get('expert_score_input') is not False
                 or meta.get('training_route') not in (None, 'scratch')):
             parser.error('every previous run must be a compatible scratch run without expert input')
         log_path = directory / 'training_games.jsonl'
@@ -189,7 +190,7 @@ def main() -> None:
     sources = [Path(__file__), ROOT/'python'/'train_from_scratch.py', ROOT/'python'/'train_ppo.py',
                ROOT/'python'/'scratch_policy.py', ROOT/'python'/'gym_env.py', ROOT/'python'/'rust_env.py',
                ROOT/'rust'/'python_bindings'/'lbal_py.pyd', ROOT/'data'/'baseline_priors.json',
-               ROOT/'data'/'association_rules.json', WIN_POTENTIAL_FILE, ROOT/'python'/'reward_schemes.py', ROOT/'python'/'seed_policy.py',
+               ROOT/'data'/'association_rules.json', ROOT/'python'/'reward_schemes.py', ROOT/'python'/'seed_policy.py',
                checkpoint, initial, previous_games_path, ROOT/'python'/'item_toggle_policy.py', ROOT/'python'/'item_state_features.py']
     if use_candidate_rules:
         from candidate_rules import catalog, LATEST_VERSION
@@ -208,12 +209,11 @@ def main() -> None:
                 'toggle_reward': args.toggle_reward,
                 'allow_item_toggle': not args.no_toggle_actions,
                 **toggle_policy_metadata(args.limited_item_toggles),
-                'reward_scale_divisor': PROGRESSIVE_SCALE if args.reward_mode == 'progressive' else 1.0,
-                'progressive_rents': list(args.progressive_rents) if args.reward_mode == 'progressive' else None,
-                'progressive_loss': args.progressive_loss if args.reward_mode == 'progressive' else None,
-                'progressive_win': args.progressive_win if args.reward_mode == 'progressive' else None,
-                'win_potential': WIN_POTENTIAL_DATA if args.reward_mode == 'win_potential' else None,
-                'candidate_rules_version': LATEST_VERSION if use_candidate_rules else None,
+                'reward_scale_divisor': PROGRESSIVE_SCALE,
+                'progressive_rents': list(args.progressive_rents),
+                'progressive_loss': args.progressive_loss,
+                'progressive_win': args.progressive_win,
+                        'candidate_rules_version': LATEST_VERSION if use_candidate_rules else None,
                 'candidate_rules_schema': catalog().schema_hash if use_candidate_rules else None,
                 'candidate_offer_capacity': model.policy.offer_capacity if use_candidate_rules else 16,
                 'candidate_policy_upgraded': upgraded,

@@ -24,6 +24,8 @@ def main():
     root = args.directory
     summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
     meta = summary['manifest']
+    if meta.get('reward_mode') != 'progressive':
+        parser.error('此模型使用早期奖励配置，请选择方案二的保存点。')
     baseline = meta.get('training_route') == 'baseline'
     torch.set_num_threads(args.threads)
     result = evaluate(root / 'model_final.zip', root, 'periodic_eval',
@@ -34,8 +36,8 @@ def main():
                       allow_item_toggle=bool(meta.get('allow_item_toggle', True)),
                       **saved_toggle_policy(meta),
                       progressive_rents=meta.get('progressive_rents'),
-                      progressive_loss=meta.get('progressive_loss', DEFAULT_PROGRESSIVE_LOSS) if meta['reward_mode'] == 'progressive' else DEFAULT_PROGRESSIVE_LOSS,
-                      progressive_win=meta.get('progressive_win', DEFAULT_PROGRESSIVE_WIN) if meta['reward_mode'] == 'progressive' else DEFAULT_PROGRESSIVE_WIN)
+                      progressive_loss=meta.get('progressive_loss', DEFAULT_PROGRESSIVE_LOSS),
+                      progressive_win=meta.get('progressive_win', DEFAULT_PROGRESSIVE_WIN))
     result['seed_start'] = FIXED_EVAL_START
     result['training_games_total'] = int(meta.get('previous_training_games', 0)) + int(summary['training_games'])
     report_tmp = root / '.periodic_eval_report.html.tmp'

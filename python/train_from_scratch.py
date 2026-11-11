@@ -1,7 +1,8 @@
 """Small, reproducible headless PPO experiment with no teacher or expert scores.
 
-Each reward mode starts from fresh random weights.  Every saved checkpoint is
-evaluated on the same held-out seeds, and the full non-spin decisions are kept.
+Training starts from fresh random weights with progressive rent rewards. Saved
+checkpoints are evaluated on the same held-out seeds, and the full non-spin
+decisions are kept.
 """
 from __future__ import annotations
 
@@ -80,8 +81,6 @@ class ScratchBudget(BaseCallback):
         self.practice_events.extend(info.get('training_practice_events', []))
         for key, value in info.get('training_shaping_raw', {}).items():
             self.shaping_totals[key] += value
-            if key == 'reference_gap':
-                self.shaping_totals['reference_positive' if value > 0 else 'reference_negative'] += value
         self.rewards += float(self.locals["rewards"][0])
         self.steps += 1
         step = info.get("step_record") or {}
@@ -115,8 +114,6 @@ class ScratchBudget(BaseCallback):
             record['training_practice_events'] = list(self.practice_events)
         if self.shaping_totals:
             record['training_shaping_raw'] = dict(self.shaping_totals)
-        if hasattr(self.model, 'exploration_state'):
-            record['exploration_alpha'] = getattr(self.model.policy, 'exploration_alpha', 0.0)
         self.file.write(json.dumps(record, ensure_ascii=False) + "\n")
         if self.history_events:
             detail = history_record(self.finished, record['seed'], self.history_events, end_state,
@@ -137,10 +134,6 @@ class ScratchBudget(BaseCallback):
             print(f"  training {self.finished}/{self.games}; wins={self.wins}; steps={self.num_timesteps}; "
                   f"avg_rents={self.total_rents / self.finished:.6f}; "
                   f"games_per_min={60 * self.finished / max(time.perf_counter() - self.progress_started, .001):.3f}", flush=True)
-            if hasattr(self.model, 'exploration_state'):
-                state = self.model.exploration_state
-                print(f"  exploration alpha={getattr(self.model.policy, 'exploration_alpha', 0.0):.4f}; "
-                      f"added={state.get('added_games', 0)}; evaluations=unassisted", flush=True)
         # Only final saved stages are used by the continuous UI. Do not create
         # a second, unused model halfway through every 1000-game stage.
         self.rewards = 0.0
@@ -170,10 +163,9 @@ def evaluate(model_path: Path, out: Path, label: str, seeds: range,
              limited_item_toggles: bool = False, item_toggle_allowlist=None,
              full_history: bool = False) -> dict:
     """Evaluate deterministically; record actions and offers for every game."""
+    if reward_mode != "progressive":
+        raise ValueError("Only progressive rent rewards are supported for evaluation")
     model = MaskablePPO.load(str(model_path), device="cpu")
-    # Every formal evaluation measures the learned network alone. A saved
-    # statistical-exploration schedule must never inflate evaluation results.
-    model.policy.exploration_alpha = 0.0
     rule_version = getattr(model.policy, 'candidate_rules_version', False)
     from candidate_rules import capacity_for
     action_totals: Counter = Counter()
@@ -188,7 +180,7 @@ def evaluate(model_path: Path, out: Path, label: str, seeds: range,
                        if full_history else nullcontext(None))
     with output.open("w", encoding="utf-8") as fh, history_context as history_fh:
         for game, seed in enumerate(seeds, 1):
-            managed = (scratch or baseline_managed) and reward_mode in ("fixed", "win_potential", "progressive", "progress_potential")
+            managed = scratch or baseline_managed
             env = RustGymEnv(seed, max_steps=2000, reward_mode=reward_mode, reward_gamma=gamma,
                              enable_management=managed, toggle_reward=toggle_reward, allow_item_toggle=allow_item_toggle,
                              progressive_rents=progressive_rents, progressive_loss=progressive_loss, progressive_win=progressive_win,
@@ -287,7 +279,6 @@ def evaluate(model_path: Path, out: Path, label: str, seeds: range,
             'history_schema': HISTORY_SCHEMA if full_history else None,
             'history_file': history_output.name if full_history else None,
             'full_history': bool(full_history),
-            "exploration_assistance": False, "exploration_alpha": 0.0,
             "training_practice": False, "normal_start": True,
             "seed_start": seeds.start if isinstance(seeds, range) else seeds[0], "rules_version": obs.get('rules_version'),
             "allow_item_toggle": allow_item_toggle,
@@ -304,7 +295,7 @@ def evaluate(model_path: Path, out: Path, label: str, seeds: range,
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--mode", choices=["sparse", "legacy", "fixed"], required=True)
+    parser.add_argument("--mode", choices=["progressive"], default="progressive")
     parser.add_argument("--games", type=int, default=500)
     parser.add_argument("--eval-games", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=17)
@@ -315,8 +306,6 @@ def main() -> None:
     args = parser.parse_args()
     if args.games < 2 or args.eval_games < 1:
         parser.error("game counts must be positive and training needs at least two games")
-    if args.candidate_rules and args.mode != 'fixed':
-        parser.error('fresh rule-candidate models currently require --mode fixed; subsequent continuation supports every reward scheme')
     # Numeric Rust seeds are masked to 31 bits; prevent aliases or overlap.
     train_seeds = range(args.train_seed_start, args.train_seed_start + args.games + 2)
     eval_seeds = range(args.eval_seed_start, args.eval_seed_start + args.eval_games)
@@ -334,7 +323,7 @@ def main() -> None:
                 "eval_games": args.eval_games, "train_seed_start": args.train_seed_start,
                 "eval_seed_start": args.eval_seed_start, "random_model_seed": args.seed,
                 "policy": "fresh random initialization", "expert_score_input": False,
-                "reward_description": ("first 12 rents +1 each; win +20; toggle -0.05" if args.mode == "fixed" else "win=1, loss=0" if args.mode == "sparse" else "previous rent and money shaping, win and loss rewards"),
+                "reward_description": "progressive rent and terminal rewards, scaled by 20",
                 "rollout_size": 512, "batch_size": 256, "learning_rate": 0.0003,
                 "entropy_coefficient": 0.01, "gae_lambda": 0.95, "files_sha256": {}}
     for path in [HERE / "train_from_scratch.py", HERE / "scratch_policy.py", HERE / "train_ppo.py",
@@ -345,7 +334,7 @@ def main() -> None:
     (args.out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     def make_env():
         env = LbalGym(args.seed, seed_sequence=list(train_seeds), reward_mode=args.mode,
-                      reward_gamma=gamma, use_expert_scores=False, enable_management=args.mode == "fixed",
+                      reward_gamma=gamma, use_expert_scores=False, enable_management=True,
                       candidate_rules=args.candidate_rules)
         return ActionMasker(env, lambda e: e.action_masks())
     vec = DummyVecEnv([make_env])
@@ -395,7 +384,7 @@ def main() -> None:
     reference = None
     if args.reference_model:
         reference = evaluate(args.reference_model, args.out, "previous_ppo", eval_seeds,
-                             scratch=False, reward_mode="legacy", gamma=0.99)
+                             scratch=False, reward_mode="progressive", gamma=1.0)
     summary = {"manifest": manifest, "training_seconds": elapsed,
                "training_wins": cb.wins, "training_games": cb.finished,
                "checkpoints": checkpoints, "evaluations": results, "previous_ppo": reference,

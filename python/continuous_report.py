@@ -21,8 +21,7 @@ def main():
                  actions.get('reroll', 0), actions.get('remove', 0), actions.get('toggle_item', 0)]
         if has_shaping:
             shaping = game.get('training_shaping_raw', {})
-            cells.extend(f'{shaping.get(key, 0):+.4f}' for key in
-                         ('deck_overflow', 'reference_positive', 'reference_negative'))
+            cells.append(f'{shaping.get("deck_overflow", 0):+.4f}')
         rows.append('<tr>' + ''.join('<td>' + html.escape(str(value)) + '</td>' for value in cells) + '</tr>')
     wins = sum(bool(g.get('won')) and not g.get('truncated') for g in records)
     valid = sum(not g.get('truncated') for g in records)
@@ -47,8 +46,8 @@ def main():
     from training_shaping import label as shaping_label
     shaping = shaping_label(summary['manifest'].get('training_shaping'))
     if shaping:
-        candidate_note += '<br>额外训练奖励：' + html.escape(shaping) + '。下表的控牌／差值分为原始分数，方案二送入模型前统一除以 20。正式评估不加入这些分数。'
-    shaping_headers = '<th>控牌扣分（原始）</th><th>差值加分（原始）</th><th>差值扣分（原始）</th>' if has_shaping else ''
+        candidate_note += '<br>额外训练奖励：' + html.escape(shaping) + '。下表的控牌扣分为原始分数，方案二送入模型前统一除以 20。正式评估不加入这些分数。'
+    shaping_headers = '<th>控牌扣分（原始）</th>' if has_shaping else ''
     page = f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>持续训练记录</title>
 <style>body{{font:15px system-ui;background:#f4f7fa;color:#172737;max-width:1100px;margin:30px auto;padding:0 20px}}
 table{{border-collapse:collapse;width:100%;background:white}}th,td{{padding:8px;border-bottom:1px solid #ddd;text-align:left}}

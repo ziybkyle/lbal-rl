@@ -1,0 +1,5815 @@
+{
+  "schema": 1,
+  "symbol_source_sha256": "fb7e5b10de7cd26e092e6f9584f6a82710683d9921a0ec4336d1713b07011bb9",
+  "notes": "4x5 无放回相邻模型；食物的当回合单次收入并非永久收入；数量超过3按3估算。",
+  "adjacency_probability": {
+    "0": 0.0,
+    "1": 0.2894736842105263,
+    "2": 0.4970760233918129,
+    "3": 0.6455108359133127
+  },
+  "multiplier_factors": {
+    "2:0": 1.0,
+    "3:0": 1.0,
+    "5:0": 1.0,
+    "2:1": 1.289473684210526,
+    "3:1": 1.5789473684210524,
+    "5:1": 2.1578947368421053,
+    "2:2": 1.6608187134502923,
+    "3:2": 2.4853801169590644,
+    "5:2": 4.625730994152047,
+    "2:3": 2.1367389060887514,
+    "3:3": 3.90092879256966,
+    "5:3": 9.85655314757482
+  },
+  "arrow_hit_probability": 0.07236842105263158,
+  "arrow_factors": {
+    "1:2:0": 1.0,
+    "1:2:1": 1.0723684210526316,
+    "1:2:2": 1.1499740304709143,
+    "1:2:3": 1.233195835307625,
+    "1:3:0": 1.0,
+    "1:3:1": 1.1447368421052633,
+    "1:3:2": 1.3104224376731304,
+    "1:3:3": 1.5000888431258206,
+    "1:4:0": 1.0,
+    "1:4:1": 1.2171052631578947,
+    "1:4:2": 1.481345221606648,
+    "1:4:3": 1.8029530657712491,
+    "2:2:0": 1.0,
+    "2:2:1": 1.1447368421052633,
+    "2:2:2": 1.3104224376731304,
+    "2:2:3": 1.5000888431258206,
+    "2:3:0": 1.0,
+    "2:3:1": 1.2894736842105263,
+    "2:3:2": 1.6627423822714682,
+    "2:3:3": 2.1440625455605775,
+    "2:4:0": 1.0,
+    "2:4:1": 1.4342105263157894,
+    "2:4:2": 2.0569598337950135,
+    "2:4:3": 2.950113445837585
+  },
+  "feeders": {
+    "toddler": {
+      "groups": [
+        "toddlerlikes"
+      ],
+      "bonus": 6
+    },
+    "cat": {
+      "types": [
+        "milk"
+      ],
+      "bonus": 9
+    },
+    "mouse": {
+      "types": [
+        "cheese"
+      ],
+      "bonus": 20
+    },
+    "goldfish": {
+      "types": [
+        "bubble"
+      ],
+      "bonus": 15
+    },
+    "bear": {
+      "types": [
+        "honey"
+      ],
+      "bonus": 40
+    },
+    "dwarf": {
+      "groups": [
+        "dwarflikes"
+      ],
+      "value_multiple": 10
+    },
+    "monkey": {
+      "groups": [
+        "monkeylikes"
+      ],
+      "value_multiple": 6
+    },
+    "miner": {
+      "groups": [
+        "minerlikes"
+      ],
+      "bonus": 20
+    },
+    "hooligan": {
+      "groups": [
+        "spiritbox"
+      ],
+      "bonus": 6
+    },
+    "bounty_hunter": {
+      "types": [
+        "thief"
+      ],
+      "bonus": 20
+    },
+    "general_zaroff": {
+      "groups": [
+        "human"
+      ],
+      "bonus": 25
+    },
+    "robin_hood": {
+      "groups": [
+        "robinhates"
+      ],
+      "bonus": 15
+    },
+    "dame": {
+      "types": [
+        "martini"
+      ],
+      "bonus": 40
+    },
+    "key": {
+      "groups": [
+        "chest"
+      ],
+      "bonus": 0
+    },
+    "magic_key": {
+      "groups": [
+        "chest"
+      ],
+      "bonus": 0,
+      "death_multiplier": 3
+    },
+    "archaeologist": {
+      "groups": [
+        "archlikes"
+      ],
+      "growth": 1
+    },
+    "mrs_fruit": {
+      "groups": [
+        "fruitlikes"
+      ],
+      "growth": 1
+    },
+    "diver": {
+      "groups": [
+        "poslikes"
+      ],
+      "growth": 1
+    },
+    "pirate": {
+      "groups": [
+        "piratelikes"
+      ],
+      "growth": 1
+    },
+    "eldritch_beast": {
+      "groups": [
+        "fossillikes"
+      ],
+      "growth": 1
+    }
+  },
+  "multipliers": {
+    "moon": {
+      "groups": [
+        "night"
+      ],
+      "multiplier": 3
+    },
+    "beastmaster": {
+      "groups": [
+        "animal"
+      ],
+      "multiplier": 2
+    },
+    "farmer": {
+      "groups": [
+        "farmerlikes"
+      ],
+      "multiplier": 2
+    },
+    "chef": {
+      "groups": [
+        "food"
+      ],
+      "multiplier": 2
+    },
+    "dame": {
+      "groups": [
+        "gem"
+      ],
+      "multiplier": 2
+    },
+    "light_bulb": {
+      "groups": [
+        "gem"
+      ],
+      "multiplier": 2
+    },
+    "witch": {
+      "groups": [
+        "witchlikes"
+      ],
+      "multiplier": 2
+    },
+    "comedian": {
+      "groups": [
+        "funny"
+      ],
+      "multiplier": 3
+    },
+    "bee": {
+      "groups": [
+        "beelikes"
+      ],
+      "multiplier": 2
+    },
+    "joker": {
+      "groups": [
+        "suit"
+      ],
+      "multiplier": 2
+    },
+    "sun": {
+      "types": [
+        "flower"
+      ],
+      "multiplier": 5
+    },
+    "rain": {
+      "types": [
+        "flower"
+      ],
+      "multiplier": 2
+    },
+    "king_midas": {
+      "types": [
+        "coin"
+      ],
+      "multiplier": 3
+    },
+    "billionaire": {
+      "groups": [
+        "richlikes"
+      ],
+      "multiplier": 2
+    },
+    "buffing_powder": {
+      "all": true,
+      "multiplier": 2
+    }
+  },
+  "pairs": {
+    "anchor/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "anchor/pirate": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "apple/robin_hood": {
+      "extra": 15.0,
+      "eater_bonus": 15.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_eater": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "archaeologist/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "banana/monkey": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "banana/mrs_fruit": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "bartender/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "beastmaster/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "beer/dwarf": {
+      "extra": 10.0,
+      "eater_bonus": 10.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 2.8947368421052633,
+        "2": 4.970760233918129,
+        "3": 6.455108359133127
+      },
+      "expected_eater": {
+        "1": 2.8947368421052633,
+        "2": 4.970760233918129,
+        "3": 6.455108359133127
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "beer/pirate": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "big_ore/miner": {
+      "extra": 20.0,
+      "eater_bonus": 20.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_eater": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "big_ore/archaeologist": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "big_urn/hooligan": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "billionaire/general_zaroff": {
+      "extra": 64.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 39,
+      "growth": 0,
+      "expected_extra": {
+        "1": 18.526315789473685,
+        "2": 31.812865497076025,
+        "3": 41.31269349845201
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 11.289473684210527,
+        "2": 19.385964912280702,
+        "3": 25.174922600619194
+      }
+    },
+    "billionaire/robin_hood": {
+      "extra": 54.0,
+      "eater_bonus": 15.0,
+      "death_bonus": 39,
+      "growth": 0,
+      "expected_extra": {
+        "1": 15.631578947368421,
+        "2": 26.842105263157897,
+        "3": 34.857585139318886
+      },
+      "expected_eater": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_death": {
+        "1": 11.289473684210527,
+        "2": 19.385964912280702,
+        "3": 25.174922600619194
+      }
+    },
+    "bounty_hunter/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "bubble/toddler": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "bubble/goldfish": {
+      "extra": 15.0,
+      "eater_bonus": 15.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_eater": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "candy/toddler": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "card_shark/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "cheese/mouse": {
+      "extra": 20.0,
+      "eater_bonus": 20.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_eater": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "chef/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "cherry/mrs_fruit": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "coconut/monkey": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "coconut/mrs_fruit": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "coconut_half/monkey": {
+      "extra": 12.0,
+      "eater_bonus": 12.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 3.473684210526316,
+        "2": 5.964912280701755,
+        "3": 7.746130030959753
+      },
+      "expected_eater": {
+        "1": 3.473684210526316,
+        "2": 5.964912280701755,
+        "3": 7.746130030959753
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "coconut_half/mrs_fruit": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "coin/pirate": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "comedian/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "crab/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "cultist/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "cultist/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "dame/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "diver/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "dwarf/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "farmer/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "gambler/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "general_zaroff/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "goldfish/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_destruction/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_draining/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_emptiness/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_hoarding/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_midas/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_tedium/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hex_of_thievery/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "honey/bear": {
+      "extra": 40.0,
+      "eater_bonus": 40.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 11.578947368421053,
+        "2": 19.883040935672515,
+        "3": 25.820433436532507
+      },
+      "expected_eater": {
+        "1": 11.578947368421053,
+        "2": 19.883040935672515,
+        "3": 25.820433436532507
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "hooligan/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "jellyfish/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "joker/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "king_midas/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "lockbox/key": {
+      "extra": 15.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 15,
+      "growth": 0,
+      "expected_extra": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      }
+    },
+    "lockbox/magic_key": {
+      "extra": 45.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 45,
+      "growth": 0,
+      "expected_extra": {
+        "1": 13.026315789473685,
+        "2": 22.36842105263158,
+        "3": 29.04798761609907
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 13.026315789473685,
+        "2": 22.36842105263158,
+        "3": 29.04798761609907
+      }
+    },
+    "lockbox/pirate": {
+      "extra": 15.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 15,
+      "growth": 1,
+      "expected_extra": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      }
+    },
+    "martini/dame": {
+      "extra": 40.0,
+      "eater_bonus": 40.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 11.578947368421053,
+        "2": 19.883040935672515,
+        "3": 25.820433436532507
+      },
+      "expected_eater": {
+        "1": 11.578947368421053,
+        "2": 19.883040935672515,
+        "3": 25.820433436532507
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "mega_chest/key": {
+      "extra": 100.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 100,
+      "growth": 0,
+      "expected_extra": {
+        "1": 28.947368421052634,
+        "2": 49.70760233918129,
+        "3": 64.55108359133128
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 28.947368421052634,
+        "2": 49.70760233918129,
+        "3": 64.55108359133128
+      }
+    },
+    "mega_chest/magic_key": {
+      "extra": 300.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 300,
+      "growth": 0,
+      "expected_extra": {
+        "1": 86.8421052631579,
+        "2": 149.12280701754386,
+        "3": 193.65325077399382
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 86.8421052631579,
+        "2": 149.12280701754386,
+        "3": 193.65325077399382
+      }
+    },
+    "mega_chest/pirate": {
+      "extra": 100.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 100,
+      "growth": 1,
+      "expected_extra": {
+        "1": 28.947368421052634,
+        "2": 49.70760233918129,
+        "3": 64.55108359133128
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 28.947368421052634,
+        "2": 49.70760233918129,
+        "3": 64.55108359133128
+      }
+    },
+    "milk/cat": {
+      "extra": 9.0,
+      "eater_bonus": 9.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 2.605263157894737,
+        "2": 4.473684210526316,
+        "3": 5.809597523219814
+      },
+      "expected_eater": {
+        "1": 2.605263157894737,
+        "2": 4.473684210526316,
+        "3": 5.809597523219814
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "miner/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "mrs_fruit/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "ninja/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "orange/mrs_fruit": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "orange/pirate": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "ore/miner": {
+      "extra": 20.0,
+      "eater_bonus": 20.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_eater": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "ore/archaeologist": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "oyster/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "peach/mrs_fruit": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "pearl/archaeologist": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "pearl/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "pinata/toddler": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "pirate/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "present/toddler": {
+      "extra": 16.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 10,
+      "growth": 0,
+      "expected_extra": {
+        "1": 4.631578947368421,
+        "2": 7.953216374269006,
+        "3": 10.328173374613003
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 2.8947368421052633,
+        "2": 4.970760233918129,
+        "3": 6.455108359133127
+      }
+    },
+    "pufferfish/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "robin_hood/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "safe/key": {
+      "extra": 30.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 30,
+      "growth": 0,
+      "expected_extra": {
+        "1": 8.68421052631579,
+        "2": 14.912280701754387,
+        "3": 19.36532507739938
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 8.68421052631579,
+        "2": 14.912280701754387,
+        "3": 19.36532507739938
+      }
+    },
+    "safe/magic_key": {
+      "extra": 90.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 90,
+      "growth": 0,
+      "expected_extra": {
+        "1": 26.05263157894737,
+        "2": 44.73684210526316,
+        "3": 58.09597523219814
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 26.05263157894737,
+        "2": 44.73684210526316,
+        "3": 58.09597523219814
+      }
+    },
+    "safe/pirate": {
+      "extra": 30.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 30,
+      "growth": 1,
+      "expected_extra": {
+        "1": 8.68421052631579,
+        "2": 14.912280701754387,
+        "3": 19.36532507739938
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 8.68421052631579,
+        "2": 14.912280701754387,
+        "3": 19.36532507739938
+      }
+    },
+    "sand_dollar/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "sapphire/archaeologist": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "shiny_pebble/archaeologist": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "snail/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "target/robin_hood": {
+      "extra": 25.0,
+      "eater_bonus": 15.0,
+      "death_bonus": 10,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 4.342105263157895,
+        "2": 7.4561403508771935,
+        "3": 9.68266253869969
+      },
+      "expected_death": {
+        "1": 2.8947368421052633,
+        "2": 4.970760233918129,
+        "3": 6.455108359133127
+      }
+    },
+    "thief/bounty_hunter": {
+      "extra": 20.0,
+      "eater_bonus": 20.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_eater": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "thief/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "toddler/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "tomb/hooligan": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "treasure_chest/key": {
+      "extra": 50.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 50,
+      "growth": 0,
+      "expected_extra": {
+        "1": 14.473684210526317,
+        "2": 24.853801169590646,
+        "3": 32.27554179566564
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 14.473684210526317,
+        "2": 24.853801169590646,
+        "3": 32.27554179566564
+      }
+    },
+    "treasure_chest/magic_key": {
+      "extra": 150.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 150,
+      "growth": 0,
+      "expected_extra": {
+        "1": 43.42105263157895,
+        "2": 74.56140350877193,
+        "3": 96.82662538699691
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 43.42105263157895,
+        "2": 74.56140350877193,
+        "3": 96.82662538699691
+      }
+    },
+    "treasure_chest/pirate": {
+      "extra": 50.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 50,
+      "growth": 1,
+      "expected_extra": {
+        "1": 14.473684210526317,
+        "2": 24.853801169590646,
+        "3": 32.27554179566564
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 14.473684210526317,
+        "2": 24.853801169590646,
+        "3": 32.27554179566564
+      }
+    },
+    "turtle/diver": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "urn/hooligan": {
+      "extra": 6.0,
+      "eater_bonus": 6.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_eater": {
+        "1": 1.736842105263158,
+        "2": 2.9824561403508776,
+        "3": 3.8730650154798765
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "wine/dwarf": {
+      "extra": 20.0,
+      "eater_bonus": 20.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_eater": {
+        "1": 5.7894736842105265,
+        "2": 9.941520467836257,
+        "3": 12.910216718266254
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "witch/general_zaroff": {
+      "extra": 25.0,
+      "eater_bonus": 25.0,
+      "death_bonus": 0,
+      "growth": 0,
+      "expected_extra": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_eater": {
+        "1": 7.236842105263158,
+        "2": 12.426900584795323,
+        "3": 16.13777089783282
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    },
+    "witch/eldritch_beast": {
+      "extra": 0.0,
+      "eater_bonus": 0.0,
+      "death_bonus": 0,
+      "growth": 1,
+      "expected_extra": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_eater": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "expected_death": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      }
+    }
+  },
+  "item_additions": {
+    "nori_the_rabbit": {
+      "types": [
+        "rabbit",
+        "rabbit_fluff"
+      ],
+      "amount": 1
+    },
+    "pizza_the_cat": {
+      "types": [
+        "cat"
+      ],
+      "amount": 1
+    },
+    "quigley_the_wolf": {
+      "types": [
+        "wolf"
+      ],
+      "amount": 1
+    },
+    "fruit_basket": {
+      "groups": [
+        "fruit"
+      ],
+      "amount": 1
+    },
+    "kyle_the_kernite": {
+      "groups": [
+        "kyle"
+      ],
+      "amount": 1
+    },
+    "happy_hour": {
+      "groups": [
+        "booze"
+      ],
+      "amount": 1
+    },
+    "birdhouse": {
+      "groups": [
+        "bird"
+      ],
+      "amount": 1
+    },
+    "fish_bowl": {
+      "types": [
+        "goldfish"
+      ],
+      "amount": 1
+    },
+    "anthropology_degree": {
+      "groups": [
+        "human"
+      ],
+      "amount": 1
+    }
+  },
+  "item_multipliers": {
+    "jackolantern": {
+      "groups": [
+        "halloween"
+      ],
+      "multiplier": 2
+    },
+    "black_cat": {
+      "types": [
+        "cat"
+      ],
+      "multiplier": 2
+    },
+    "dwarven_anvil": {
+      "types": [
+        "dwarf"
+      ],
+      "multiplier": 2
+    },
+    "oswald_the_monkey": {
+      "types": [
+        "monkey"
+      ],
+      "multiplier": 2
+    },
+    "maxwell_the_bear": {
+      "types": [
+        "bear"
+      ],
+      "multiplier": 1.5
+    },
+    "golden_carrot": {
+      "types": [
+        "rabbit"
+      ],
+      "multiplier": 5
+    },
+    "lucky_carrot": {
+      "types": [
+        "rabbit"
+      ],
+      "multiplier": 3
+    }
+  },
+  "one_turn": [
+    "chemical_seven",
+    "lucky_capsule",
+    "tedium_capsule",
+    "item_capsule",
+    "essence_capsule",
+    "reroll_capsule",
+    "removal_capsule",
+    "rarity_capsule",
+    "time_capsule",
+    "buffing_powder",
+    "hustler"
+  ],
+  "void": [
+    "void_stone",
+    "void_fruit",
+    "void_creature"
+  ],
+  "timed": [
+    "bubble",
+    "present",
+    "spirit",
+    "bar_of_soap",
+    "light_bulb"
+  ],
+  "one_shot": {
+    "lucky_capsule": {
+      "value": 2.5,
+      "skip_value": 10,
+      "kind": "cash",
+      "capsule": true
+    },
+    "chemical_seven": {
+      "value": 1.75,
+      "skip_value": 7,
+      "kind": "cash",
+      "lucky_seven": true
+    },
+    "tedium_capsule": {
+      "value": 1.25,
+      "kind": "cash",
+      "capsule": true
+    },
+    "item_capsule": {
+      "value": 2.0,
+      "kind": "utility",
+      "capsule": true
+    },
+    "essence_capsule": {
+      "value": 2.0,
+      "kind": "utility",
+      "capsule": true
+    },
+    "reroll_capsule": {
+      "value": 2.0,
+      "kind": "utility",
+      "capsule": true
+    },
+    "removal_capsule": {
+      "value": 2.0,
+      "kind": "utility",
+      "capsule": true
+    },
+    "rarity_capsule": {
+      "value": 2.0,
+      "kind": "utility",
+      "capsule": true
+    },
+    "time_capsule": {
+      "value": 2.0,
+      "kind": "utility",
+      "capsule": true
+    },
+    "buffing_powder": {
+      "value": 0.0,
+      "kind": "adjacent",
+      "capsule": true
+    },
+    "void_stone": {
+      "value": 2.0,
+      "skip_value": 8,
+      "kind": "void"
+    },
+    "void_fruit": {
+      "value": 2.0,
+      "skip_value": 8,
+      "kind": "void"
+    },
+    "void_creature": {
+      "value": 2.0,
+      "skip_value": 8,
+      "kind": "void"
+    }
+  },
+  "one_shot_horizon": {
+    "reference": 30.0,
+    "cash_floor": 0.5,
+    "utility_floor": 0.4,
+    "cap": 1.0,
+    "void_empty_bonus": 0.4,
+    "adjacent_factor": 0.35,
+    "adjacent_cap": 6.0,
+    "capsule_machine": 2.0,
+    "capsule_machine_essence": 3.0,
+    "capsule_full_board_bonus": 1.0,
+    "lucky_seven_bonus": {
+      "0": 0.5,
+      "1": 1.5,
+      "2": 8.0
+    },
+    "filling_scale": 0.5,
+    "filling_min_empties": 3
+  },
+  "utility_proxies": {
+    "item_capsule": 2.0,
+    "essence_capsule": 2.0,
+    "reroll_capsule": 2.0,
+    "removal_capsule": 2.0,
+    "rarity_capsule": 2.0,
+    "time_capsule": 2.0
+  },
+  "special_combos": {
+    "suits": [
+      "clubs",
+      "diamonds",
+      "hearts",
+      "spades"
+    ],
+    "flush": {
+      "item": "flush",
+      "essence": "flush_essence",
+      "payout_item": 12,
+      "payout_essence": 20,
+      "essence_cap": 5,
+      "premium": 0.5
+    },
+    "hover": {
+      "item": "coin_on_a_string",
+      "essence": "coin_on_a_string_essence",
+      "payout_item": 3,
+      "payout_essence": 10,
+      "essence_cap": 10,
+      "generators": {
+        "king_midas": 1.0,
+        "hex_of_midas": 0.3
+      }
+    }
+  },
+  "rent_curves": {
+    "diver": [
+      [
+        25,
+        30.0
+      ],
+      [
+        650,
+        4.5
+      ]
+    ],
+    "archaeologist": [
+      [
+        25,
+        30.0
+      ],
+      [
+        650,
+        4.5
+      ]
+    ],
+    "pirate": [
+      [
+        25,
+        30.0
+      ],
+      [
+        650,
+        4.5
+      ]
+    ],
+    "dove": [
+      [
+        25,
+        30.0
+      ],
+      [
+        650,
+        4.5
+      ]
+    ],
+    "mrs_fruit": [
+      [
+        25,
+        10.0
+      ],
+      [
+        450,
+        4.5
+      ],
+      [
+        650,
+        2.0
+      ]
+    ],
+    "amethyst": [
+      [
+        25,
+        9.0
+      ],
+      [
+        450,
+        4.05
+      ],
+      [
+        650,
+        1.8
+      ]
+    ],
+    "pear": [
+      [
+        25,
+        8.0
+      ],
+      [
+        450,
+        3.6
+      ],
+      [
+        650,
+        1.6
+      ]
+    ]
+  },
+  "rent_curve_floor": {
+    "diver": 4.5,
+    "archaeologist": 4.5,
+    "pirate": 4.5,
+    "dove": 4.5,
+    "mrs_fruit": 2.0,
+    "amethyst": 1.8,
+    "pear": 1.6
+  },
+  "remaining_spins": {
+    "25": 52.0,
+    "50": 47.0,
+    "100": 43.0,
+    "150": 39.0,
+    "225": 33.0,
+    "300": 29.0,
+    "375": 29.0,
+    "450": 25.0,
+    "600": 22.0,
+    "650": 20.0,
+    "700": 20.0,
+    "777": 18.0,
+    "1000": 12.0,
+    "1500": 5.0
+  },
+  "curse_values": {
+    "hex_of_thievery": {
+      "kind": "thievery",
+      "value": 1.2
+    },
+    "hex_of_destruction": {
+      "kind": "destruction",
+      "base": 2.5,
+      "early_bonus": 0.04,
+      "early_rent": 150,
+      "late_decay": 0.006
+    },
+    "hex_of_draining": {
+      "kind": "draining",
+      "base": 2.5,
+      "early_bonus": 0.04,
+      "early_rent": 150,
+      "late_decay": 0.004,
+      "average_penalty": 0.3,
+      "average_free": 1.5
+    },
+    "hex_of_hoarding": {
+      "kind": "hoarding",
+      "base": 2.5,
+      "early_bonus": 0.02,
+      "early_rent": 150,
+      "late_decay": 0.005
+    },
+    "hex_of_tedium": {
+      "kind": "flat",
+      "base": 2.5,
+      "late_decay": 0.0
+    },
+    "hex_of_emptiness": {
+      "kind": "flat",
+      "base": 2.5,
+      "late_decay": 0.0
+    }
+  },
+  "negative_curses": [
+    "hex_of_destruction",
+    "hex_of_draining",
+    "hex_of_emptiness",
+    "hex_of_hoarding",
+    "hex_of_tedium",
+    "hex_of_thievery"
+  ],
+  "curse_removal_rent": {
+    "hex_of_destruction": 300,
+    "hex_of_hoarding": 300,
+    "hex_of_draining": 375,
+    "hex_of_tedium": 375,
+    "hex_of_emptiness": 375
+  },
+  "king_midas": {
+    "pirate_base": 12.0,
+    "pirate_per_remaining": 0.4,
+    "two_modifier_base": 8.0,
+    "two_modifier_per_remaining": 0.15,
+    "coin_modifiers": [
+      "triple_coins",
+      "triple_coins_essence",
+      "rusty_gear"
+    ]
+  },
+  "hustler": {
+    "income_per_spin": 1.0,
+    "upfront_cost": 7.0,
+    "remaining_discount": 0.6
+  },
+  "wildcard": {
+    "max_weight": 0.9,
+    "floor": 8.0
+  },
+  "spiritbox": {
+    "symbols": [
+      "urn",
+      "big_urn",
+      "tomb"
+    ],
+    "grave_robber": "grave_robber",
+    "grave_bonus": 4.0,
+    "hooligan_bonus": 2.0
+  },
+  "item_passive": {
+    "pool_ball": 1.0,
+    "bowling_ball": 3.0,
+    "four_leaf_clover": 4.0,
+    "recycling": 1.0
+  },
+  "growth_associations": {
+    "archaeologist": {
+      "mine": 20.0,
+      "golem": 16.0,
+      "big_ore": 12.0,
+      "ore": 10.0,
+      "pearl": 8.0,
+      "sapphire": 7.0,
+      "shiny_pebble": 6.0,
+      "oyster": 6.0
+    },
+    "pirate": {
+      "mega_chest": 20.0,
+      "treasure_chest": 16.0,
+      "safe": 12.0,
+      "lockbox": 10.0,
+      "coin": 6.0,
+      "beer": 5.0,
+      "anchor": 5.0,
+      "orange": 5.0
+    },
+    "diver": {
+      "pearl": 10.0,
+      "oyster": 9.0,
+      "jellyfish": 8.0,
+      "sand_dollar": 8.0,
+      "pufferfish": 8.0,
+      "goldfish": 6.0,
+      "anchor": 5.0,
+      "crab": 5.0,
+      "snail": 5.0,
+      "turtle": 5.0,
+      "dog": 5.0
+    },
+    "dove": {
+      "general_zaroff": 10.0,
+      "matryoshka_doll_1": 8.0,
+      "hooligan": 6.0
+    },
+    "mrs_fruit": {
+      "coconut": 6.0,
+      "peach": 5.0,
+      "banana": 5.0,
+      "orange": 5.0,
+      "cherry": 4.0,
+      "coconut_half": 4.0
+    },
+    "eldritch_beast": {
+      "frozen_fossil": 12.0,
+      "witch": 6.0,
+      "cultist": 5.0
+    }
+  },
+  "symbols": {
+    "amethyst": {
+      "name_zh": "紫水晶",
+      "rarity": "rare",
+      "groups": [
+        "gem",
+        "scaler"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": "每当另一个符号使此符号给予额外的<icon_coin>，此符号会永久给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "anchor": {
+      "name_zh": "锚",
+      "rarity": "common",
+      "groups": [
+        "poslikes",
+        "piratelikes"
+      ],
+      "base": 1.8,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver",
+        "pirate"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "位于角落时给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "apple": {
+      "name_zh": "苹果",
+      "rarity": "rare",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "witchlikes",
+        "farmerlikes",
+        "robinhates"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "robin_hood"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "witch",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "archaeologist": {
+      "name_zh": "地质学家",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "scaler"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_archlikes>和<last_archlikes>。每<text_color_keyword>消除<end>一个符号，永久给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "banana": {
+      "name_zh": "香蕉",
+      "rarity": "common",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "monkeylikes",
+        "fruitlikes",
+        "farmerlikes",
+        "funny"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "monkey",
+        "mrs_fruit"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "comedian",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_banana_peel>。"
+    },
+    "banana_peel": {
+      "name_zh": "香蕉皮",
+      "rarity": "common",
+      "groups": [
+        "funny"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "comedian",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<icon_thief>。在之后<text_color_keyword>消除<end>自身。"
+    },
+    "bar_of_soap": {
+      "name_zh": "肥皂条",
+      "rarity": "uncommon",
+      "groups": [],
+      "base": 2.5,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "每次旋转<text_color_keyword>添加一个<end><icon_bubble>符号。在给予<icon_coin><text_color_keyword><value_1>次<end>后<text_color_keyword>消除<end>自身。"
+    },
+    "bartender": {
+      "name_zh": "酒保",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "spawner0",
+        "darkhumor",
+        "triggerchance"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><group_booze>或<last_booze>。"
+    },
+    "bear": {
+      "name_zh": "熊",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<icon_honey>。每<text_color_keyword>消除<end>一个<icon_honey>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "beastmaster": {
+      "name_zh": "驯兽师",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_animal>和<last_animal>能给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "bee": {
+      "name_zh": "蜜蜂",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_beelikes>和<last_beelikes>给予<text_color_keyword><value_1>倍<end><icon_coin>。如果与<group_beelikes>或<last_beelikes>相邻，则额外给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "beehive": {
+      "name_zh": "蜂巢",
+      "rarity": "rare",
+      "groups": [
+        "spawner0",
+        "beelikes",
+        "triggerchance"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "bee",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_honey>。"
+    },
+    "beer": {
+      "name_zh": "啤酒",
+      "rarity": "common",
+      "groups": [
+        "food",
+        "booze",
+        "dwarflikes",
+        "piratelikes",
+        "anvillikes",
+        "darkhumor"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "dwarf",
+        "pirate"
+      ],
+      "boosters": [
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "big_ore": {
+      "name_zh": "巨矿",
+      "rarity": "uncommon",
+      "groups": [
+        "minerlikes",
+        "archlikes",
+        "anvillikes",
+        "ore",
+        "kyle"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "miner",
+        "archaeologist"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_1>颗<end><group_gem>或<last_gem>。"
+    },
+    "big_urn": {
+      "name_zh": "大骨灰瓮",
+      "rarity": "uncommon",
+      "groups": [
+        "spiritbox",
+        "darkhumor"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "hooligan"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_1><end>个<icon_spirit>。"
+    },
+    "billionaire": {
+      "name_zh": "亿万富翁",
+      "rarity": "uncommon",
+      "groups": [
+        "human",
+        "box",
+        "robinhates"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff",
+        "robin_hood"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_richlikes>和<last_richlikes>给予<text_color_keyword><value_1>倍<end><icon_coin>。<text_color_keyword>被消除<end>后给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "bluebird": {
+      "name_zh": "蓝鸟",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "bounty_hunter": {
+      "name_zh": "赏金猎人",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<icon_thief>。每<text_color_keyword>消除<end>一个<icon_thief>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "bronze_arrow": {
+      "name_zh": "铜箭",
+      "rarity": "uncommon",
+      "groups": [
+        "arrow",
+        "robinlikes"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "指向随机方向，指向的所有符号给予<text_color_keyword><value_1><end>倍<icon_coin>。<text_color_keyword>消除<end>指向的<icon_target>。"
+    },
+    "bubble": {
+      "name_zh": "泡泡",
+      "rarity": "common",
+      "groups": [
+        "toddlerlikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "toddler",
+        "goldfish"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在给予<icon_coin><text_color_keyword><value_1>次<end>后<text_color_keyword>消除<end>自身。"
+    },
+    "buffing_powder": {
+      "name_zh": "增益扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。相邻的符号给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "candy": {
+      "name_zh": "糖果",
+      "rarity": "common",
+      "groups": [
+        "food",
+        "toddlerlikes",
+        "halloween",
+        "counted"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "toddler"
+      ],
+      "boosters": [
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "card_shark": {
+      "name_zh": "纸牌高手",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_suit>和<last_suit>是<icon_wildcard>。"
+    },
+    "cat": {
+      "name_zh": "猫咪",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "witchlikes",
+        "raritymod"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<icon_milk>。每<text_color_keyword>消除<end>一个<icon_milk>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "cheese": {
+      "name_zh": "奶酪",
+      "rarity": "common",
+      "groups": [
+        "food",
+        "omelettestuff",
+        "richlikes",
+        "farmerlikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "mouse"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "billionaire",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "chef": {
+      "name_zh": "厨师",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_food>和<last_food>给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "chemical_seven": {
+      "name_zh": "七号化学物",
+      "rarity": "uncommon",
+      "groups": [
+        "box",
+        "food",
+        "booze"
+      ],
+      "base": 7,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。在<text_color_keyword>被消除<end>时给予<color_FBF236><value_1><end>枚<icon_coin>并<text_color_keyword>添加<value_2><end>个<icon_lucky_seven>物品。"
+    },
+    "cherry": {
+      "name_zh": "樱桃",
+      "rarity": "common",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "fruitlikes",
+        "farmerlikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "mrs_fruit"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "chick": {
+      "name_zh": "小鸡",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "bird",
+        "chickenstuff",
+        "farmerlikes",
+        "triggerchance"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "farmer",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率长成<icon_chicken>。"
+    },
+    "chicken": {
+      "name_zh": "大鸡",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "animal",
+        "spawner0",
+        "spawner1",
+        "bird",
+        "chickenstuff",
+        "farmerlikes",
+        "triggerchance"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "farmer",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_egg>。有<text_color_keyword><value_2>%<end>的几率<text_color_keyword>添加<end><icon_golden_egg>。"
+    },
+    "clubs": {
+      "name_zh": "梅花",
+      "rarity": "uncommon",
+      "groups": [
+        "suit",
+        "counted"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "joker",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_clubs>和<icon_spades>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果有至少<text_color_keyword><value_3><end>个<group_suit>或<last_suit>，则额外给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "coal": {
+      "name_zh": "煤炭",
+      "rarity": "common",
+      "groups": [
+        "time_machine"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转之后变成<icon_diamond>。"
+    },
+    "coconut": {
+      "name_zh": "椰子",
+      "rarity": "uncommon",
+      "groups": [
+        "plant",
+        "fruit",
+        "fruitlikes",
+        "monkeylikes",
+        "farmerlikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "monkey",
+        "mrs_fruit"
+      ],
+      "boosters": [
+        "farmer",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_1><end>个<icon_coconut_half>。"
+    },
+    "coconut_half": {
+      "name_zh": "半个椰子",
+      "rarity": "uncommon",
+      "groups": [
+        "fruit",
+        "food",
+        "fruitlikes",
+        "monkeylikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "monkey",
+        "mrs_fruit"
+      ],
+      "boosters": [
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "coin": {
+      "name_zh": "硬币",
+      "rarity": "common",
+      "groups": [
+        "piratelikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "pirate"
+      ],
+      "boosters": [
+        "king_midas",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "comedian": {
+      "name_zh": "喜剧演员",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_funny>和<last_funny>能给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "copper": {
+      "name_zh": "铜",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "cow": {
+      "name_zh": "牛",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "animal",
+        "farmerlikes",
+        "spawner0",
+        "triggerchance"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "farmer",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_milk>。"
+    },
+    "crab": {
+      "name_zh": "螃蟹",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "poslikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "同一排中<text_color_keyword>每有一只<end>其它<icon_crab>，给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "crow": {
+      "name_zh": "乌鸦",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "bird",
+        "witchlikes"
+      ],
+      "base": 1.25,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "cultist": {
+      "name_zh": "异教徒",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "fossillikes",
+        "counted",
+        "eachother"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff",
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>每有一个<end>其它<icon_cultist>，给予额外<color_FBF236><value_1><end>枚<icon_coin>。如果有至少<text_color_keyword><value_3><end>个<icon_cultist>，则额外给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "d3": {
+      "name_zh": "三面骰",
+      "rarity": "common",
+      "groups": [],
+      "base": 2,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "随机给予<color_FBF236><value_1><end>枚<icon_coin>至<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "d3_1": {
+      "name_zh": "d3_1",
+      "rarity": null,
+      "groups": [],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "d3_2": {
+      "name_zh": "d3_2",
+      "rarity": null,
+      "groups": [],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "d3_3": {
+      "name_zh": "d3_3",
+      "rarity": null,
+      "groups": [],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "d5": {
+      "name_zh": "五面骰",
+      "rarity": "uncommon",
+      "groups": [],
+      "base": 3,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "随机给予<color_FBF236><value_1><end>枚<icon_coin>至<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "dame": {
+      "name_zh": "贵妇",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_gem>和<last_gem>给予<text_color_keyword><value_1>倍<end><icon_coin>。<text_color_keyword>消除<end>相邻的<icon_martini>。每<text_color_keyword>消除<end>一个<icon_martini>，获得<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "diamond": {
+      "name_zh": "钻石",
+      "rarity": "very_rare",
+      "groups": [
+        "gem",
+        "counted",
+        "eachother"
+      ],
+      "base": 5.0,
+      "raw_base": 5.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>每有一个<end>其它<icon_diamond>，给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "diamonds": {
+      "name_zh": "方块",
+      "rarity": "uncommon",
+      "groups": [
+        "suit",
+        "counted"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "joker",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_diamonds>和<icon_hearts>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果有至少<text_color_keyword><value_3><end>个<group_suit>或<last_suit>，则额外给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "dice1": {
+      "name_zh": "dice1",
+      "rarity": null,
+      "groups": [],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "dice2": {
+      "name_zh": "dice2",
+      "rarity": null,
+      "groups": [],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "dice3": {
+      "name_zh": "dice3",
+      "rarity": null,
+      "groups": [],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "dice4": {
+      "name_zh": "dice4",
+      "rarity": null,
+      "groups": [],
+      "base": 4.0,
+      "raw_base": 4.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "dice5": {
+      "name_zh": "dice5",
+      "rarity": null,
+      "groups": [],
+      "base": 5.0,
+      "raw_base": 5.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "diver": {
+      "name_zh": "潜水员",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "scaler"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>移除<end>相邻的<group_poslikes>和<last_poslikes>。每<text_color_keyword>移除<end>一个符号，永久给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "dog": {
+      "name_zh": "狗狗",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "funny"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "comedian",
+        "buffing_powder"
+      ],
+      "description": "如果与<group_doglikes>或<last_doglikes>相邻，则额外给予<color_FBF236><value_1><end>枚<icon_coin>。该效果每次旋转时对每个符号仅适用一次。"
+    },
+    "dove": {
+      "name_zh": "鸽子",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "animal",
+        "bird",
+        "scaler"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "如果一个相邻的符号本会被<text_color_keyword>消除<end>，则那个符号不会被<text_color_keyword>消除<end>，而且本符号会永久提供额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "dud": {
+      "name_zh": "无用之物",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。不可被<text_color_keyword>移除<end>。"
+    },
+    "dwarf": {
+      "name_zh": "矮人",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_dwarflikes>和<last_dwarflikes>。给予相当于以这种方式<text_color_keyword>消除<end>的符号的价值<text_color_keyword><value_1>倍<end>的<icon_coin>。"
+    },
+    "egg": {
+      "name_zh": "蛋",
+      "rarity": "common",
+      "groups": [
+        "food",
+        "omelettestuff",
+        "chickenstuff",
+        "farmerlikes",
+        "triggerchance"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率变成<icon_chick>。"
+    },
+    "eldritch_beast": {
+      "name_zh": "怪异生物",
+      "rarity": "very_rare",
+      "groups": [
+        "organism",
+        "animal",
+        "witchlikes"
+      ],
+      "base": 4.0,
+      "raw_base": 4.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_fossillikes>和<last_fossillikes>。每有一个已被<text_color_keyword>消除<end>或<text_color_keyword>移除<end>的<group_fossillikes>和<last_fossillikes>，永久给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "emerald": {
+      "name_zh": "绿宝石",
+      "rarity": "rare",
+      "groups": [
+        "gem",
+        "counted"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": "如果有至少<text_color_keyword><value_2><end>个<icon_emerald>，则额外给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "empty": {
+      "name_zh": "空",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "essence_capsule": {
+      "name_zh": "精华扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": 2.0,
+      "raw_base": -12.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<text_color_essence><value_1><end>枚<icon_essence_token>。"
+    },
+    "farmer": {
+      "name_zh": "农夫",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_farmerlikes>和<last_farmerlikes>给予<text_color_keyword><value_1>倍<end><icon_coin>。相邻的<icon_seed>有额外<text_color_keyword><value_2>%<end>的几率生长。"
+    },
+    "flower": {
+      "name_zh": "花",
+      "rarity": "common",
+      "groups": [
+        "plant",
+        "farmerlikes",
+        "beelikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "bee",
+        "sun",
+        "rain",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "frozen_fossil": {
+      "name_zh": "冰冻化石",
+      "rarity": "rare",
+      "groups": [
+        "time_machine3",
+        "time_machine"
+      ],
+      "base": 3.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。每有一个已被<text_color_keyword>消除<end>或<text_color_keyword>移除<end>的<group_fossillikes>和<last_fossillikes>，所需的旋转次数减少<text_color_keyword><value_2><end>次。<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_eldritch_beast>。"
+    },
+    "gambler": {
+      "name_zh": "赌徒",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "box"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236>?<end>枚<icon_coin>。每次旋转“<color_FBF236>?<end>”增加<color_FBF236><value_2><end>。当<icon_d5>或<icon_d3>掷出<icon_dice1>或<icon_d3_1>时，<text_color_keyword>消除<end>自身。"
+    },
+    "general_zaroff": {
+      "name_zh": "扎罗夫将军",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_human>和<last_human>。每<text_color_keyword>消除<end>一个符号，给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "golden_arrow": {
+      "name_zh": "金箭",
+      "rarity": "very_rare",
+      "groups": [
+        "arrow",
+        "robinlikes"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "指向随机方向，指向的所有符号给予<text_color_keyword><value_1><end>倍<icon_coin>。<text_color_keyword>消除<end>指向的<icon_target>。"
+    },
+    "golden_egg": {
+      "name_zh": "金蛋",
+      "rarity": "rare",
+      "groups": [
+        "food",
+        "chickenstuff",
+        "farmerlikes",
+        "omelettestuff"
+      ],
+      "base": 4.0,
+      "raw_base": 4.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "goldfish": {
+      "name_zh": "金鱼",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "poslikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<icon_bubble>。每<text_color_keyword>消除<end>一个<icon_bubble>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "golem": {
+      "name_zh": "石巨人",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "destroyable_matryoshka",
+        "time_machine"
+      ],
+      "base": 0.5,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_2><end>个<icon_ore>。"
+    },
+    "goose": {
+      "name_zh": "鹅",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "bird",
+        "spawner0",
+        "triggerchance"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_golden_egg>。"
+    },
+    "hearts": {
+      "name_zh": "红桃",
+      "rarity": "uncommon",
+      "groups": [
+        "suit",
+        "counted"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "joker",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_diamonds>和<icon_hearts>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果有至少<text_color_keyword><value_3><end>个<group_suit>或<last_suit>，则额外给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "hex_of_destruction": {
+      "name_zh": "破坏魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "fossillikes",
+        "triggerhex"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>消除一个<end>相邻的符号。"
+    },
+    "hex_of_draining": {
+      "name_zh": "抽吸魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "fossillikes",
+        "triggerhex"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率让相邻的一个符号给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "hex_of_emptiness": {
+      "name_zh": "空虚魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "fossillikes",
+        "triggerhex"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率迫使你跳过可在旋转后<text_color_keyword>添加<end>的符号。"
+    },
+    "hex_of_hoarding": {
+      "name_zh": "囤积魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "fossillikes",
+        "triggerhex"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率迫使你在此次旋转后<text_color_keyword>添加<end>一个符号。"
+    },
+    "hex_of_midas": {
+      "name_zh": "迈达斯魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "fossillikes",
+        "spawner0",
+        "triggerhex"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_hover_coin>。"
+    },
+    "hex_of_tedium": {
+      "name_zh": "沉闷魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "raritymod",
+        "fossillikes"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "找到<text_color_uncommon>非凡<end>、<text_color_rare>稀有<end>和<text_color_very_rare>非常稀有<end>符号的几率除以<text_color_keyword><value_1><end>。"
+    },
+    "hex_of_thievery": {
+      "name_zh": "偷窃魔法",
+      "rarity": "uncommon",
+      "groups": [
+        "hex",
+        "witchlikes",
+        "fossillikes",
+        "triggerhex"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率拿走<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "highlander": {
+      "name_zh": "高地剑",
+      "rarity": "very_rare",
+      "groups": [],
+      "base": 6.0,
+      "raw_base": 6.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "只能有<text_color_keyword><value_1><end>把<icon_highlander>。"
+    },
+    "honey": {
+      "name_zh": "蜂蜜",
+      "rarity": "rare",
+      "groups": [
+        "food",
+        "beelikes"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "bear"
+      ],
+      "boosters": [
+        "chef",
+        "bee",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "hooligan": {
+      "name_zh": "流氓",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_spiritbox>和<last_spiritbox>。每<text_color_keyword>消除<end>一个<group_spiritbox>和<last_spiritbox>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "hover_coin": {
+      "name_zh": "硬币",
+      "rarity": null,
+      "groups": [],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "hustler": {
+      "name_zh": "诈骗扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": -7.0,
+      "raw_base": -7.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_1><end>个<icon_pool_ball>物品。"
+    },
+    "item_capsule": {
+      "name_zh": "物品扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": 2.0,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。在<text_color_keyword>被消除<end>时<text_color_keyword>添加<value_1><end>个<text_color_common>普通<end>物品。"
+    },
+    "jellyfish": {
+      "name_zh": "水母",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "poslikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "在被<text_color_keyword>移除<end>时给予<color_6B6B6B><value_1><end>枚<icon_removal_token>。"
+    },
+    "joker": {
+      "name_zh": "小丑",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "funny"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "comedian",
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_suit>和<last_suit>给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "key": {
+      "name_zh": "钥匙",
+      "rarity": "common",
+      "groups": [],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_chest>和<last_chest>。在之后<text_color_keyword>消除<end>自身。"
+    },
+    "king_midas": {
+      "name_zh": "迈达斯国王",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "每次旋转<text_color_keyword>添加一个<end><icon_hover_coin>符号。相邻的<icon_hover_coin>给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "light_bulb": {
+      "name_zh": "电灯泡",
+      "rarity": "common",
+      "groups": [],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_gem>和<last_gem>给予<text_color_keyword><value_1>倍<end><icon_coin>。使其他符号给予额外<icon_coin><text_color_keyword><value_2>次<end>后，<text_color_keyword>消除<end>自身。"
+    },
+    "lockbox": {
+      "name_zh": "带锁箱",
+      "rarity": "common",
+      "groups": [
+        "box",
+        "chest",
+        "piratelikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "key",
+        "magic_key",
+        "pirate"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "lucky_capsule": {
+      "name_zh": "财富扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "box",
+        "capsule"
+      ],
+      "base": 10,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "magic_key": {
+      "name_zh": "魔法钥匙",
+      "rarity": "rare",
+      "groups": [],
+      "base": 3.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_chest>和<last_chest>。以这种方式<text_color_keyword>被消除<end>的符号给予<text_color_keyword><value_1>倍<end><icon_coin>。在之后<text_color_keyword>消除<end>自身。"
+    },
+    "magpie": {
+      "name_zh": "喜鹊",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "bird",
+        "slow"
+      ],
+      "base": 1.25,
+      "raw_base": -1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "martini": {
+      "name_zh": "马提尼酒",
+      "rarity": "rare",
+      "groups": [
+        "food",
+        "booze"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "dame"
+      ],
+      "boosters": [
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "matryoshka_doll_1": {
+      "name_zh": "俄罗斯套娃",
+      "rarity": "uncommon",
+      "groups": [
+        "destroyable_matryoshka",
+        "time_machine"
+      ],
+      "base": 3.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_matryoshka_doll_2>。"
+    },
+    "matryoshka_doll_2": {
+      "name_zh": "俄罗斯套娃",
+      "rarity": null,
+      "groups": [
+        "destroyable_matryoshka",
+        "time_machine"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_matryoshka_doll_3>。"
+    },
+    "matryoshka_doll_3": {
+      "name_zh": "俄罗斯套娃",
+      "rarity": null,
+      "groups": [
+        "destroyable_matryoshka",
+        "time_machine"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_matryoshka_doll_4>。"
+    },
+    "matryoshka_doll_4": {
+      "name_zh": "俄罗斯套娃",
+      "rarity": null,
+      "groups": [
+        "destroyable_matryoshka",
+        "time_machine"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_matryoshka_doll_5>。"
+    },
+    "matryoshka_doll_5": {
+      "name_zh": "俄罗斯套娃",
+      "rarity": null,
+      "groups": [],
+      "base": 4.0,
+      "raw_base": 4.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "mega_chest": {
+      "name_zh": "巨大宝箱",
+      "rarity": "very_rare",
+      "groups": [
+        "box",
+        "chest",
+        "piratelikes"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "key",
+        "magic_key",
+        "pirate"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "midas_bomb": {
+      "name_zh": "迈达斯炸弹",
+      "rarity": "very_rare",
+      "groups": [],
+      "base": 4.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身和所有相邻的符号。以这种方式<text_color_keyword>被消除<end>的符号给予相当于其价值<text_color_keyword><value_1>倍<end>的<icon_coin>。"
+    },
+    "milk": {
+      "name_zh": "牛奶",
+      "rarity": "common",
+      "groups": [
+        "food",
+        "omelettestuff",
+        "farmerlikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "cat"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "mine": {
+      "name_zh": "矿井",
+      "rarity": "rare",
+      "groups": [],
+      "base": 2.0,
+      "raw_base": 4.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "每次旋转<text_color_keyword>添加一个<end><icon_ore>符号。在给予<icon_coin><text_color_keyword><value_1>次<end>后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_2><end>个<icon_mining_pick>物品。"
+    },
+    "miner": {
+      "name_zh": "矿工",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_minerlikes>和<last_minerlikes>。每<text_color_keyword>消除<end>一个<group_minerlikes>和<last_minerlikes>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "missing": {
+      "name_zh": "missing",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "monkey": {
+      "name_zh": "猴子",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "funny"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "comedian",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_monkeylikes>和<last_monkeylikes>。给予相当于以这种方式<text_color_keyword>消除<end>的符号的价值<text_color_keyword><value_1>倍<end>的<icon_coin>。"
+    },
+    "moon": {
+      "name_zh": "月亮",
+      "rarity": "rare",
+      "groups": [],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_night>和<last_night>给予<text_color_keyword><value_1>倍<end><icon_coin>。<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_1><end>个<icon_cheese>。"
+    },
+    "mouse": {
+      "name_zh": "老鼠",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<icon_cheese>。每<text_color_keyword>消除<end>一个<icon_cheese>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "mrs_fruit": {
+      "name_zh": "水果女士",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "scaler"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_fruitlikes>和<last_fruitlikes>。每<text_color_keyword>消除<end>一个符号，永久给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "ninja": {
+      "name_zh": "忍者",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "counted",
+        "eachother"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>每有一个<end>其它<icon_ninja>，少给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "omelette": {
+      "name_zh": "煎蛋卷",
+      "rarity": "rare",
+      "groups": [
+        "food",
+        "omelettestuff"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "如果与<group_omelettestuff>或<last_omelettestuff>相邻，则额外给予<color_FBF236><value_1><end>枚<icon_coin>。该效果每次旋转时对每个符号仅适用一次。"
+    },
+    "orange": {
+      "name_zh": "橙子",
+      "rarity": "uncommon",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "fruitlikes",
+        "farmerlikes",
+        "piratelikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "mrs_fruit",
+        "pirate"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "ore": {
+      "name_zh": "矿石",
+      "rarity": "common",
+      "groups": [
+        "minerlikes",
+        "archlikes",
+        "anvillikes",
+        "ore",
+        "kyle"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "miner",
+        "archaeologist"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><group_gem>或<last_gem>。"
+    },
+    "owl": {
+      "name_zh": "猫头鹰",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "night",
+        "bird",
+        "witchlikes",
+        "slow"
+      ],
+      "base": 1.3333333333333333,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "moon",
+        "beastmaster",
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "oyster": {
+      "name_zh": "牡蛎",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "poslikes",
+        "spawner0",
+        "triggerchance"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_pearl>。在<text_color_keyword>被移除<end>时<text_color_keyword>添加<end><icon_pearl>。"
+    },
+    "peach": {
+      "name_zh": "桃子",
+      "rarity": "uncommon",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "fruitlikes",
+        "farmerlikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "mrs_fruit"
+      ],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_seed>。"
+    },
+    "pear": {
+      "name_zh": "梨",
+      "rarity": "rare",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "farmerlikes",
+        "scaler"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "每当另一个符号使此符号给予额外的<icon_coin>，此符号会永久给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "pearl": {
+      "name_zh": "珍珠",
+      "rarity": "common",
+      "groups": [
+        "gem",
+        "archlikes",
+        "poslikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "archaeologist",
+        "diver"
+      ],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "penguin": {
+      "name_zh": "企鹅",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "pigeon": {
+      "name_zh": "鸽子",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "pinata": {
+      "name_zh": "彩罐",
+      "rarity": "uncommon",
+      "groups": [
+        "toddlerlikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "toddler"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_1><end>个<icon_candy>。"
+    },
+    "pirate": {
+      "name_zh": "海盗",
+      "rarity": "very_rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "scaler"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_piratelikes>和<last_piratelikes>。每<text_color_keyword>消除<end>一个符号，永久给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "plum": {
+      "name_zh": "李子",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "present": {
+      "name_zh": "礼物",
+      "rarity": "common",
+      "groups": [
+        "toddlerlikes",
+        "box",
+        "time_machine3",
+        "time_machine"
+      ],
+      "base": 0.8333333333333334,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "toddler"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "在<text_color_keyword><value_1><end>次旋转后<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "pufferfish": {
+      "name_zh": "河豚",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "poslikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "在被<text_color_keyword>移除<end>时给予<color_49AA10><value_1><end>枚<icon_reroll_token>。"
+    },
+    "quartz": {
+      "name_zh": "石英",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "rabbit": {
+      "name_zh": "兔子",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "night",
+        "spawner0"
+      ],
+      "base": 3.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "moon",
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "在给予<icon_coin><text_color_keyword><value_2>次<end>后，永久给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "rabbit_fluff": {
+      "name_zh": "兔毛",
+      "rarity": "uncommon",
+      "groups": [
+        "raritymod"
+      ],
+      "base": 3.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "你找到<text_color_uncommon>非凡<end>、<text_color_rare>稀有<end>和<text_color_very_rare>非常稀有<end>符号的几率乘以<text_color_keyword><value_1><end>。"
+    },
+    "rain": {
+      "name_zh": "雨",
+      "rarity": "uncommon",
+      "groups": [],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_flower>给予<text_color_keyword><value_1>倍<end><icon_coin>。相邻的<icon_seed>有额外<text_color_keyword><value_2>%<end>的几率生长。"
+    },
+    "rarity_capsule": {
+      "name_zh": "幸运扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": 2.0,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。至少<text_color_keyword><value_1><end>个要在此次旋转后<text_color_keyword>添加<end>的符号会变成<text_color_rare>稀有<end>或更好的符号。"
+    },
+    "removal_capsule": {
+      "name_zh": "移除扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": 2.0,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_6B6B6B><value_1><end>枚<icon_removal_token>。"
+    },
+    "reroll_capsule": {
+      "name_zh": "重掷扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule"
+      ],
+      "base": 2.0,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_49AA10><value_1><end>枚<icon_reroll_token>。"
+    },
+    "robin_hood": {
+      "name_zh": "罗宾汉",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "slow"
+      ],
+      "base": 2.25,
+      "raw_base": -4.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。相邻的<group_robinlikes>和<last_robinlikes>额外给予<color_FBF236><value_3><end>枚<icon_coin>。<text_color_keyword>消除<end>相邻的<group_robinhates>和<last_robinhates>。每<text_color_keyword>消除<end>一个<group_robinhates>和<last_robinhates>，获得<color_FBF236><value_4><end>枚<icon_coin>。"
+    },
+    "ruby": {
+      "name_zh": "红宝石",
+      "rarity": "rare",
+      "groups": [
+        "gem",
+        "counted"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": "如果有至少<text_color_keyword><value_2><end>个<icon_ruby>，则额外给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "safe": {
+      "name_zh": "保险箱",
+      "rarity": "uncommon",
+      "groups": [
+        "box",
+        "chest",
+        "piratelikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "key",
+        "magic_key",
+        "pirate"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "sand_dollar": {
+      "name_zh": "沙钱",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "poslikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "在被<text_color_keyword>移除<end>时给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "sapphire": {
+      "name_zh": "蓝宝石",
+      "rarity": "uncommon",
+      "groups": [
+        "gem",
+        "archlikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [
+        "archaeologist"
+      ],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "seed": {
+      "name_zh": "种子",
+      "rarity": "common",
+      "groups": [
+        "farmerlikes"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率长成<group_plant>或<last_plant>。"
+    },
+    "shiny_pebble": {
+      "name_zh": "闪亮鹅卵石",
+      "rarity": "common",
+      "groups": [
+        "gem",
+        "archlikes",
+        "raritymod",
+        "kyle"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "archaeologist"
+      ],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": "你找到<text_color_uncommon>非凡<end>、<text_color_rare>稀有<end>和<text_color_very_rare>非常稀有<end>符号的几率乘以<text_color_keyword><value_1><end>。"
+    },
+    "silver_arrow": {
+      "name_zh": "银箭",
+      "rarity": "rare",
+      "groups": [
+        "arrow",
+        "robinlikes"
+      ],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "指向随机方向，指向的所有符号给予<text_color_keyword><value_1><end>倍<icon_coin>。<text_color_keyword>消除<end>指向的<icon_target>。"
+    },
+    "sloth": {
+      "name_zh": "树懒",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "slow"
+      ],
+      "base": 2,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "snail": {
+      "name_zh": "蜗牛",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "slow",
+        "poslikes"
+      ],
+      "base": 1.25,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "spades": {
+      "name_zh": "黑桃",
+      "rarity": "uncommon",
+      "groups": [
+        "suit",
+        "counted"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "joker",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_clubs>和<icon_spades>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果有至少<text_color_keyword><value_3><end>个<group_suit>或<last_suit>，则额外给予<color_FBF236><value_2><end>枚<icon_coin>。"
+    },
+    "spirit": {
+      "name_zh": "幽灵",
+      "rarity": "rare",
+      "groups": [
+        "witchlikes",
+        "darkhumor",
+        "counted"
+      ],
+      "base": 6.0,
+      "raw_base": 6.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "witch",
+        "buffing_powder"
+      ],
+      "description": "在给予<icon_coin><text_color_keyword><value_1>次<end>后<text_color_keyword>消除<end>自身。"
+    },
+    "strawberry": {
+      "name_zh": "草莓",
+      "rarity": "rare",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "farmerlikes",
+        "counted"
+      ],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "如果有至少<text_color_keyword><value_2><end>个<icon_strawberry>，则额外给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "sun": {
+      "name_zh": "太阳",
+      "rarity": "rare",
+      "groups": [],
+      "base": 3.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_flower>给予<text_color_keyword><value_1>倍<end><icon_coin>。相邻的<icon_seed>有额外<text_color_keyword><value_2>%<end>的几率生长。"
+    },
+    "target": {
+      "name_zh": "靶子",
+      "rarity": "uncommon",
+      "groups": [
+        "box",
+        "robinhates"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "robin_hood"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "tedium_capsule": {
+      "name_zh": "沉闷扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "box",
+        "capsule"
+      ],
+      "base": 5,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。至少<text_color_keyword><value_2><end>个要在此次旋转后<text_color_keyword>添加<end>的符号会变成<text_color_common>普通<end>符号。"
+    },
+    "thief": {
+      "name_zh": "小偷",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "box",
+        "robinlikes"
+      ],
+      "base": -1.0,
+      "raw_base": -1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "bounty_hunter",
+        "general_zaroff"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236>?<end>枚<icon_coin>。每次旋转“<color_FBF236>?<end>”增加<color_FBF236><value_2><end>。"
+    },
+    "time_capsule": {
+      "name_zh": "时间扭蛋",
+      "rarity": "uncommon",
+      "groups": [
+        "capsule",
+        "time_capsule_effects"
+      ],
+      "base": 2.0,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>自身。被<text_color_keyword>消除<end>时，<text_color_keyword>添加<value_1>个<end>本次游戏中已<text_color_keyword>消除<end>的符号。不可添加<icon_time_capsule>。"
+    },
+    "toddler": {
+      "name_zh": "幼儿",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "halloween",
+        "funny"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff"
+      ],
+      "boosters": [
+        "comedian",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>消除<end>相邻的<group_toddlerlikes>和<last_toddlerlikes>。每<text_color_keyword>消除<end>一个<group_toddlerlikes>和<last_toddlerlikes>，获得<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "tomb": {
+      "name_zh": "坟墓",
+      "rarity": "rare",
+      "groups": [
+        "spiritbox",
+        "spawner0",
+        "darkhumor",
+        "triggerchance"
+      ],
+      "base": 4.0,
+      "raw_base": 3.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "hooligan"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "有<text_color_keyword><value_1>%<end>的几率<text_color_keyword>添加<end><icon_spirit>。<text_color_keyword>被消除<end>后<text_color_keyword>添加<value_2><end>个<icon_spirit>。"
+    },
+    "topaz": {
+      "name_zh": "黄玉",
+      "rarity": null,
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "internal",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": ""
+    },
+    "treasure_chest": {
+      "name_zh": "藏宝箱",
+      "rarity": "rare",
+      "groups": [
+        "box",
+        "chest",
+        "piratelikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "key",
+        "magic_key",
+        "pirate"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "turtle": {
+      "name_zh": "龟",
+      "rarity": "common",
+      "groups": [
+        "organism",
+        "animal",
+        "slow",
+        "poslikes"
+      ],
+      "base": 1.3333333333333333,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "diver"
+      ],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "每<text_color_keyword><value_2><end>次旋转给予<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "urn": {
+      "name_zh": "骨灰瓮",
+      "rarity": "common",
+      "groups": [
+        "spiritbox",
+        "darkhumor"
+      ],
+      "base": 1.0,
+      "raw_base": 1.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "hooligan"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>被消除<end>后<text_color_keyword>添加<end><icon_spirit>。"
+    },
+    "void_creature": {
+      "name_zh": "虚空生物",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "box",
+        "void"
+      ],
+      "base": 8,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_empty>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果和<text_color_keyword><value_2><end>个<icon_empty>相邻，则<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_FBF236><value_3><end>枚<icon_coin>。"
+    },
+    "void_fruit": {
+      "name_zh": "虚空水果",
+      "rarity": "uncommon",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "box",
+        "farmerlikes",
+        "void"
+      ],
+      "base": 8,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_empty>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果和<text_color_keyword><value_2><end>个<icon_empty>相邻，则<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_FBF236><value_3><end>枚<icon_coin>。"
+    },
+    "void_stone": {
+      "name_zh": "虚空之石",
+      "rarity": "uncommon",
+      "groups": [
+        "gem",
+        "box",
+        "void"
+      ],
+      "base": 8,
+      "raw_base": 0.0,
+      "status": "one_shot",
+      "feeders": [],
+      "boosters": [
+        "dame",
+        "light_bulb",
+        "buffing_powder"
+      ],
+      "description": "相邻的<icon_empty>额外给予<color_FBF236><value_1><end>枚<icon_coin>。如果和<text_color_keyword><value_2><end>个<icon_empty>相邻，则<text_color_keyword>消除<end>自身。<text_color_keyword>被消除<end>后给予<color_FBF236><value_3><end>枚<icon_coin>。"
+    },
+    "watermelon": {
+      "name_zh": "西瓜",
+      "rarity": "very_rare",
+      "groups": [
+        "plant",
+        "food",
+        "fruit",
+        "farmerlikes",
+        "counted",
+        "eachother"
+      ],
+      "base": 4.0,
+      "raw_base": 4.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "farmer",
+        "chef",
+        "buffing_powder"
+      ],
+      "description": "<text_color_keyword>每有一个<end>其它<icon_watermelon>，给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "wildcard": {
+      "name_zh": "通配符",
+      "rarity": "very_rare",
+      "groups": [],
+      "base": 0.0,
+      "raw_base": 0.0,
+      "status": "partially_modeled",
+      "feeders": [],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "给予相当于相邻符号中最高价值的<icon_coin>。"
+    },
+    "wine": {
+      "name_zh": "葡萄酒",
+      "rarity": "uncommon",
+      "groups": [
+        "food",
+        "booze",
+        "dwarflikes",
+        "richlikes",
+        "anvillikes",
+        "darkhumor"
+      ],
+      "base": 3.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "dwarf"
+      ],
+      "boosters": [
+        "chef",
+        "billionaire",
+        "buffing_powder"
+      ],
+      "description": "在给予<icon_coin><text_color_keyword><value_2>次<end>后，永久给予额外<color_FBF236><value_1><end>枚<icon_coin>。"
+    },
+    "witch": {
+      "name_zh": "女巫",
+      "rarity": "rare",
+      "groups": [
+        "organism",
+        "human",
+        "doglikes",
+        "fossillikes"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "partially_modeled",
+      "feeders": [
+        "general_zaroff",
+        "eldritch_beast"
+      ],
+      "boosters": [
+        "buffing_powder"
+      ],
+      "description": "相邻的<group_witchlikes>和<last_witchlikes>给予<text_color_keyword><value_1>倍<end><icon_coin>。"
+    },
+    "wolf": {
+      "name_zh": "狼",
+      "rarity": "uncommon",
+      "groups": [
+        "organism",
+        "animal",
+        "night"
+      ],
+      "base": 2.0,
+      "raw_base": 2.0,
+      "status": "base_and_supported_synergies",
+      "feeders": [],
+      "boosters": [
+        "moon",
+        "beastmaster",
+        "buffing_powder"
+      ],
+      "description": ""
+    }
+  }
+}

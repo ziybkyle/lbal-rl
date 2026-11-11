@@ -37,7 +37,6 @@ for table in (SYMBOLS, ITEMS):
         RARITY[name] = entry.get("rarity", "none")
 for name in ESSENCES:
     RARITY[name] = "essence"
-ITEM_NAMES = set(ITEMS)
 
 SKIP_ID = 413
 REROLL_ID = 414
@@ -84,11 +83,6 @@ class RustV13Policy(BaselinePolicy):
 
     def _rarity_label(self, candidate):
         return self.rarity.get(self.client.type_name(candidate.type_id), "none")
-
-    def _first_rate(self, name, kind, rarity):
-        if name in ITEM_NAMES:
-            kind = "item"
-        return super()._first_rate(name, kind, rarity)
 
     def _symbol_features(self, entry):
         raw = self.raw_base.get(entry["name"], float(entry.get("base_value", 0)))

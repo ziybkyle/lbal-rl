@@ -64,7 +64,7 @@ class ItemTogglePolicyTests(unittest.TestCase):
         for kind, name in [('item', 'coffee'), ('item', 'devils_deal'), ('item', 'comfy_pillow'),
                            ('essence', 'comfy_pillow_essence')]:
             with self.subTest(name=name):
-                env = RustGymEnv(0, reward_mode='fixed', enable_management=True, limited_item_toggles=True)
+                env = RustGymEnv(0, enable_management=True, limited_item_toggles=True)
                 obs = copy.deepcopy(env.observation)
                 obs['managed_items'] = [dict(kind=kind, name=name, type_id=7, count=1,
                                             disabled=False, can_toggle=True, can_use=True)]
@@ -225,7 +225,7 @@ class ToggleEvaluationTests(unittest.TestCase):
             initial = directory/'model_initial.zip'; initial.touch()
             final = directory/'model_final.zip'; final.touch()
             snapshot = [['item', 'egg_carton']]
-            meta = dict(reward_mode='fixed', allow_item_toggle=True, previous_training_games=0,
+            meta = dict(reward_mode='progressive', allow_item_toggle=True, previous_training_games=0,
                         **toggle_policy_metadata(True, snapshot))
             summary = dict(manifest=meta, training_games=2, checkpoints=[
                 dict(tag='random_initial', path=str(initial)), dict(tag='before_continuation', path=str(initial))])

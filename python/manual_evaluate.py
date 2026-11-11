@@ -38,6 +38,8 @@ def main():
         parser.error('invalid evaluation games or thread count')
     summary = json.loads((args.directory / 'summary.json').read_text(encoding='utf-8'))
     meta = summary['manifest']
+    if meta.get('reward_mode') != 'progressive':
+        parser.error('此模型使用早期奖励配置，请选择方案二的保存点。')
     paths = checkpoint_paths(summary, args.directory)
     for tag in args.models:
         if not paths[tag].is_file():

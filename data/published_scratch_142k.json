@@ -1,0 +1,903 @@
+{
+  "schema": "lbal_published_checkpoint_v1",
+  "id": "scratch_142k",
+  "training_games": 142000,
+  "bytes": 36599710,
+  "sha256": "bad339e073f50a597c0dcb65ca2a50ad9e8153f6696db0c009c1afc8177c587e",
+  "rules_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+  "candidate_rules_version": "candidate_rules_v2",
+  "candidate_rules_schema": "4c666364dc44422089e492d5e06e148a7979f8c027f153be20bf3232cd61f8a8",
+  "item_state_version": "item_state_v2",
+  "item_state_schema": "1cfc0f9d3acc6426f308414eeae57dd8b1886112f8cf301faf0fa5970cbb7ac4",
+  "rule_facts_sha256": "36c033464d0325e23359f99597be2822fc7686f1229ca4d7509b1d889430b4a1",
+  "steam_build_id": 16940935,
+  "game_files_sha256": {
+    "JSON/Symbols - JSON.json": "fb7e5b10de7cd26e092e6f9584f6a82710683d9921a0ec4336d1713b07011bb9",
+    "JSON/Items - JSON.json": "c72cb7d79a9e35cabe199776156a5dc31500babd825659c0c8f6e383b97b9ad4",
+    "JSON/Essences - JSON.json": "e34e5e82c9a0478fdec93d00fa47208e6822cea7548c18615ded31d9fcc1d2a3",
+    "JSON/Fine Print - JSON.json": "fb1cca979b7f2ed6f16f2087f51a0d50ffb58593ea5a83403f357e5c9174cd0f"
+  },
+  "random_model_seed": 636407866,
+  "sampled_decisions": 20064824,
+  "updated_decisions": 20028416,
+  "training_seed_ranges": [
+    [
+      2326460,
+      2327460
+    ],
+    [
+      2327462,
+      2328462
+    ],
+    [
+      2328464,
+      2329464
+    ],
+    [
+      2329466,
+      2330466
+    ],
+    [
+      2330468,
+      2331468
+    ],
+    [
+      2331470,
+      2332470
+    ],
+    [
+      2332472,
+      2333472
+    ],
+    [
+      2333474,
+      2334474
+    ],
+    [
+      2334476,
+      2335476
+    ],
+    [
+      2335478,
+      2336478
+    ],
+    [
+      2336480,
+      2337480
+    ],
+    [
+      2337482,
+      2338482
+    ],
+    [
+      2338484,
+      2339484
+    ],
+    [
+      2339486,
+      2340486
+    ],
+    [
+      2340488,
+      2341488
+    ],
+    [
+      2341490,
+      2342490
+    ],
+    [
+      2342492,
+      2343492
+    ],
+    [
+      2343494,
+      2344494
+    ],
+    [
+      2344496,
+      2345496
+    ],
+    [
+      2345498,
+      2346498
+    ],
+    [
+      2346500,
+      2347500
+    ],
+    [
+      2347502,
+      2348502
+    ],
+    [
+      2348504,
+      2349504
+    ],
+    [
+      2349506,
+      2350506
+    ],
+    [
+      2354516,
+      2355516
+    ],
+    [
+      2355518,
+      2356518
+    ],
+    [
+      2356520,
+      2357520
+    ],
+    [
+      2357522,
+      2358522
+    ],
+    [
+      2358524,
+      2359524
+    ],
+    [
+      2359526,
+      2360526
+    ],
+    [
+      2360528,
+      2361528
+    ],
+    [
+      2361530,
+      2362530
+    ],
+    [
+      2362532,
+      2363532
+    ],
+    [
+      2363534,
+      2364534
+    ],
+    [
+      2364536,
+      2365536
+    ],
+    [
+      2365538,
+      2366538
+    ],
+    [
+      2366540,
+      2367540
+    ],
+    [
+      2367542,
+      2368542
+    ],
+    [
+      2368544,
+      2369544
+    ],
+    [
+      2369546,
+      2370546
+    ],
+    [
+      2370548,
+      2371548
+    ],
+    [
+      2371550,
+      2372550
+    ],
+    [
+      2372552,
+      2373552
+    ],
+    [
+      2373554,
+      2374554
+    ],
+    [
+      2374556,
+      2375556
+    ],
+    [
+      2375558,
+      2376558
+    ],
+    [
+      2376560,
+      2377560
+    ],
+    [
+      2377562,
+      2378562
+    ],
+    [
+      2378564,
+      2379564
+    ],
+    [
+      2379566,
+      2380566
+    ],
+    [
+      2380568,
+      2381568
+    ],
+    [
+      2381570,
+      2382570
+    ],
+    [
+      2382572,
+      2383572
+    ],
+    [
+      2383574,
+      2384574
+    ],
+    [
+      2384576,
+      2385576
+    ],
+    [
+      2385578,
+      2386578
+    ],
+    [
+      2386580,
+      2387580
+    ],
+    [
+      2387582,
+      2388582
+    ],
+    [
+      2388584,
+      2389584
+    ],
+    [
+      2389586,
+      2390586
+    ],
+    [
+      2390588,
+      2391588
+    ],
+    [
+      2391590,
+      2392590
+    ],
+    [
+      2392592,
+      2393592
+    ],
+    [
+      2393594,
+      2394594
+    ],
+    [
+      2394596,
+      2395596
+    ],
+    [
+      2395598,
+      2396598
+    ],
+    [
+      2396600,
+      2397600
+    ],
+    [
+      2397602,
+      2398602
+    ],
+    [
+      2398604,
+      2399604
+    ],
+    [
+      2399606,
+      2400606
+    ],
+    [
+      2400608,
+      2401608
+    ],
+    [
+      2401610,
+      2402610
+    ],
+    [
+      2402612,
+      2403612
+    ],
+    [
+      2403614,
+      2404614
+    ],
+    [
+      2404616,
+      2405616
+    ],
+    [
+      2405618,
+      2406618
+    ],
+    [
+      2406620,
+      2407620
+    ],
+    [
+      2407622,
+      2408622
+    ],
+    [
+      2408624,
+      2409624
+    ],
+    [
+      2409626,
+      2410626
+    ],
+    [
+      2410628,
+      2411628
+    ],
+    [
+      2411630,
+      2412630
+    ],
+    [
+      2412632,
+      2413632
+    ],
+    [
+      2413634,
+      2414634
+    ],
+    [
+      2414636,
+      2415636
+    ],
+    [
+      2419646,
+      2420646
+    ],
+    [
+      2420648,
+      2421648
+    ],
+    [
+      2421650,
+      2422650
+    ],
+    [
+      2422652,
+      2423652
+    ],
+    [
+      2423654,
+      2424654
+    ],
+    [
+      2424656,
+      2425656
+    ],
+    [
+      2425658,
+      2426658
+    ],
+    [
+      2426660,
+      2427660
+    ],
+    [
+      2427662,
+      2428662
+    ],
+    [
+      2428664,
+      2429664
+    ],
+    [
+      2429666,
+      2430666
+    ],
+    [
+      2430668,
+      2431668
+    ],
+    [
+      2431670,
+      2432670
+    ],
+    [
+      2432672,
+      2433672
+    ],
+    [
+      2433674,
+      2434674
+    ],
+    [
+      2434676,
+      2435676
+    ],
+    [
+      2435678,
+      2436678
+    ],
+    [
+      2436680,
+      2437680
+    ],
+    [
+      2437682,
+      2438682
+    ],
+    [
+      2438684,
+      2439684
+    ],
+    [
+      2439686,
+      2440686
+    ],
+    [
+      2440688,
+      2441688
+    ],
+    [
+      2441690,
+      2442690
+    ],
+    [
+      2442692,
+      2443692
+    ],
+    [
+      2443694,
+      2444694
+    ],
+    [
+      2454716,
+      2455716
+    ],
+    [
+      2455718,
+      2456718
+    ],
+    [
+      2456720,
+      2457720
+    ],
+    [
+      2457722,
+      2458722
+    ],
+    [
+      2458724,
+      2459724
+    ],
+    [
+      2459726,
+      2460726
+    ],
+    [
+      2460728,
+      2461728
+    ],
+    [
+      2461730,
+      2462730
+    ],
+    [
+      2462732,
+      2463732
+    ],
+    [
+      2463734,
+      2464734
+    ],
+    [
+      2464736,
+      2465736
+    ],
+    [
+      2465738,
+      2466738
+    ],
+    [
+      2466740,
+      2467740
+    ],
+    [
+      2467742,
+      2468742
+    ],
+    [
+      2468744,
+      2469744
+    ],
+    [
+      2469746,
+      2470746
+    ],
+    [
+      2470748,
+      2471748
+    ],
+    [
+      2471750,
+      2472750
+    ],
+    [
+      2472752,
+      2473752
+    ],
+    [
+      2473754,
+      2474754
+    ],
+    [
+      2474756,
+      2475756
+    ],
+    [
+      2475758,
+      2476758
+    ],
+    [
+      2476760,
+      2477760
+    ],
+    [
+      2477762,
+      2478762
+    ],
+    [
+      2478764,
+      2479764
+    ],
+    [
+      2479766,
+      2480766
+    ],
+    [
+      2480768,
+      2481768
+    ],
+    [
+      2481770,
+      2482770
+    ],
+    [
+      2482772,
+      2483772
+    ],
+    [
+      2483774,
+      2484774
+    ],
+    [
+      2484776,
+      2485776
+    ],
+    [
+      2485778,
+      2486778
+    ]
+  ],
+  "settings": {
+    "reward_mode": "progressive",
+    "gamma": 1.0,
+    "toggle_reward": 0.0,
+    "allow_item_toggle": true,
+    "limited_item_toggles": true,
+    "item_toggle_allowlist_version": "player_selection_20261108_v1",
+    "item_toggle_allowlist": [
+      [
+        "essence",
+        "ancient_lizard_blade_essence"
+      ],
+      [
+        "essence",
+        "capsule_machine_essence"
+      ],
+      [
+        "essence",
+        "checkered_flag_essence"
+      ],
+      [
+        "essence",
+        "coffee_essence"
+      ],
+      [
+        "essence",
+        "coin_on_a_string_essence"
+      ],
+      [
+        "essence",
+        "egg_carton_essence"
+      ],
+      [
+        "essence",
+        "fish_bowl_essence"
+      ],
+      [
+        "essence",
+        "golden_carrot_essence"
+      ],
+      [
+        "essence",
+        "lemon_essence"
+      ],
+      [
+        "essence",
+        "lint_roller_essence"
+      ],
+      [
+        "essence",
+        "lockpick_essence"
+      ],
+      [
+        "essence",
+        "looting_glove_essence"
+      ],
+      [
+        "essence",
+        "lucky_carrot_essence"
+      ],
+      [
+        "essence",
+        "lucky_dice_essence"
+      ],
+      [
+        "essence",
+        "piggy_bank_essence"
+      ],
+      [
+        "essence",
+        "protractor_essence"
+      ],
+      [
+        "essence",
+        "quigley_the_wolf_essence"
+      ],
+      [
+        "essence",
+        "quiver_essence"
+      ],
+      [
+        "essence",
+        "reroll_essence"
+      ],
+      [
+        "essence",
+        "rusty_gear_essence"
+      ],
+      [
+        "essence",
+        "shattered_mirror_essence"
+      ],
+      [
+        "essence",
+        "shedding_season_essence"
+      ],
+      [
+        "essence",
+        "swear_jar_essence"
+      ],
+      [
+        "essence",
+        "tax_evasion_essence"
+      ],
+      [
+        "essence",
+        "telescope_essence"
+      ],
+      [
+        "essence",
+        "time_machine_essence"
+      ],
+      [
+        "essence",
+        "treasure_map_essence"
+      ],
+      [
+        "essence",
+        "void_portal_essence"
+      ],
+      [
+        "item",
+        "capsule_machine"
+      ],
+      [
+        "item",
+        "coin_on_a_string"
+      ],
+      [
+        "item",
+        "compost_heap"
+      ],
+      [
+        "item",
+        "conveyor_belt"
+      ],
+      [
+        "item",
+        "dark_humor"
+      ],
+      [
+        "item",
+        "egg_carton"
+      ],
+      [
+        "item",
+        "fertilizer"
+      ],
+      [
+        "item",
+        "fish_bowl"
+      ],
+      [
+        "item",
+        "flush"
+      ],
+      [
+        "item",
+        "frying_pan"
+      ],
+      [
+        "item",
+        "grave_robber"
+      ],
+      [
+        "item",
+        "guillotine"
+      ],
+      [
+        "item",
+        "lefty_the_rabbit"
+      ],
+      [
+        "item",
+        "lint_roller"
+      ],
+      [
+        "item",
+        "lockpick"
+      ],
+      [
+        "item",
+        "lucky_seven"
+      ],
+      [
+        "item",
+        "piggy_bank"
+      ],
+      [
+        "item",
+        "quigley_the_wolf"
+      ],
+      [
+        "item",
+        "rain_cloud"
+      ],
+      [
+        "item",
+        "reroll"
+      ],
+      [
+        "item",
+        "shattered_mirror"
+      ],
+      [
+        "item",
+        "shedding_season"
+      ],
+      [
+        "item",
+        "swear_jar"
+      ],
+      [
+        "item",
+        "watering_can"
+      ],
+      [
+        "item",
+        "x_ray_machine"
+      ],
+      [
+        "item",
+        "zaroffs_contract"
+      ]
+    ],
+    "progressive_rents": [
+      0.5,
+      0.5909090909090909,
+      0.6818181818181819,
+      0.7727272727272727,
+      0.8636363636363636,
+      0.9545454545454546,
+      1.0454545454545454,
+      1.1363636363636362,
+      1.2272727272727273,
+      1.3181818181818183,
+      1.4090909090909092,
+      1.5
+    ],
+    "progressive_loss": -3.0,
+    "progressive_win": 20.0,
+    "training_options": {
+      "version": "simple_training_options_v2",
+      "practice": null,
+      "shaping": {
+        "deck_enabled": false,
+        "deck_threshold": 22,
+        "deck_first": 0.5,
+        "deck_decay": 0.8,
+        "deck_cap": 3.0
+      }
+    },
+    "torch_threads": 2
+  },
+  "algorithm": {
+    "n_steps": 512,
+    "batch_size": 256,
+    "n_epochs": 10,
+    "gamma": 1.0,
+    "gae_lambda": 0.95,
+    "learning_rate": 0.0003,
+    "ent_coef": 0.01,
+    "target_kl": 0.05,
+    "num_timesteps": 20064824,
+    "_n_updates": 368900
+  },
+  "lineage": {
+    "initialization": "random_weights",
+    "games_by_rules": {
+      "2026-11-09-prespin-overflow-rent-offer-v15": 142000
+    },
+    "games_by_reward": {
+      "progressive": 142000
+    },
+    "experimental_exploration_games": 2000
+  },
+  "evaluation": {
+    "games": 1000,
+    "valid_games": 1000,
+    "wins": 29,
+    "win_rate": 0.029,
+    "avg_rents": 7.912,
+    "avg_steps": 161.079,
+    "seed_start": 1900000000,
+    "truncated_games": 0,
+    "actions": {
+      "spin": 61124,
+      "take": 58345,
+      "remove": 3673,
+      "reroll": 3174,
+      "skip": 15622,
+      "toggle_item": 18106,
+      "destroy_item": 1026,
+      "pay_rent": 9
+    },
+    "games_with_action": {
+      "spin": 1000,
+      "take": 1000,
+      "remove": 999,
+      "reroll": 984,
+      "skip": 994,
+      "toggle_item": 782,
+      "destroy_item": 645,
+      "pay_rent": 9
+    },
+    "normal_start": true,
+    "rules_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+    "deterministic": true,
+    "checkpoint_sha256": "bad339e073f50a597c0dcb65ca2a50ad9e8153f6696db0c009c1afc8177c587e"
+  }
+}
