@@ -1,32 +1,56 @@
-# Luck be a Landlord — Rust Rule Simulator
+# lbal-rl · Luck be a Landlord simulator and RL toolkit
 
-Author: 群友镜中人
+[中文](README.md) · [English](README.en.md) · [Model release](https://github.com/ziybkyle/lbal-rl/releases/tag/scratch-142k)
 
-[中文](README.md) | [English](README.en.md)
+`lbal-rl` simulates Luck be a Landlord on Floor 20. Rust resolves spins, offers, rent, and the landlord fight. The Python panel lets a policy play repeated games, learn with PPO, and evaluate saved checkpoints on fixed seeds. Training and evaluation run locally on a CPU.
 
-A headless rule simulator for *Luck be a Landlord*, for batch simulation, policy evaluation, and reinforcement learning. The current rules identifier is `2026-11-09-prespin-overflow-rent-offer-v15`. It targets Floor 20 and covers the 5×4 board, rent, offers, items, essences, tokens, and the 1,500 HP landlord fight. It provides a Rust CLI, Python bindings, and an environment with action masks.
+## Start here
 
-## Main fixes since the previous release
+| What you want to do | Where to start |
+| --- | --- |
+| Open the panel and evaluate a released model | [Installation and walkthrough](docs/TRAINING.en.md), then import the [142,000-game checkpoint](https://github.com/ziybkyle/lbal-rl/releases/tag/scratch-142k) |
+| Continue the released model or start with random weights | [Train, save, and roll back](docs/TRAINING.en.md#train-save-and-roll-back) |
+| Understand observations, rewards, and seeds | [Training method](docs/METHOD.en.md) |
+| Inspect individual games, pick rates, failures, or deck sizes | [Statistics and reports](docs/STATISTICS.en.md) |
+| Simulate games in Rust or connect your own policy | [Build, CLI, and Python API](rust/README.en.md) |
+| Reproduce a difference from the original game | [Fidelity and verification](rust/FIDELITY.md) |
 
-- **Spin resolution and chains:** destruction and removal now use separate symbol histories. Fixed shared targets, when generated symbols occupy vacancies or stay off-screen, and payout and RNG order for chains involving ore, urns, soap, and coconuts. Rabbit and Wine mature only once.
-- **Offers and tokens:** Credit Card and its essence can produce 20 or 30 symbol offers. Only symbol offers can be rerolled; the current offer's rarity guarantees and restrictions persist. Rent reward offers now precede the extra offer from Frozen Pizza where applicable.
-- **Items, essences, and rent:** corrected pre-spin removal payouts, essence counters and consumption, item toggles, and retrying rent after using Piggy Bank, Swear Jar, Coffee, or Devil's Deal. Comfy Pillow and its essence can be accepted when available.
-- **Landlord fight and replay:** corrected fine-print selection, targets, and activation. Python exposes clauses, item progress, per-symbol destruction/removal counts, and pre-spin offer effects. Optional diagnostics record spin resolution details. Seeds and actions support reproducible comparisons; native-game differences remain.
+The release includes a prebuilt Rust module for Windows x64 and CPython 3.12. Prepare the game data from your own Steam installation. The training guide walks through extraction, verification, and use of the Chinese-language panel.
 
-See [fidelity notes](rust/FIDELITY.md) for the verified cases and their limits.
+## Published checkpoint
 
-## Quick start
+| Measure | Value |
+| --- | --- |
+| Starting point | Random weights, Floor 20, 142,000 completed training games |
+| Model size | 36,599,710 bytes, about 34.9 MiB, including optimizer state |
+| Fixed-seed evaluation | 1,000 games, 29 wins (**2.90%**), **7.912** successful rents on average |
+| Evaluation conditions | Seeds `1900000000` through `1900000999`, normal starts, highest-scoring legal actions, zero truncations |
+| Simulator rules | `2026-11-09-prespin-overflow-rent-offer-v15` |
 
-Supply the original symbol, item, essence, and fine-print JSON files in `game/JSON`, or specify their directory with `LBAL_DATA_DIR` or `--data-dir`. See the [Rust guide](rust/README.en.md) for builds and Python usage.
+Statistical exploration assistance was enabled for 2,000 historical training games. The last 1,000 games used neither assistance nor additional reward shaping. The table gives a separate evaluation of the saved checkpoint. An import starts the counter at 142,000 and writes local per-game records once you resume. [Parameters, data hashes, and evaluation metadata](data/published_scratch_142k.json)
 
-```bash
-cd rust
-cargo test --release --workspace
-cargo run --release -p lbal_cli -- --games 10000 --seed 42 --threads 20 --hist
-```
+Download the [sample analysis](https://github.com/ziybkyle/lbal-rl/releases/download/scratch-142k/scratch-142k-analysis.html) and open it in a browser to explore pick rates from those 1,000 games. The [per-game CSV](https://github.com/ziybkyle/lbal-rl/releases/download/scratch-142k/scratch-142k-evaluation.csv) contains their outcomes and terminal data.
 
-The current built-in heuristic won **645 of 10,000 games (6.45%)** on seeds 42–10041, averaging **6.51 rents**, **49.8 spins**, and **25.5 symbols** in the final inventory. On Windows with an i7-12700F, the release build took about **3.9 seconds** on 20 threads (about **2,567 games/s**). This is a heuristic benchmark; batch simulation throughput is separate from neural-network training speed.
+## Current Rust rules
 
-For a bug report, include the rules version, seed, actions, and first divergence.
+- **Spin resolution and chains.** Destruction and removal have separate history pools. Corrections cover shared targets, placement of newly created symbols, ore, urn, soap, and coconut chains, and the one-time maturation of rabbits and wine.
+- **Offers and tokens.** Credit Card effects can offer 20 or 30 symbols. Rerolls retain the current symbol offer's rarity guarantee. The action mask excludes rerolls for items and essences. Additional offers and rent rewards follow the corrected order.
+- **Items and rent.** The engine handles pre-spin removal payouts, essence charge and consumption, item toggling, and renewed rent checks after cashing in a rescue item. Comfy Pillow and its essence can be used at their decision points.
+- **Landlord and replay.** Fine-print draws, targets, and activation timing have been corrected. Observations expose clauses, item progress, separate history pools, and candidate pre-spin effects. Verification against the original game covers recorded seeds and action paths. Other paths can still differ. [Fidelity notes](rust/FIDELITY.md)
 
-Rust source is licensed under [MIT](LICENSE). The game, its original data, text, and art remain the property of their owners and are not distributed here.
+The built-in Rust heuristic won 645 of 10,000 games on seeds `42` through `10041`, with a mean of 6.51 paid rents. The release build took about 3.9 seconds on Windows with an i7-12700F and 20 simulation threads. That benchmark uses a separate seed range and policy. PPO training also performs network inference, parameter updates, and logging. [Reproduction commands](rust/README.en.md#batch-simulation-and-replay)
+
+## Project map
+
+| Path | Contents |
+| --- | --- |
+| `rust/` | Rules engine, batch simulation CLI, and Python binding |
+| `python/training_ui.py` | Training, evaluation, charts, and report controls |
+| `python/train_fresh_rules.py` | Create or resume PPO runs and save checkpoints and games |
+| `python/candidate_policy.py` | Candidate-scoring network and masked policy |
+| `python/training_analytics.py` | Sortable offline HTML reports from per-game logs |
+| `data/` | Project policy data, derived rule features, and checkpoint metadata |
+
+For a rules issue, include the simulator version, seed type, action sequence, and the first spin with a discrepancy. For a training result, include the checkpoint, reward settings, and evaluation seed range and game count.
+
+Created by 群友镜中人. Source code is available under the [MIT license](LICENSE). The original game, data, text, and artwork belong to their respective owners. Prepare the required data from your own copy.

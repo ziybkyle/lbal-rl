@@ -1,0 +1,200 @@
+{
+  "mechanics_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+  "observation_only_pairs": [
+    {
+      "before": "44357a8d81d5e92eb42d626de65e287aba2a4139d8f5526a3f3cf54deba05de1",
+      "after": "ec2e5541a6056200aefd61239a3488ef3f28ff1cfeb2ecc219e5bf2e8f833c70",
+      "rules_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+      "game_traces_equal": true,
+      "reason": "Share read-only pre-spin consumer rules across candidates and count long exit histories by type id. Model observations, legal actions and outcomes are unchanged across 40 seeds/4593 decisions; display-only expert scores differ only by compiler floating-point rounding and are excluded from scratch inputs.",
+      "evidence": "evaluations/training_speed_20261110/compatibility_verification.json + normalized_traces_before.json + normalized_traces_after.json"
+    },
+    {
+      "before": "c059c602a0cbcd6a2c5f38f7b47d05f2e158ab083908c2e0cf924224335f8fb8",
+      "after": "44357a8d81d5e92eb42d626de65e287aba2a4139d8f5526a3f3cf54deba05de1",
+      "rules_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+      "game_traces_equal": true,
+      "reason": "Append read-only boss clauses, per-symbol destroyed/removed histories and candidate pre-spin effects. Original observations/actions across 40 seeds and 4593 decisions remain identical; checkpoint parameters are preserved by append-only feature migration.",
+      "evidence": "evaluations/rule_inputs_20261110/compatibility_verification.json + traces_before.json + traces_after.json"
+    },
+    {
+      "before": "d9d0de35f6330751f76f4a960dab9c8baf5cb48e82d5523fb4093a1adbe65357",
+      "after": "3135abadf2fceb1555ba0f01899b4a909d027b3264aac358173545844c1df397",
+      "rules_version": "2026-11-09-symbol-reroll-v4",
+      "game_traces_equal": true,
+      "reason": "Optional manual diagnostics and read-only exit pools. Training observations and actions are unchanged.",
+      "evidence": "evaluations/manual_game_diagnostics_20261109/traces_before.json + traces_intermediate.json"
+    },
+    {
+      "before": "3135abadf2fceb1555ba0f01899b4a909d027b3264aac358173545844c1df397",
+      "after": "323120df34738848ea1a40e045fec2ef643b1c1e803a78d9158fda11cbadd894",
+      "rules_version": "2026-11-09-symbol-reroll-v4",
+      "game_traces_equal": true,
+      "reason": "Preserve generation order in optional manual settlement records; no gameplay or training-observation change.",
+      "evidence": "evaluations/manual_game_diagnostics_20261109/traces_intermediate.json + traces_after.json"
+    },
+    {
+      "before": "5e7293b84492ad40dd768a7aff9c35ed8347fcfb59bcd3c652ad63efb880bcaf",
+      "after": "c059c602a0cbcd6a2c5f38f7b47d05f2e158ab083908c2e0cf924224335f8fb8",
+      "rules_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+      "game_traces_equal": true,
+      "reason": "Optional explicit training_grant API only; never called in normal play or evaluation. Normal observations and 4593 legal decisions across 40 seeds identical.",
+      "evidence": "evaluations/simple_training_20261110/traces_before.json + traces_after.json"
+    }
+  ],
+  "checkpoint_upgrades": [
+    {
+      "before_version": "2026-11-08-catalog-decisions-v3",
+      "before": "110dcb899289c16f8e144f1c7383d0244a5063a099014d85b34ace5f3d82deb4",
+      "after_version": "2026-11-09-symbol-reroll-v4",
+      "after": "d9d0de35f6330751f76f4a960dab9c8baf5cb48e82d5523fb4093a1adbe65357",
+      "legal_game_traces_equal": true,
+      "checkpoint_upgrade_allowed": true,
+      "reason": "Add real item-state observations and forbid illegal item/essence rerolls; existing weights remain usable. Historical statistics keep their original rule labels.",
+      "evidence": "evaluations/item_state_inputs_20261109/traces_before.json + traces_after.json"
+    },
+    {
+      "before_version": "2026-11-09-symbol-reroll-v4",
+      "before": "323120df34738848ea1a40e045fec2ef643b1c1e803a78d9158fda11cbadd894",
+      "after_version": "2026-11-09-spawn-order-v5",
+      "after": "1b2a0b39d93eb2961ace06daba05d447ac940113d73ed6a6cda8df2e17b01d68",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Correct the natural-generation short queue and pending-destruction timing, including Midas, soap and newborn generators. Policy observation layout and action identities stay compatible, but rule labels and statistics remain distinct.",
+      "evidence": "evaluations/spin20_resume_20261109/replay_after.json + reference_generations.json + core regression cases"
+    },
+    {
+      "before_version": "2026-11-09-spawn-order-v5",
+      "before": "1b2a0b39d93eb2961ace06daba05d447ac940113d73ed6a6cda8df2e17b01d68",
+      "after_version": "2026-11-09-spin-rng-order-v6",
+      "after": "624aa641a07cddf3c8e5afbd5e354f5ddade87fc1c52c5369a3972e799ee06eb",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Initialize the current spin RNG before periodic Dud additions, matching the reference. This changes placement outcomes but keeps observation layout and action identities compatible. Historical statistics retain their original rule versions.",
+      "evidence": "evaluations/spin33_essence_20261109/corrected_choice_fixed.json + periodic_dud_uses_the_current_spin_rng_before_soap_and_future_card_placement"
+    },
+    {
+      "before_version": "2026-11-09-spin-rng-order-v6",
+      "before": "624aa641a07cddf3c8e5afbd5e354f5ddade87fc1c52c5369a3972e799ee06eb",
+      "after_version": "2026-11-09-ore-rng-order-v7",
+      "after": "ac3099d347e82a3f7ed9c88e8c0e9c3885f496b4d9ef46e5eb982cde59cfcdd8",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Roll destroyed ore gem identities at the victim check before later item-chance rolls. Observation layout and action identities remain compatible; historical results retain original rule labels.",
+      "evidence": "evaluations/spin37_gems_20261109/after.json + reference_cases.json + ore_gem_draws_precede_a_later_urn_roll_in_the_paired_seed_1234567_game"
+    },
+    {
+      "before_version": "2026-11-09-ore-rng-order-v7",
+      "before": "ac3099d347e82a3f7ed9c88e8c0e9c3885f496b4d9ef46e5eb982cde59cfcdd8",
+      "after_version": "2026-11-09-overflow-placement-v8",
+      "after": "18afaa102ad7d54def82eccd673618a6780bc0f9d154ef0892bd68beaa05d77f",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Match native full-reel overflow draws, batched deferred additions, and final stop offsets for reels longer than five icons. Existing observation and action layouts remain compatible; historical results retain their rules versions.",
+      "evidence": "evaluations/spin39_pinata_20261109/final_corrected.json + reference_batches.json + paired spin39 regression"
+    },
+    {
+      "before_version": "2026-11-09-overflow-placement-v8",
+      "before": "18afaa102ad7d54def82eccd673618a6780bc0f9d154ef0892bd68beaa05d77f",
+      "after_version": "2026-11-09-feeding-value-v9",
+      "after": "81aff255125850e0f0466ff2586bec0a75b82c81175e672fb566d8e7dabede22",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Resolve dwarf and monkey feeding rewards from the food form after temporary bonuses, including later buffs and newborn foods. Observation and action layouts remain compatible; historical results retain original rule versions.",
+      "evidence": "evaluations/spin41_dynamic_payout_20261109/final_corrected.json + reference_cases.json + paired spin42 and feeding regressions"
+    },
+    {
+      "before_version": "2026-11-09-feeding-value-v9",
+      "before": "81aff255125850e0f0466ff2586bec0a75b82c81175e672fb566d8e7dabede22",
+      "after_version": "2026-11-09-removed-gem-buff-v10",
+      "after": "34aba8e4b97e115fe4a28f65bd28ae6cfc813765ee250b753d48743a6d4d113a",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Preserve registered multipliers and light-bulb charge use on removed newborn gem forms. Observation and action layouts stay compatible; historical statistics retain their original rules versions.",
+      "evidence": "evaluations/spin51_removed_gem_20261109/reference_cases.json + after.json + removed-pearl and paired-spin51 regressions"
+    },
+    {
+      "before_version": "2026-11-09-removed-gem-buff-v10",
+      "before": "34aba8e4b97e115fe4a28f65bd28ae6cfc813765ee250b753d48743a6d4d113a",
+      "after_version": "2026-11-09-full-board-trigger-v11",
+      "after": "1cf093615a584fb0a571bffa54449e68f8e7a56cf9c6fa49cad6f2bbabebc511",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Recheck yellow pepper and its essence when generated symbols temporarily fill the board, before same-spin consumption. Pay once per spin. Observation/action layouts remain compatible; historical results retain their original rule labels.",
+      "evidence": "evaluations/spin55_yellow_pepper_20261109/reference_cases.json + after.json + paired-spin55 regression"
+    },
+    {
+      "before_version": "2026-11-09-full-board-trigger-v11",
+      "before": "1cf093615a584fb0a571bffa54449e68f8e7a56cf9c6fa49cad6f2bbabebc511",
+      "after_version": "2026-11-09-coal-reregistration-v12",
+      "after": "388183004e02b295707bed9c58a1dae34ea4462e86be08b376bcd9a4561f118f",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Re-register random arguments after a displayed coal transforms, locally then globally, while retaining first registered results and counting only one display. This fixes later ore gem identities. Observation/action layouts remain compatible; historical rules stay distinct.",
+      "evidence": "evaluations/spin78_ore_rng_20261109/reference_cases.json + after.json + paired-spin78 regression"
+    },
+    {
+      "before_version": "2026-11-09-coal-reregistration-v12",
+      "before": "388183004e02b295707bed9c58a1dae34ea4462e86be08b376bcd9a4561f118f",
+      "after_version": "2026-11-09-newborn-rarity-boss-v13",
+      "after": "9602b7dd64c0c8bae2c5027c7a13f4c272c7e227251e974491dda40431b7fb76",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Register visible newborn rarity modifiers before later offers. Match native fine-print draw/retry, target and hit-animation RNG consumption; activate clauses after choices, including Dud/Hex placement. Manual-only fine-print details leave PPO observation/action layouts unchanged. Historical rules remain distinct.",
+      "evidence": "evaluations/boss93_alignment_20261109/reference_fineprints.json + paired_spins.json (93) + paired_candidates.json (107) + hidden_reels.json"
+    },
+    {
+      "before_version": "2026-11-09-newborn-rarity-boss-v13",
+      "before": "9602b7dd64c0c8bae2c5027c7a13f4c272c7e227251e974491dda40431b7fb76",
+      "after_version": "2026-11-09-fineprint-locale-v14",
+      "after": "c33d65072bac0cd6a5ff9d10c174dc3b2f38293b2d2ddcba522ef2060726e9cf",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Match the Chinese reference description branch for fine-print 37: accept without drawing a capsule target. Missing dynamic targets do not act as wildcards. Preserve exact later draws and saved RNG state. Model input/action layouts stay unchanged; historical rules remain distinct.",
+      "evidence": "evaluations/boss96_fineprints_20261109/reference_cases.json + paired_spins.json (96) + rng_comparison.json + post_choice_alignment.json"
+    },
+    {
+      "before_version": "2026-11-09-fineprint-locale-v14",
+      "before": "c33d65072bac0cd6a5ff9d10c174dc3b2f38293b2d2ddcba522ef2060726e9cf",
+      "after_version": "2026-11-09-prespin-overflow-rent-offer-v15",
+      "after": "5e7293b84492ad40dd768a7aff9c35ed8347fcfb59bcd3c652ad63efb880bcaf",
+      "checkpoint_upgrade_allowed": true,
+      "legal_game_traces_equal": false,
+      "gameplay_change_validated": true,
+      "legal_actions_compatible": true,
+      "observation_layout_compatible": true,
+      "reason": "Keep pre-spin overflow additions deferred until the next spin instead of merging twice. Deliver the normal post-rent guaranteed-rarity symbol offer before Frozen Pizza bonus offers when returning from an essence choice. Observation/action layouts remain unchanged. Two completed manual games replay identically; historical statistics stay distinct.",
+      "evidence": "evaluations/paired_association20_20261109/summary.json + manual_replay.json; evaluations/paired_association_pilot03_20261109/before_fix; catalog_regression:periodic_dud_overflow_waits_for_the_following_spin + rent_offer_precedes_frozen_pizza_bonus_after_essence_choice"
+    }
+  ]
+}

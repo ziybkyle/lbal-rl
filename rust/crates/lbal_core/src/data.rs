@@ -15,6 +15,10 @@ pub fn default_data_dir() -> PathBuf {
     if let Some(directory) = std::env::var_os("LBAL_DATA_DIR") {
         return PathBuf::from(directory);
     }
+    // Release bindings look for the user's game data, independent of the build machine.
+    if option_env!("LBAL_PORTABLE_BINDING").is_some() {
+        return PathBuf::from("game/JSON");
+    }
     let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let candidates = [
         manifest.join("../../../game/JSON"),

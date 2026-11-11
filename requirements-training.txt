@@ -1,0 +1,5 @@
+# Install the CPU build of torch 2.15.0 first (see the training guide).
+numpy==2.5.3
+gymnasium==1.4.0
+stable-baselines3==2.9.2
+sb3-contrib==2.9.2

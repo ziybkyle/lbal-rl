@@ -43,6 +43,11 @@ data/reference_images/
 evaluations/
 alignment/traces/
 *.zip
+/data/reference_report.html
+/训练面板表头设置.json
+/训练面板偏好设置.json
+/训练面板窗口设置.json
+/运行进度记录/
 
 # ---- 编辑器与系统文件 ----
 .idea/

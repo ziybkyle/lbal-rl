@@ -1,0 +1,7223 @@
+{
+  "catalog_version": "candidate_rules_v1",
+  "catalog_schema_hash": "4c666364dc44422089e492d5e06e148a7979f8c027f153be20bf3232cd61f8a8",
+  "data_sha256": {
+    "Symbols - JSON.json": "fb7e5b10de7cd26e092e6f9584f6a82710683d9921a0ec4336d1713b07011bb9",
+    "Items - JSON.json": "c72cb7d79a9e35cabe199776156a5dc31500babd825659c0c8f6e383b97b9ad4",
+    "Essences - JSON.json": "e34e5e82c9a0478fdec93d00fa47208e6822cea7548c18615ded31d9fcc1d2a3"
+  },
+  "cards": {
+    "symbol": {
+      "amethyst": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "permanent",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "anchor": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "apple": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "archaeologist": {
+        "groups": [
+          "archlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "permanent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "banana": {
+        "groups": [],
+        "icons": [
+          "banana_peel"
+        ],
+        "clean_icons": [
+          "banana_peel"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "banana_peel": {
+        "groups": [],
+        "icons": [
+          "thief"
+        ],
+        "clean_icons": [
+          "thief"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bar_of_soap": {
+        "groups": [],
+        "icons": [
+          "bubble",
+          "coin"
+        ],
+        "clean_icons": [
+          "bubble"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "add",
+          "spins",
+          "payout_count",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 1
+      },
+      "bartender": {
+        "groups": [
+          "booze"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bear": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "honey"
+        ],
+        "clean_icons": [
+          "honey"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "beastmaster": {
+        "groups": [
+          "animal"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bee": {
+        "groups": [
+          "beelikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "beehive": {
+        "groups": [],
+        "icons": [
+          "honey"
+        ],
+        "clean_icons": [
+          "honey"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "beer": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "big_ore": {
+        "groups": [
+          "gem"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "big_urn": {
+        "groups": [],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "billionaire": {
+        "groups": [
+          "richlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bluebird": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bounty_hunter": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "thief"
+        ],
+        "clean_icons": [
+          "thief"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bronze_arrow": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "target"
+        ],
+        "clean_icons": [
+          "target"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bubble": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "payout_count"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 1
+      },
+      "buffing_powder": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "candy": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "card_shark": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "wildcard"
+        ],
+        "clean_icons": [
+          "wildcard"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cat": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "milk"
+        ],
+        "clean_icons": [
+          "milk"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cheese": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chef": {
+        "groups": [
+          "food"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chemical_seven": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "lucky_seven"
+        ],
+        "clean_icons": [
+          "lucky_seven"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cherry": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chick": {
+        "groups": [],
+        "icons": [
+          "chicken"
+        ],
+        "clean_icons": [
+          "chicken"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chicken": {
+        "groups": [],
+        "icons": [
+          "egg",
+          "golden_egg"
+        ],
+        "clean_icons": [
+          "egg",
+          "golden_egg"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "clubs": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "clubs",
+          "coin",
+          "spades"
+        ],
+        "clean_icons": [
+          "clubs",
+          "spades"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coal": {
+        "groups": [],
+        "icons": [
+          "diamond"
+        ],
+        "clean_icons": [
+          "diamond"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "transform",
+          "spins"
+        ],
+        "transform": "diamond",
+        "spins": 1,
+        "payouts": 0
+      },
+      "coconut": {
+        "groups": [],
+        "icons": [
+          "coconut_half"
+        ],
+        "clean_icons": [
+          "coconut_half"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coconut_half": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coin": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "comedian": {
+        "groups": [
+          "funny"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "copper": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cow": {
+        "groups": [],
+        "icons": [
+          "milk"
+        ],
+        "clean_icons": [
+          "milk"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "crab": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "crab"
+        ],
+        "clean_icons": [
+          "crab"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "crow": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cultist": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "cultist"
+        ],
+        "clean_icons": [
+          "cultist"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "d3": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "d3_1": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "d3_2": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "d3_3": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "d5": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dame": {
+        "groups": [
+          "gem"
+        ],
+        "icons": [
+          "coin",
+          "martini"
+        ],
+        "clean_icons": [
+          "martini"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "diamond": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "diamond"
+        ],
+        "clean_icons": [
+          "diamond"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "diamonds": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "coin",
+          "diamonds",
+          "hearts"
+        ],
+        "clean_icons": [
+          "diamonds",
+          "hearts"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dice1": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dice2": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dice3": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dice4": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dice5": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "diver": {
+        "groups": [
+          "poslikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "permanent",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dog": {
+        "groups": [
+          "doglikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dove": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "permanent",
+          "destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dud": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dwarf": {
+        "groups": [
+          "dwarflikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "egg": {
+        "groups": [],
+        "icons": [
+          "chick"
+        ],
+        "clean_icons": [
+          "chick"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "transform",
+          "chance"
+        ],
+        "transform": "chick",
+        "spins": 0,
+        "payouts": 0
+      },
+      "eldritch_beast": {
+        "groups": [
+          "fossillikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "emerald": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "emerald"
+        ],
+        "clean_icons": [
+          "emerald"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "empty": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "essence_capsule": {
+        "groups": [],
+        "icons": [
+          "essence_token"
+        ],
+        "clean_icons": [
+          "essence_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "essence_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "farmer": {
+        "groups": [
+          "farmerlikes"
+        ],
+        "icons": [
+          "coin",
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "flower": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "frozen_fossil": {
+        "groups": [
+          "fossillikes"
+        ],
+        "icons": [
+          "eldritch_beast"
+        ],
+        "clean_icons": [
+          "eldritch_beast"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "gambler": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "d3",
+          "d3_1",
+          "d5",
+          "dice1"
+        ],
+        "clean_icons": [
+          "d3",
+          "d3_1",
+          "d5",
+          "dice1"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "general_zaroff": {
+        "groups": [
+          "human"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "golden_arrow": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "target"
+        ],
+        "clean_icons": [
+          "target"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "golden_egg": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "goldfish": {
+        "groups": [],
+        "icons": [
+          "bubble",
+          "coin"
+        ],
+        "clean_icons": [
+          "bubble"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "golem": {
+        "groups": [],
+        "icons": [
+          "ore"
+        ],
+        "clean_icons": [
+          "ore"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "goose": {
+        "groups": [],
+        "icons": [
+          "golden_egg"
+        ],
+        "clean_icons": [
+          "golden_egg"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hearts": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "coin",
+          "diamonds",
+          "hearts"
+        ],
+        "clean_icons": [
+          "diamonds",
+          "hearts"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_destruction": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_draining": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_emptiness": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "spins",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_hoarding": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "spins",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_midas": {
+        "groups": [],
+        "icons": [
+          "hover_coin"
+        ],
+        "clean_icons": [
+          "coin"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_tedium": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hex_of_thievery": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "highlander": {
+        "groups": [],
+        "icons": [
+          "highlander"
+        ],
+        "clean_icons": [
+          "highlander"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "honey": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hooligan": {
+        "groups": [
+          "spiritbox"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hover_coin": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "hustler": {
+        "groups": [],
+        "icons": [
+          "pool_ball"
+        ],
+        "clean_icons": [
+          "pool_ball"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "item_capsule": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "jellyfish": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "joker": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "key": {
+        "groups": [
+          "chest"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "king_midas": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "hover_coin"
+        ],
+        "clean_icons": [
+          "coin"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "add",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "light_bulb": {
+        "groups": [
+          "gem"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lockbox": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_capsule": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "magic_key": {
+        "groups": [
+          "chest"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "magpie": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "martini": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "matryoshka_doll_1": {
+        "groups": [],
+        "icons": [
+          "matryoshka_doll_2"
+        ],
+        "clean_icons": [
+          "matryoshka_doll_2"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "matryoshka_doll_2": {
+        "groups": [],
+        "icons": [
+          "matryoshka_doll_3"
+        ],
+        "clean_icons": [
+          "matryoshka_doll_3"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "matryoshka_doll_3": {
+        "groups": [],
+        "icons": [
+          "matryoshka_doll_4"
+        ],
+        "clean_icons": [
+          "matryoshka_doll_4"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "matryoshka_doll_4": {
+        "groups": [],
+        "icons": [
+          "matryoshka_doll_5"
+        ],
+        "clean_icons": [
+          "matryoshka_doll_5"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "matryoshka_doll_5": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mega_chest": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "midas_bomb": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "milk": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mine": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "mining_pick",
+          "ore"
+        ],
+        "clean_icons": [
+          "mining_pick",
+          "ore"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins",
+          "payout_count",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 1
+      },
+      "miner": {
+        "groups": [
+          "minerlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "missing": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "monkey": {
+        "groups": [
+          "monkeylikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "moon": {
+        "groups": [
+          "night"
+        ],
+        "icons": [
+          "cheese",
+          "coin"
+        ],
+        "clean_icons": [
+          "cheese"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mouse": {
+        "groups": [],
+        "icons": [
+          "cheese",
+          "coin"
+        ],
+        "clean_icons": [
+          "cheese"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mrs_fruit": {
+        "groups": [
+          "fruitlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "permanent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ninja": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "ninja"
+        ],
+        "clean_icons": [
+          "ninja"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "omelette": {
+        "groups": [
+          "omelettestuff"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "orange": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ore": {
+        "groups": [
+          "gem"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "owl": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "oyster": {
+        "groups": [],
+        "icons": [
+          "pearl"
+        ],
+        "clean_icons": [
+          "pearl"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "peach": {
+        "groups": [],
+        "icons": [
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pear": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "permanent",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pearl": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "penguin": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pigeon": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pinata": {
+        "groups": [],
+        "icons": [
+          "candy"
+        ],
+        "clean_icons": [
+          "candy"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pirate": {
+        "groups": [
+          "piratelikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "permanent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "plum": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "present": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pufferfish": {
+        "groups": [],
+        "icons": [
+          "reroll_token"
+        ],
+        "clean_icons": [
+          "reroll_token"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [
+          "reroll_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "quartz": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rabbit": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "permanent",
+          "multiplier",
+          "payout_count"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 2
+      },
+      "rabbit_fluff": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rain": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "flower",
+          "seed"
+        ],
+        "clean_icons": [
+          "flower",
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rarity_capsule": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "add",
+          "conditional",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "removal_capsule": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "reroll_capsule": {
+        "groups": [],
+        "icons": [
+          "reroll_token"
+        ],
+        "clean_icons": [
+          "reroll_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "reroll_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "robin_hood": {
+        "groups": [
+          "robinhates",
+          "robinlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ruby": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "ruby"
+        ],
+        "clean_icons": [
+          "ruby"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "safe": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "sand_dollar": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": true,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "sapphire": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "seed": {
+        "groups": [
+          "plant"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shiny_pebble": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "silver_arrow": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "target"
+        ],
+        "clean_icons": [
+          "target"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "sloth": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "snail": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "spades": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "clubs",
+          "coin",
+          "spades"
+        ],
+        "clean_icons": [
+          "clubs",
+          "spades"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "spirit": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "payout_count"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 1
+      },
+      "strawberry": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "strawberry"
+        ],
+        "clean_icons": [
+          "strawberry"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "sun": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "flower",
+          "seed"
+        ],
+        "clean_icons": [
+          "flower",
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "target": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "tedium_capsule": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "conditional",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "thief": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "time_capsule": {
+        "groups": [],
+        "icons": [
+          "time_capsule"
+        ],
+        "clean_icons": [
+          "time_capsule"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "toddler": {
+        "groups": [
+          "toddlerlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "tomb": {
+        "groups": [],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "topaz": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "treasure_chest": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "turtle": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "urn": {
+        "groups": [],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_creature": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_fruit": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_stone": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "watermelon": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "watermelon"
+        ],
+        "clean_icons": [
+          "watermelon"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "wildcard": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "wine": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "permanent",
+          "multiplier",
+          "payout_count"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 2
+      },
+      "witch": {
+        "groups": [
+          "witchlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "wolf": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      }
+    },
+    "item": {
+      "adoption_papers": {
+        "groups": [
+          "animal"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ancient_lizard_blade": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "anthropology_degree": {
+        "groups": [
+          "human"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bag_of_holding": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "each",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "barrel_o_dwarves": {
+        "groups": [],
+        "icons": [
+          "dwarf"
+        ],
+        "clean_icons": [
+          "dwarf"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "birdhouse": {
+        "groups": [
+          "bird"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "black_cat": {
+        "groups": [],
+        "icons": [
+          "cat",
+          "coin"
+        ],
+        "clean_icons": [
+          "cat"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "black_pepper": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "blue_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "blue_suits": {
+        "groups": [],
+        "icons": [
+          "clubs",
+          "spades"
+        ],
+        "clean_icons": [
+          "clubs",
+          "spades"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "booster_pack": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "choice",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bowling_ball": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "brown_pepper": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "capsule_machine": {
+        "groups": [
+          "capsule"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cardboard_box": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "checkered_flag": {
+        "groups": [
+          "slow"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chicken_coop": {
+        "groups": [
+          "chickenstuff"
+        ],
+        "icons": [
+          "chicken",
+          "coin",
+          "egg"
+        ],
+        "clean_icons": [
+          "chicken",
+          "egg"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "add",
+          "transform"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chili_powder": {
+        "groups": [
+          "item_pepper"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cleaning_rag": {
+        "groups": [
+          "gem"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "clear_sky": {
+        "groups": [],
+        "icons": [
+          "moon",
+          "sun"
+        ],
+        "clean_icons": [
+          "moon",
+          "sun"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coffee": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "conditional",
+          "spins",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coin_on_a_string": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "hover_coin"
+        ],
+        "clean_icons": [
+          "coin"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "comfy_pillow": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "conditional",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "compost_heap": {
+        "groups": [],
+        "icons": [
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "conveyor_belt": {
+        "groups": [
+          "spawner0"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "copycat": {
+        "groups": [],
+        "icons": [
+          "cat",
+          "wildcard"
+        ],
+        "clean_icons": [
+          "cat",
+          "wildcard"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "credit_card": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "choice",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cursed_katana": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "ninja"
+        ],
+        "clean_icons": [
+          "ninja"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cyan_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dark_humor": {
+        "groups": [
+          "darkhumor"
+        ],
+        "icons": [
+          "coin",
+          "comedian"
+        ],
+        "clean_icons": [
+          "comedian"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "devils_deal": {
+        "groups": [],
+        "icons": [
+          "dud"
+        ],
+        "clean_icons": [
+          "dud"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dishwasher": {
+        "groups": [],
+        "icons": [
+          "essence_token"
+        ],
+        "clean_icons": [
+          "essence_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each",
+          "essence_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dwarven_anvil": {
+        "groups": [
+          "minerlikes"
+        ],
+        "icons": [
+          "coin",
+          "dwarf"
+        ],
+        "clean_icons": [
+          "dwarf"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "egg_carton": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "egg"
+        ],
+        "clean_icons": [
+          "egg"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": true,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fertilizer": {
+        "groups": [],
+        "icons": [
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fifth_ace": {
+        "groups": [],
+        "icons": [
+          "clubs",
+          "coin",
+          "diamonds",
+          "hearts",
+          "spades"
+        ],
+        "clean_icons": [
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fish_bowl": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "goldfish"
+        ],
+        "clean_icons": [
+          "goldfish"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": true,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "flush": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "spins",
+          "rarity",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "four_leaf_clover": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "frozen_pizza": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "spins",
+          "each",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fruit_basket": {
+        "groups": [
+          "fruit"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "frying_pan": {
+        "groups": [
+          "omelettestuff"
+        ],
+        "icons": [
+          "egg",
+          "omelette"
+        ],
+        "clean_icons": [
+          "egg",
+          "omelette"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "golden_carrot": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit"
+        ],
+        "clean_icons": [
+          "rabbit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "goldilocks": {
+        "groups": [],
+        "icons": [
+          "bear"
+        ],
+        "clean_icons": [
+          "bear"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "grave_robber": {
+        "groups": [
+          "spiritbox"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "gray_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "green_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "guillotine": {
+        "groups": [],
+        "icons": [
+          "billionaire"
+        ],
+        "clean_icons": [
+          "billionaire"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "happy_hour": {
+        "groups": [
+          "booze"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "holy_water": {
+        "groups": [
+          "hex"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "horseshoe": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "item_missing": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "jackolantern": {
+        "groups": [
+          "halloween"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "kyle_the_kernite": {
+        "groups": [
+          "kyle"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lefty_the_rabbit": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "add",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lemon": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lime_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "reroll_token"
+        ],
+        "clean_icons": [
+          "reroll_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "reroll_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lint_roller": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit_fluff"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lockpick": {
+        "groups": [
+          "chest"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "looting_glove": {
+        "groups": [
+          "box"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_carrot": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit"
+        ],
+        "clean_icons": [
+          "rabbit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_cat": {
+        "groups": [],
+        "icons": [
+          "cat"
+        ],
+        "clean_icons": [
+          "cat"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "rarity",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_dice": {
+        "groups": [],
+        "icons": [
+          "d3",
+          "d3_3",
+          "d5",
+          "dice5"
+        ],
+        "clean_icons": [
+          "d3",
+          "d3_3",
+          "d5",
+          "dice5"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_seven": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lunchbox": {
+        "groups": [
+          "food"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "maxwell_the_bear": {
+        "groups": [],
+        "icons": [
+          "bear",
+          "coin"
+        ],
+        "clean_icons": [
+          "bear"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mining_pick": {
+        "groups": [
+          "minerlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mobius_strip": {
+        "groups": [
+          "box"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "on_destroy",
+          "spins",
+          "chance",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ninja_and_mouse": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "mouse",
+          "ninja"
+        ],
+        "clean_icons": [
+          "mouse",
+          "ninja"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "nori_the_rabbit": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "oil_can": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "oswald_the_monkey": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "monkey"
+        ],
+        "clean_icons": [
+          "monkey"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "piggy_bank": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pink_pepper": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pizza_the_cat": {
+        "groups": [],
+        "icons": [
+          "cat",
+          "coin"
+        ],
+        "clean_icons": [
+          "cat"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pool_ball": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "popsicle": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "protractor": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "purple_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "quigley_the_wolf": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "dog",
+          "wolf"
+        ],
+        "clean_icons": [
+          "dog",
+          "wolf"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "transform"
+        ],
+        "transform": "wolf",
+        "spins": 0,
+        "payouts": 0
+      },
+      "quiver": {
+        "groups": [
+          "arrow"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rain_cloud": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rain"
+        ],
+        "clean_icons": [
+          "rain"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "recycling": {
+        "groups": [],
+        "icons": [
+          "reroll_token"
+        ],
+        "clean_icons": [
+          "reroll_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "each",
+          "reroll_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "red_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "red_suits": {
+        "groups": [],
+        "icons": [
+          "diamonds",
+          "hearts"
+        ],
+        "clean_icons": [
+          "diamonds",
+          "hearts"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "reroll": {
+        "groups": [],
+        "icons": [
+          "d3",
+          "d3_2",
+          "d5",
+          "dice3"
+        ],
+        "clean_icons": [
+          "d3",
+          "d3_2",
+          "d5",
+          "dice3"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ricky_the_banana": {
+        "groups": [],
+        "icons": [
+          "banana",
+          "banana_peel",
+          "coin"
+        ],
+        "clean_icons": [
+          "banana",
+          "banana_peel"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ritual_candle": {
+        "groups": [
+          "fossillikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rusty_gear": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shattered_mirror": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins",
+          "choice",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shedding_season": {
+        "groups": [],
+        "icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shrine": {
+        "groups": [
+          "organism"
+        ],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "sunglasses": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional",
+          "spins",
+          "each",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "swapping_device": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "swear_jar": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_big": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_quantum": {
+        "groups": [
+          "passed"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "spins",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_small": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_very_big": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "tax_evasion": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "telescope": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "time_machine": {
+        "groups": [
+          "destroyable_matryoshka",
+          "time_machine3"
+        ],
+        "icons": [
+          "coal"
+        ],
+        "clean_icons": [
+          "coal"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "transform",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "treasure_map": {
+        "groups": [],
+        "icons": [
+          "key",
+          "treasure_chest"
+        ],
+        "clean_icons": [
+          "key",
+          "treasure_chest"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "triple_coins": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "hover_coin"
+        ],
+        "clean_icons": [
+          "coin"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "turtle_and_rabbit": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit",
+          "turtle"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "turtle"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "undertaker": {
+        "groups": [],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_party": {
+        "groups": [
+          "void"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "on_destroy",
+          "spins",
+          "chance",
+          "rarity",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_portal": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "wanted_poster": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "thief"
+        ],
+        "clean_icons": [
+          "thief"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "watering_can": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "white_pepper": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "x_ray_machine": {
+        "groups": [
+          "minerlikes"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "add",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "yellow_pepper": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "zaroffs_contract": {
+        "groups": [
+          "human"
+        ],
+        "icons": [
+          "bounty_hunter",
+          "coin"
+        ],
+        "clean_icons": [
+          "bounty_hunter"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      }
+    },
+    "essence": {
+      "adoption_papers_essence": {
+        "groups": [
+          "animal"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ancient_lizard_blade_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "conditional",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "anthropology_degree_essence": {
+        "groups": [
+          "human"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bag_of_holding_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "barrel_o_dwarves_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "dwarf"
+        ],
+        "clean_icons": [
+          "dwarf"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "birdhouse_essence": {
+        "groups": [
+          "bird"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "black_cat_essence": {
+        "groups": [],
+        "icons": [
+          "cat",
+          "coin"
+        ],
+        "clean_icons": [
+          "cat"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "black_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "blue_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "blue_suits_essence": {
+        "groups": [],
+        "icons": [
+          "clubs",
+          "coin",
+          "spades"
+        ],
+        "clean_icons": [
+          "clubs",
+          "spades"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "booster_pack_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins",
+          "choice",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "bowling_ball_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "brown_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "capsule_machine_essence": {
+        "groups": [
+          "capsule"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cardboard_box_essence": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "checkered_flag_essence": {
+        "groups": [
+          "slow"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "spins",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chicken_coop_essence": {
+        "groups": [
+          "chickenstuff"
+        ],
+        "icons": [
+          "chick",
+          "chicken",
+          "coin",
+          "egg"
+        ],
+        "clean_icons": [
+          "chick",
+          "chicken",
+          "egg"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "transform",
+          "spins"
+        ],
+        "transform": "chick",
+        "spins": 0,
+        "payouts": 0
+      },
+      "chili_powder_essence": {
+        "groups": [
+          "item_pepper"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cleaning_rag_essence": {
+        "groups": [
+          "gem"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "clear_sky_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "moon",
+          "sun"
+        ],
+        "clean_icons": [
+          "moon",
+          "sun"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coffee_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "coin_on_a_string_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "hover_coin"
+        ],
+        "clean_icons": [
+          "coin"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "comfy_pillow_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "add",
+          "conditional",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "compost_heap_essence": {
+        "groups": [],
+        "icons": [
+          "watermelon"
+        ],
+        "clean_icons": [
+          "watermelon"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "conveyor_belt_essence": {
+        "groups": [
+          "spawner0"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "copycat_essence": {
+        "groups": [],
+        "icons": [
+          "cat",
+          "coin",
+          "wildcard"
+        ],
+        "clean_icons": [
+          "cat",
+          "wildcard"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "credit_card_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cursed_katana_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "ninja"
+        ],
+        "clean_icons": [
+          "ninja"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "cyan_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dark_humor_essence": {
+        "groups": [
+          "funny"
+        ],
+        "icons": [
+          "banana_peel",
+          "coin",
+          "comedian"
+        ],
+        "clean_icons": [
+          "banana_peel",
+          "comedian"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "devils_deal_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dishwasher_essence": {
+        "groups": [],
+        "icons": [
+          "essence_token"
+        ],
+        "clean_icons": [
+          "essence_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "essence_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "dwarven_anvil_essence": {
+        "groups": [
+          "anvillikes"
+        ],
+        "icons": [
+          "coin",
+          "dwarf"
+        ],
+        "clean_icons": [
+          "dwarf"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "egg_carton_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "egg"
+        ],
+        "clean_icons": [
+          "egg"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fertilizer_essence": {
+        "groups": [],
+        "icons": [
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fifth_ace_essence": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fish_bowl_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "goldfish"
+        ],
+        "clean_icons": [
+          "goldfish"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "flush_essence": {
+        "groups": [
+          "suit"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "four_leaf_clover_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "frozen_pizza_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "add",
+          "spins",
+          "each",
+          "extra"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "fruit_basket_essence": {
+        "groups": [
+          "fruit"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "frying_pan_essence": {
+        "groups": [
+          "omelettestuff"
+        ],
+        "icons": [
+          "coin",
+          "egg",
+          "omelette"
+        ],
+        "clean_icons": [
+          "egg",
+          "omelette"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "golden_carrot_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "conditional",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "goldilocks_essence": {
+        "groups": [],
+        "icons": [
+          "bear",
+          "coin"
+        ],
+        "clean_icons": [
+          "bear"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "grave_robber_essence": {
+        "groups": [
+          "spiritbox"
+        ],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "gray_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "green_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "guillotine_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "happy_hour_essence": {
+        "groups": [
+          "booze"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "holy_water_essence": {
+        "groups": [
+          "hex"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "horseshoe_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "jackolantern_essence": {
+        "groups": [
+          "halloween"
+        ],
+        "icons": [
+          "candy",
+          "coin",
+          "toddler"
+        ],
+        "clean_icons": [
+          "candy",
+          "toddler"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "kyle_the_kernite_essence": {
+        "groups": [
+          "kyle"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lefty_the_rabbit_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lemon_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lime_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "reroll_token"
+        ],
+        "clean_icons": [
+          "reroll_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "reroll_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lint_roller_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit_fluff"
+        ],
+        "mentions_removal": true,
+        "mentions_pre_spin": true,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lockpick_essence": {
+        "groups": [
+          "chest"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "looting_glove_essence": {
+        "groups": [
+          "box"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_carrot_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "conditional",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_cat_essence": {
+        "groups": [],
+        "icons": [
+          "cat"
+        ],
+        "clean_icons": [
+          "cat"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_dice_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "d3",
+          "d3_3",
+          "d5",
+          "dice5"
+        ],
+        "clean_icons": [
+          "d3",
+          "d3_3",
+          "d5",
+          "dice5"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lucky_seven_essence": {
+        "groups": [],
+        "icons": [
+          "chemical_seven"
+        ],
+        "clean_icons": [
+          "chemical_seven"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "lunchbox_essence": {
+        "groups": [
+          "food"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "maxwell_the_bear_essence": {
+        "groups": [],
+        "icons": [
+          "bear",
+          "coin",
+          "honey"
+        ],
+        "clean_icons": [
+          "bear",
+          "honey"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mining_pick_essence": {
+        "groups": [
+          "minerlikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "mobius_strip_essence": {
+        "groups": [
+          "box"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ninja_and_mouse_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "mouse",
+          "ninja"
+        ],
+        "clean_icons": [
+          "mouse",
+          "ninja"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "nori_the_rabbit_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "oil_can_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "oswald_the_monkey_essence": {
+        "groups": [
+          "monkeylikes"
+        ],
+        "icons": [
+          "coin",
+          "monkey"
+        ],
+        "clean_icons": [
+          "monkey"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "piggy_bank_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pink_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pizza_the_cat_essence": {
+        "groups": [],
+        "icons": [
+          "cat",
+          "coin",
+          "milk"
+        ],
+        "clean_icons": [
+          "cat",
+          "milk"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "pool_ball_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "spins",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "popsicle_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "protractor_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "purple_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "quigley_the_wolf_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "dog",
+          "wolf"
+        ],
+        "clean_icons": [
+          "dog",
+          "wolf"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "transform",
+          "conditional"
+        ],
+        "transform": "wolf",
+        "spins": 0,
+        "payouts": 0
+      },
+      "quiver_essence": {
+        "groups": [
+          "arrow"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rain_cloud_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "flower",
+          "rain"
+        ],
+        "clean_icons": [
+          "flower",
+          "rain"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "recycling_essence": {
+        "groups": [],
+        "icons": [
+          "reroll_token"
+        ],
+        "clean_icons": [
+          "reroll_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "reroll_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "red_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "red_suits_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "diamonds",
+          "hearts"
+        ],
+        "clean_icons": [
+          "diamonds",
+          "hearts"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "reroll_essence": {
+        "groups": [],
+        "icons": [
+          "d3",
+          "d3_2",
+          "d3_3",
+          "d5",
+          "dice3",
+          "dice5"
+        ],
+        "clean_icons": [
+          "d3",
+          "d3_2",
+          "d3_3",
+          "d5",
+          "dice3",
+          "dice5"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ricky_the_banana_essence": {
+        "groups": [],
+        "icons": [
+          "banana",
+          "banana_peel",
+          "coin"
+        ],
+        "clean_icons": [
+          "banana",
+          "banana_peel"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "ritual_candle_essence": {
+        "groups": [
+          "fossillikes"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "rusty_gear_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "permanent",
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shattered_mirror_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "choice"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shedding_season_essence": {
+        "groups": [],
+        "icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "rabbit_fluff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "chance"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "shrine_essence": {
+        "groups": [
+          "organism"
+        ],
+        "icons": [
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "sunglasses_essence": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "swapping_device_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "swear_jar_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_big_essence": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_quantum_essence": {
+        "groups": [],
+        "icons": [
+          "symbol_bomb_quantum"
+        ],
+        "clean_icons": [
+          "symbol_bomb_quantum"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_small_essence": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "symbol_bomb_very_big_essence": {
+        "groups": [],
+        "icons": [
+          "removal_token"
+        ],
+        "clean_icons": [
+          "removal_token"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "spins",
+          "remove_token"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "tax_evasion_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "telescope_essence": {
+        "groups": [],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "time_machine_essence": {
+        "groups": [
+          "time_machine"
+        ],
+        "icons": [],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "transform",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "treasure_map_essence": {
+        "groups": [],
+        "icons": [
+          "key",
+          "mega_chest"
+        ],
+        "clean_icons": [
+          "key",
+          "mega_chest"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "triple_coins_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "hover_coin"
+        ],
+        "clean_icons": [
+          "coin"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "turtle_and_rabbit_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "rabbit",
+          "turtle"
+        ],
+        "clean_icons": [
+          "rabbit",
+          "turtle"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "adjacent",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "undertaker_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "spirit"
+        ],
+        "clean_icons": [
+          "spirit"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_party_essence": {
+        "groups": [
+          "void"
+        ],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "void_portal_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional",
+          "each"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "wanted_poster_essence": {
+        "groups": [],
+        "icons": [
+          "bounty_hunter",
+          "coin",
+          "thief"
+        ],
+        "clean_icons": [
+          "bounty_hunter",
+          "thief"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "multiplier",
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "watering_can_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "seed"
+        ],
+        "clean_icons": [
+          "seed"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "white_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin"
+        ],
+        "clean_icons": [],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional",
+          "spins"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "x_ray_machine_essence": {
+        "groups": [],
+        "icons": [
+          "big_ore",
+          "ore"
+        ],
+        "clean_icons": [
+          "big_ore",
+          "ore"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "add",
+          "spins",
+          "rarity"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "yellow_pepper_essence": {
+        "groups": [],
+        "icons": [
+          "coin",
+          "empty"
+        ],
+        "clean_icons": [
+          "empty"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      },
+      "zaroffs_contract_essence": {
+        "groups": [
+          "human"
+        ],
+        "icons": [
+          "bounty_hunter",
+          "coin",
+          "general_zaroff"
+        ],
+        "clean_icons": [
+          "bounty_hunter",
+          "general_zaroff"
+        ],
+        "mentions_removal": false,
+        "mentions_pre_spin": false,
+        "roles": [
+          "destroy",
+          "self_destroy",
+          "on_destroy",
+          "conditional"
+        ],
+        "transform": "",
+        "spins": 0,
+        "payouts": 0
+      }
+    }
+  }
+}

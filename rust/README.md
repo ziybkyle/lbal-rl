@@ -21,6 +21,8 @@
 
 也可用 `LBAL_DATA_DIR` 指定目录，或在命令行加 `--data-dir DIR`。Python 构造函数接受 `data_dir`。仓库中的策略数据是可选估值资料，游戏 JSON 需要自行准备。
 
+如果已有 Steam 安装，可以使用项目自带工具提取这四个文件。需要训练面板时也可直接下载 Windows x64 / Python 3.12 的预编译绑定。[准备数据和安装面板](../docs/TRAINING.zh-CN.md)
+
 Windows 使用仓库指定的 Rust GNU 工具链及 MinGW-w64 链接器。Linux / macOS 可运行 `rustup override set stable` 选择本机工具链。使用 Python 绑定时，需要安装与扩展目标一致的 CPython；本版在 Windows、CPython 3.12 上验证。
 
 ## 批量模拟与复现

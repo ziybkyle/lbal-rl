@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>符号统计 · 交租桶</title>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1b2029;--line:#2a2f3a;--fg:#e6e9ef;--dim:#8b93a5;
+        --accent:#5aa9ff;--good:#3ddc97;--warn:#ffb454;--bad:#ff6b6b;--grey:#6b7488}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif}
+  header{padding:22px 28px 10px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#191d26,#12151b)}
+  h1{margin:0 0 4px;font-size:20px;font-weight:650}
+  .sub{color:var(--dim);font-size:12.5px}
+  .wrap{padding:14px 28px 24px;max-width:1760px;margin:0 auto}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:14px 0 16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px}
+  .card .k{color:var(--dim);font-size:11.5px;letter-spacing:.5px}
+  .card .v{font-size:21px;font-weight:650;margin-top:3px}
+  .card .v small{font-size:12px;color:var(--dim);font-weight:400}
+  .note{background:#1d1a12;border:1px solid #4a3a1d;color:#f0d9a8;border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:14px}
+  .note b{color:#ffd77a}
+  .note.sec{margin:0 0 10px}
+  .note.sec{background:#16202a;border-color:#2b435b;color:#c3d6e6}
+  .note.sec b{color:#8fc4ff}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+  .lbl{color:var(--dim);font-size:12px;margin-right:2px;min-width:40px}
+  .chip{background:var(--panel);border:1px solid var(--line);color:var(--dim);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:12.5px;user-select:none}
+  .chip:hover{color:var(--fg);border-color:#3a4150}
+  .chip.on{background:#1d3a5c;border-color:#2f5f95;color:#cfe6ff}
+  button.chip{font:inherit;cursor:pointer}
+  input[type=search]{background:var(--panel);border:1px solid var(--line);color:var(--fg);padding:7px 12px;border-radius:8px;min-width:190px;font-size:13px}
+  input[type=search]:focus{outline:none;border-color:#3a6ea5}
+  .ksec{margin:0 0 26px}
+  .ksec:last-of-type{margin-bottom:0}
+  .notebox{margin:0 0 12px}
+  .notebox summary{cursor:pointer;color:var(--dim);font-size:12.5px;padding:5px 2px;user-select:none}
+  .notebox summary:hover{color:var(--fg)}
+  .notebox .note{margin:8px 0 0}
+  .footnote{color:#7c8598;font-size:12px;line-height:1.75;margin:10px 2px 0;
+            border-top:1px solid var(--line);padding-top:10px}
+  .footnote b{color:#9aa3b4}
+  .footnote code{background:#0b0d12}
+  .ktabs{margin:0 0 8px}
+  .chip.kd{padding:7px 18px;font-size:13px}
+  .ksec[hidden]{display:none}
+  .khead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 8px}
+  .khead h2{margin:0;font-size:16px;font-weight:650}
+  .ksub{color:var(--dim);font-size:12.5px}
+  /* the table gets its own scroll box so the header can stay pinned: with only
+     overflow-x:auto the div grows to content height and sticky has nothing to
+     stick to (the whole page scrolls instead) */
+  .tw{overflow:auto;max-height:calc(100vh - 530px);min-height:340px;
+      border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  table.main{width:100%;min-width:max-content;border-collapse:collapse}
+  thead th{position:sticky;top:0;z-index:3;background:var(--panel2);color:var(--dim);font-weight:600;font-size:11.5px;
+           text-align:right;padding:8px 7px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;
+           box-shadow:inset 0 -1px 0 var(--line)}
+  thead th small{display:block;font-weight:400;font-size:10px;color:#6f7789;letter-spacing:.3px}
+  thead th.c-name,thead th.c-rar{text-align:left}
+  thead th.sorted{color:var(--accent)}
+  tbody td{padding:6px 7px;border-bottom:1px solid #1d222b;text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap}
+  tbody td.c-name{text-align:left;font-weight:550;min-width:170px}
+  tbody td.c-rar{text-align:left}
+  tbody tr:hover{background:#1a1f28}
+  tbody tr.base{background:#141821}
+  tbody tr.base td{color:var(--dim);font-size:11.5px;border-bottom:1px solid var(--line)}
+  tbody tr.base td.c-name{font-weight:500;letter-spacing:.3px}
+  th.c-name,td.c-name{position:sticky;left:0;background:var(--panel);z-index:2}
+  thead th.c-name{background:var(--panel2);z-index:4}
+  tbody tr.base td.c-name{background:#141821}
+  tbody tr:hover td.c-name{background:#1a1f28}
+  .tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+  .tagk{font-size:11px;padding:1px 7px;border-radius:6px;background:#1d2430;color:#9fb3c8;border:1px solid #2c3746;font-weight:400}
+  .tag.common{color:#9fb3c8} .tag.uncommon{color:#57c785;border-color:#265c3e}
+  .tag.rare{color:#5aa9ff;border-color:#22436b} .tag.very_rare{color:#c98bff;border-color:#4a2c6b}
+  .tag.essence{color:#ffb454;border-color:#5a4118} .tag.none,.tag.unknown{color:#6b7488}
+  .ic{width:20px;height:20px;border-radius:4px;background:#0b0d12;image-rendering:pixelated;object-fit:contain;margin-right:7px;vertical-align:middle;flex:none}
+  .namecell{display:flex;align-items:center}
+  .wc{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1.12}
+  .wc b{font-weight:600;font-size:12px}
+  .wc i{font-style:normal;font-size:10px;color:#6f7789}
+  .wc.hi b{color:var(--good)} .wc.lo b{color:var(--bad)}
+  .wc.small b,.wc.small i{color:var(--grey)}
+  .wc.n b{color:#c9d1dc}
+  .wc.tiny b{color:#5f6778;font-size:11px}
+  .wc.none b{color:#4d5464}
+  .wc.base b{color:#a9b3c4;font-weight:500} .wc.base i{color:#616a7d}
+  /* bucket cells carry two metrics at once: win rate on top, pick rate below */
+  .wc .row{display:flex;align-items:baseline;gap:4px;justify-content:flex-end;line-height:1.16}
+  .wc .row b{font-weight:600;font-size:12px;color:#c9d1dc}
+  .wc .row b.hi{color:var(--good)} .wc .row b.lo{color:var(--bad)}
+  .wc .row b.small{color:var(--grey);font-size:10.5px;font-weight:500}
+  .wc .row b.pk{color:#8aa4c4;font-size:10.5px;font-weight:500}
+  .wc .row b.tiny{color:#5f6778;font-size:10.5px;font-weight:400}
+  .wc .row b.none{color:#4d5464;font-size:11px;font-weight:400}
+  .wc .row i{font-style:normal;font-size:9.5px;color:#5f6778}
+  .wc.both{gap:1px}
+  .muted{color:var(--grey)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--dim);font-size:11.5px;margin:-2px 0 12px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .d-hi{background:var(--good)} .d-lo{background:var(--bad)} .d-grey{background:var(--grey)} .d-n{background:#a9b3c4}
+  footer{color:#5f6778;font-size:12px;padding:18px 28px;border-top:1px solid var(--line);margin-top:24px}
+  footer b{color:#8b93a5;font-weight:600}
+  code{background:#0b0d12;padding:1px 4px;border-radius:4px;font-size:12px;color:#cfe6ff}
+</style>
+</head>
+<body>
+<header>
+  <h1>符号统计 · 交租桶</h1>
+  <div class="sub" id="sub"></div>
+</header>
+<div class="wrap">
+  <div class="toolbar" id="dstool"></div>
+  <div class="cards" id="cards"></div>
+  <details class="notebox">
+    <summary>口径 / 图例说明（点开）</summary>
+    <div class="note" id="note"></div>
+    <div class="footnote">
+      <b>口径</b>：交租桶 = 「第几次交租前」的租金档位（<code>state.rent</code> 的取值），桶与桶<b>互不重叠</b>——
+      每个名字、每局只在它<b>首次入手</b>的那一桶里计一次，因此各桶可以直接横向比较，后一桶不再包含前一桶。
+      <b>入手</b>：符号/物品 = 首次出现在 board / inventory / items（含开局自带）；
+      精华 = 首次出现在 <code>state.essences</code>（持有），用到物品上后转入 <code>destroyedItems</code>。
+      <b>物品整体前移一档</b>：选物品发生在交租之前，rent=R 选到的物品记在 R 的前一档，与符号表同列对齐。
+      <b>两个指标</b>：<b>终局胜率</b> = 该桶内这些局的胜率；<b>本桶选择率</b> = 该桶内 选择次数 / 出现次数
+      （一次选卡屏算一次出现，跳过也算）。两者都按样本量分档显示。
+    </div>
+  </details>
+  <div class="toolbar ktabs">
+    <span class="lbl">分类</span>
+    <span class="chip kd on" data-kind="symbol">符号</span>
+    <span class="chip kd" data-kind="item">物品</span>
+    <span class="chip kd" data-kind="essence">精华</span>
+  </div>
+  <div class="toolbar">
+    <span class="lbl">稀有度</span>
+    <span class="chip rf on" data-f="all">全部</span>
+    <span class="chip rf" data-f="common">普通 common</span>
+    <span class="chip rf" data-f="uncommon">非凡 uncommon</span>
+    <span class="chip rf" data-f="rare">稀有 rare</span>
+    <span class="chip rf" data-f="very_rare">极稀有 very_rare</span>
+    <span class="chip rf" data-f="none">无 none</span>
+  </div>
+  <div class="toolbar">
+    <span class="lbl">交租桶</span>
+    <span class="chip bk on" data-nb="0">全部</span>
+    <span class="chip bk" data-nb="3">前 3 桶</span>
+    <span class="chip bk" data-nb="5">前 5 桶</span>
+    <span class="lbl">排序</span>
+    <span class="chip mt on" data-m="win" title="点交租桶表头时按「终局胜率」排序（两列始终同时显示）">终局胜率</span>
+    <span class="chip mt" data-m="pick" title="点交租桶表头时按「本桶选择率」排序（两列始终同时显示）">本桶选择率</span>
+    <input type="search" id="q" placeholder="搜索名字…">
+    <button class="chip" id="csv">导出 CSV</button>
+  </div>
+  <div class="legend">
+    <span><i class="dot d-hi"></i>胜率显著高于本桶基线</span>
+    <span><i class="dot d-lo"></i>显著低于本桶基线</span>
+    <span><i class="dot d-n"></i>与基线无显著差异</span>
+    <span><i class="dot d-grey"></i>10 ≤ n &lt; 30，只作参考</span>
+    <span class="muted">n &lt; 10 只显示 n</span>
+    <span class="muted">｜每桶两行：上 = 终局胜率（着色），下 = 本桶选择率（不涂色：同一次选择里各选项互斥，逐项检验不成立）</span>
+  </div>
+
+  <section class="ksec" data-sec="symbol">
+    <div class="khead"><h2>符号 <span class="tagk">symbol</span></h2><div class="ksub"></div></div>
+    <div class="tw"><table class="main"><thead><tr></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="ksec" data-sec="item">
+    <div class="khead"><h2>物品 <span class="tagk">item</span></h2><div class="ksub"></div></div>
+    <div class="note sec" id="note-item"></div>
+    <div class="tw"><table class="main"><thead><tr></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="ksec" data-sec="essence">
+    <div class="khead"><h2>精华 <span class="tagk">essence</span></h2><div class="ksub"></div></div>
+    <div class="note sec" id="note-essence"></div>
+    <div class="tw"><table class="main"><thead><tr></tr></thead><tbody></tbody></table></div>
+  </section>
+</div>
+<script>
+const DATASETS = {};
+const PRIMARY = "policy";
+const KINDS = [
+  {k:"symbol",  t:"符号", acq:"拥有局数", sec:"symbol"},
+  {k:"item",    t:"物品", acq:"拥有局数", sec:"item", shift:1},
+  {k:"essence", t:"精华", acq:"拥有局数", sec:"essence"}
+];
+const RL = {common:"普通",uncommon:"非凡",rare:"稀有",very_rare:"极稀有",essence:"精华",none:"无",unknown:"未知"};
+const RORDER = {common:0,uncommon:1,rare:2,very_rare:3,essence:4,none:5,unknown:6};
+const MIN_PCT = 10, MIN_COLOR = 30;
+
+let ds = PRIMARY, DATA = DATASETS[ds];
+let rarity = "all", q = "", nb = 0, metric = "win", kindTab = "symbol";
+let sortK = "runs_offered", sortDir = -1;
+
+const pct = v => v==null ? "—" : (v*100).toFixed(1)+"%";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sum = (rows, f) => rows.reduce((a,r)=>a+f(r), 0);
+const buckets = () => nb > 0 ? DATA.buckets.slice(0, nb) : DATA.buckets;
+const bucketOf = (r, rent) => r.buckets[rent] || {runs:0,wins:0,win_rate:null,offers:0,picks:0,pick_rate:null};
+/* a shifted table (items) reads column i from bucket i+shift: a pick made at
+   rent R belongs to the rent that earned it, not to the rent still to be paid */
+const srcMeta = (cfg, i) => DATA.buckets[i + (cfg.shift || 0)] || null;
+
+function wilson(w, n) {
+  const z = 1.96, p = w/n, d = 1 + z*z/n;
+  const c = p + z*z/(2*n), m = z*Math.sqrt(p*(1-p)/n + z*z/(4*n*n));
+  return [(c-m)/d, (c+m)/d];
+}
+
+/* win cell with sample-size tiering:
+   n < 10      -> only n, no percentage
+   10 <= n < 30-> percentage but greyed out
+   n >= 30     -> coloured against `base` via a Wilson 95% interval */
+function winCell(w, n, base, extra) {
+  if (!n) return `<span class="wc none" title="该桶内无样本"><b>—</b></span>`;
+  if (n < MIN_PCT)
+    return `<span class="wc tiny" title="${extra||''}仅 ${n} 局，样本 <10：按口径只显示 n，不给百分比"><b>n=${n}</b></span>`;
+  const p = w/n, [lo, hi] = wilson(w, n);
+  let cls = "small";
+  if (n >= MIN_COLOR && base != null) cls = lo > base ? "hi" : (hi < base ? "lo" : "n");
+  const dev = base == null ? "" : ` · 基线 ${(base*100).toFixed(1)}%（${p>=base?"+":""}${((p-base)*100).toFixed(1)}pp）`;
+  const warn = n < MIN_COLOR ? " · 10≤n<30，仅作参考" : "";
+  return `<span class="wc ${cls}" title="${extra||''}${w}胜/${n}局 = ${(p*100).toFixed(1)}%${dev}${warn}">`+
+         `<b>${(p*100).toFixed(1)}%</b><i>${w}/${n}</i></span>`;
+}
+
+/* one line of a bucket cell: the number plus its raw sample in small print.
+   tiering is the same for both metrics: n<10 -> only n, 10..29 grey, >=30 full */
+function winLine(w, n, base, extra) {
+  if (!n) return `<span class="row"><b class="none" title="该桶内无样本">—</b></span>`;
+  if (n < MIN_PCT)
+    return `<span class="row" title="${extra||''}仅 ${n} 局，样本 <10：按口径只显示 n"><b class="tiny">n=${n}</b></span>`;
+  const p = w / n, [lo, hi] = wilson(w, n);
+  let cls = "small";
+  if (n >= MIN_COLOR && base != null) cls = lo > base ? "hi" : (hi < base ? "lo" : "n");
+  const dev = base == null ? "" : ` · 基线 ${(base * 100).toFixed(1)}%（${p >= base ? "+" : ""}${((p - base) * 100).toFixed(1)}pp）`;
+  const warn = n < MIN_COLOR ? " · 10≤n<30，仅作参考" : "";
+  return `<span class="row" title="${extra||''}胜 ${w}/${n} = ${(p * 100).toFixed(1)}%${dev}${warn}">` +
+         `<b class="${cls}">${(p * 100).toFixed(1)}%</b><i>${w}/${n}</i></span>`;
+}
+
+/* pick line: picks / offers inside the bucket.  Not coloured -- the options of
+   one decision are mutually exclusive, so a per-name binomial test is invalid */
+function pickLine(p, o, extra) {
+  if (!o) return `<span class="row"><b class="none" title="该桶内没有被 offer 过">—</b></span>`;
+  if (o < MIN_PCT)
+    return `<span class="row" title="${extra||''}仅 ${o} 次出现，样本 <10：只显示 n"><b class="tiny">n=${o}</b></span>`;
+  const cls = o < MIN_COLOR ? "small" : "pk";
+  const warn = o < MIN_COLOR ? " · 10≤n<30，仅作参考" : "";
+  return `<span class="row" title="${extra||''}选中 ${p} / 出现 ${o} = ${(p / o * 100).toFixed(1)}%${warn}">` +
+         `<b class="${cls}">${(p / o * 100).toFixed(1)}%</b><i>${p}/${o}</i></span>`;
+}
+
+/* a bucket cell shows both metrics at once: win rate on top, pick rate below */
+function bucketCell(w, n, p, o, base, extra) {
+  return `<span class="wc both">${winLine(w, n, base, extra)}${pickLine(p, o, extra)}</span>`;
+}
+
+function visibleRows(kind) {
+  return DATA.rows.filter(r => r.kind === kind
+    && (rarity === "all" || r.rarity === rarity)
+    && (!q || r.name.toLowerCase().includes(q)));
+}
+
+function sortVal(r, k) {
+  if (k === "name") return r.name.toLowerCase();
+  if (k === "rarity") return RORDER[r.rarity] ?? 9;
+  if (k.startsWith("b:")) {
+    const b = bucketOf(r, k.slice(2));
+    if (metric === "pick") return b.offers >= MIN_PCT ? b.pick_rate : null;
+    return b.runs >= MIN_PCT ? b.win_rate : null;
+  }
+  return r[k];
+}
+function cmpRows(a, b) {
+  const u = sortVal(a, sortK), v = sortVal(b, sortK);
+  if (u == null && v == null) return 0;
+  if (u == null) return 1;
+  if (v == null) return -1;
+  if (typeof u === "string") return sortDir * u.localeCompare(v);
+  return sortDir * (u - v);
+}
+
+function th(k, t, sub, title) {
+  const asc = sortK === k ? (sortDir < 0 ? " ▼" : " ▲") : "";
+  const cls = [sortK === k ? "sorted" : "", k === "name" ? "c-name" : "", k === "rarity" ? "c-rar" : ""].join(" ");
+  return `<th data-k="${k}" class="${cls}" title="${title||''}">`+
+         `${t}${asc}${sub?`<small>${sub}</small>`:""}</th>`;
+}
+
+function renderToolbar() {
+  document.getElementById("dstool").innerHTML = Object.entries(DATASETS).map(([k,v]) =>
+    `<span class="chip dsc ${k===ds?'on':''}" data-ds="${k}">${v.label} · ${v.runs} 局 / 基线 ${(v.win_rate*100).toFixed(1)}%</span>`
+  ).join("");
+  document.querySelectorAll(".chip.dsc").forEach(c => c.onclick = () => {
+    ds = c.dataset.ds; DATA = DATASETS[ds]; render();
+  });
+  document.getElementById("sub").textContent =
+    `${DATA.label} · ${DATA.runs} 局（${DATA.wins} 胜）· 基线胜率 ${(DATA.win_rate*100).toFixed(2)}% · `+
+    `${DATA.buckets.length} 个交租桶 · 数据来自 ${DATA.tag} replay 的每帧 state + pickedAction`;
+}
+
+function renderCards() {
+  const cnt = k => DATA.rows.filter(r => r.kind === k).length;
+  const shown = visibleRows(kindTab).length;
+  document.getElementById("cards").innerHTML = [
+    ["局数", DATA.runs.toLocaleString(), ""],
+    ["胜局", DATA.wins.toLocaleString(), ""],
+    ["基线胜率", (DATA.win_rate*100).toFixed(2)+"%", `${DATA.wins}/${DATA.runs}`],
+    ["符号 / 物品 / 精华", `${cnt("symbol")} / ${cnt("item")} / ${cnt("essence")}`, ""],
+    ["当前分类", shown.toLocaleString(), "行"],
+    ["交租桶", DATA.buckets.length, "档"],
+  ].map(([k,v,u]) => `<div class="card"><div class="k">${k}</div><div class="v">${v} <small>${u}</small></div></div>`).join("");
+}
+
+function renderNotes() {
+  const b0 = DATA.buckets[0];
+  const b1 = DATA.buckets[1];
+  const bLast = DATA.buckets[DATA.buckets.length - 1];
+  const items = DATA.rows.filter(r => r.kind === "item");
+  const itemB1 = items.reduce((a,r) => a + bucketOf(r, b0.rent).runs, 0);
+  const itemB1p = items.reduce((a,r) => a + bucketOf(r, b0.rent).picks, 0);
+  const itemLast = items.reduce((a,r) => a + bucketOf(r, bLast.rent).runs, 0);
+  const essRows = DATA.rows.filter(r => r.kind === "essence");
+  const essSeen = essRows.filter(r => r.runs_seen > 0).length;
+  const essHeld = essRows.reduce((a,r) => a + r.acq_runs, 0);
+  const ladder = DATA.buckets.map(b => b.rent).join(" / ");
+
+  document.getElementById("note").innerHTML =
+    `<b>交租桶（已从「累计到 ≤X」改成独立区间）</b>：第 k 次交租前 = <code>state.rent</code> 等于第 k 档租金；`+
+    `本数据共 ${DATA.buckets.length} 档：${ladder}。`+
+    `每个名字在一局里<b>只落进首次入手的那一桶</b>，所以各桶互不重叠、可以横向比较，`+
+    `第 3 桶里不再含着第 1 桶的数据。<br>`+
+    `<b>每列同时给两个数（不用切换）</b>：`+
+    `<b>上排 = 终局胜率</b>（该桶入手的局里赢的比例，着色对比本桶基线）；`+
+    `<b>下排 = 本桶选择率</b>（该桶内 选择次数 / 出现次数，不涂色）。`+
+    `上方「排序」只决定点表头时按哪个数排。<br>`+
+    `选择率会被模型的跳过率稀释——一次 offer = 一个选卡屏，跳过也算一次出现，`+
+    `所以后期跳过越多，整列的选择率整体越低（见下方物品表说明里的跳过率）。<br>`+
+    `<b>胜率分档</b>：n &lt; 10 只显示 n；10 ≤ n &lt; 30 标灰只作参考；n ≥ 30 用 Wilson 95% 区间与本桶基线比较，`+
+    `显著高/低于基线才涂色（选择率不涂色，见下方图例）。`+
+    `<b>基线不只有一个</b>：整体 ${(DATA.win_rate*100).toFixed(2)}%，但每个桶还会给出「本桶全体基线」`+
+    `（走到该租金档的所有局的胜率）——越晚的桶只有活下来的局才进得去，拿 ${(DATA.win_rate*100).toFixed(1)}% 去比第 13 桶会看出一堆假信号。`;
+
+  document.getElementById("note-item").innerHTML =
+    `<b>物品表整体前移一档。</b>选物品发生在交租之前、选到的正是上一次交租的奖励，`+
+    `所以 <code>rent=${b1 ? b1.rent : 50}</code> 时选到的物品记进第 1 列（rent ${b0.rent}），与符号表同列对齐。`+
+    `已核对：${items.length} 个物品在第 1 列合计 <b>${itemB1.toLocaleString()} 局 / ${itemB1p.toLocaleString()} 次选中</b>，`+
+    `全部来自 rent=${b1 ? b1.rent : 50} 的选择。<br>`+
+    `最后一列（rent ${bLast.rent}）合计 ${itemLast.toLocaleString()} 局 —— 它要读 <code>rent&gt;${bLast.rent}</code> 的选择，`+
+    `而 15 档数据里走到顶层的局本就极少，所以接近空。`;
+
+  document.getElementById("note-essence").innerHTML =
+    `<b>精华是有「持有」记录的，上一版说没有，那是错的。</b>`+
+    `精华拿到后先挂在 <code>state.essences</code> 里（这就是持有），用到符号/物品上时被消耗，`+
+    `随后出现在 <code>state.destroyedItems</code>（<code>kind="essence"</code>）。`+
+    `所以「拥有局数」= 第一次出现在 <code>state.essences</code> 的局数：`+
+    `本数据集 ${essRows.length} 个精华里 <b>${essSeen}</b> 个能观测到持有，合计 ${essHeld.toLocaleString()} 局。`+
+    `精华按持有时刻的 rent 分桶，<b>不做</b>物品那种前移（它是被选中的那一次 offer 的一个选项，`+
+    `与符号同一屏，所以和符号对齐）。`+
+    (essSeen < essRows.length
+      ? `有 ${essRows.length - essSeen} 个从没被选中过（只有被 offer 的记录）。`
+      : "");
+}
+
+function renderSection(cfg) {
+  const sec = document.querySelector(`[data-sec="${cfg.sec}"]`);
+  const rows = visibleRows(cfg.k).sort(cmpRows);
+  const bks = buckets();
+  const off = sum(rows, r => r.runs_offered), pk = sum(rows, r => r.runs_picked);
+  const ar = sum(rows, r => r.acq_runs), aw = sum(rows, r => r.acq_wins);
+  // rarity breakdown = the second axis of kind x rarity x rent bucket
+  const rc = {};
+  for (const r of rows) rc[r.rarity] = (rc[r.rarity] || 0) + 1;
+  const rareBits = Object.keys(rc).sort((a,b) => (RORDER[a] ?? 9) - (RORDER[b] ?? 9))
+    .map(k => `${RL[k]||k} ${rc[k]}`).join(" / ");
+  sec.querySelector(".ksub").innerHTML =
+    `${rows.length} / ${DATA.rows.filter(r=>r.kind===cfg.k).length} 个 · `+
+    `出现 ${off.toLocaleString()} 局次 · 选择率 ${pct(off ? pk/off : null)} · `+
+    `拥有 ${ar.toLocaleString()} 局 · `+
+    `终局胜率 ${pct(ar ? aw/ar : null)} <span class="muted">(整体基线 ${(DATA.win_rate*100).toFixed(1)}%)</span>`+
+    (cfg.shift ? ` · <span class="muted">已前移一档</span>` : "")+
+    (rareBits ? ` · ${rareBits}` : "");
+
+  const head = [
+    th("name", "名字"),
+    th("rarity", "稀有度", "", "按稀有度排序"),
+    th("runs_offered", "出现", "", "该局被 offer 过的局数"),
+    th("runs_picked", "选择", "", "该局选中过它的局数"),
+    th("pick_rate", "选择率", "", "选择局数 / 出现局数（按局算）"),
+    th("first_pick_rate", "首次选择率", "", "它第一次被 offer 的那次决策里选中它的比例"),
+    th("acq_runs", cfg.acq, "", cfg.k === "essence"
+        ? "第一次出现在 state.essences 的局数（精华有持有状态）"
+        : "出现在棋盘/库存/物品里的局数"),
+    th("acq_win_rate", "终局胜率", "", "入手队列的终局胜率（对基线 整体胜率）"),
+    ...bks.map((b, i) => {
+      const src = srcMeta(cfg, i);
+      const shiftNote = cfg.shift
+        ? `；物品前移一档：本列读的是 rent = ${src ? src.rent : "—"} 的选择`
+        : "";
+      return th("b:"+b.rent, String(b.ordinal), String(b.rent),
+        `${b.label}（rent = ${b.rent}）` + shiftNote +
+        `：上排 终局胜率（该桶首次入手的局）· 下排 本桶选择率（选择/出现）` +
+        (src ? `；本桶全体基线 ${(src.win_rate*100).toFixed(1)}%（${src.runs.toLocaleString()} 局）` : "") +
+        `；点表头按「${metric === "pick" ? "本桶选择率" : "终局胜率"}」排序`);
+    }),
+  ].join("");
+
+  const thead = sec.querySelector("thead tr");
+  thead.innerHTML = head;
+  thead.querySelectorAll("th").forEach(el => el.onclick = () => {
+    const k = el.dataset.k;
+    if (sortK === k) sortDir *= -1; else { sortK = k; sortDir = -1; }
+    render();
+  });
+
+  // base row: per bucket the reach baseline (top) and this section's own
+  // pick/offer inside the bucket (bottom) -- the same two rows each cell has
+  const baseBucket = (b, i) => {
+    const src = srcMeta(cfg, i);
+    if (!src) return `<td><span class="wc none" title="该列没有对应数据"><b>—</b></span></td>`;
+    const o = sum(rows, r => bucketOf(r, b.rent).offers || 0);
+    const p = sum(rows, r => bucketOf(r, b.rent).picks || 0);
+    const tip = `本桶 ${src.decisions.toLocaleString()} 次选择屏，跳过 ${src.skips.toLocaleString()} 次` +
+                (src.skip_rate != null ? `（${(src.skip_rate * 100).toFixed(1)}%）` : "") +
+                `；下排 = 当前可见行的 选择/出现`;
+    return `<td><span class="wc both base" title="${tip}">` +
+           winLine(src.wins, src.runs, null, "本桶全体：") +
+           pickLine(p, o, "") + `</span></td>`;
+  };
+
+  const baseRow = `<tr class="base">
+      <td class="c-name">本桶全体基线</td>
+      <td class="c-rar">—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+      <td>${DATA.runs.toLocaleString()}</td>
+      <td>${winCell(DATA.wins, DATA.runs, null, "整体：")}</td>
+      ${bks.map((b, i) => baseBucket(b, i)).join("")}
+    </tr>`;
+
+  const body = rows.map(r => `<tr>
+      <td class="c-name"><span class="namecell">${esc(r.name)}</span></td>
+      <td class="c-rar"><span class="tag ${r.rarity}">${RL[r.rarity]||r.rarity}</span></td>
+      <td>${r.runs_offered.toLocaleString()}</td>
+      <td>${r.runs_picked.toLocaleString()}</td>
+      <td>${pct(r.pick_rate)}</td>
+      <td>${pct(r.first_pick_rate)}</td>
+      <td>${r.acq_runs.toLocaleString()}</td>
+      <td>${winCell(r.acq_wins, r.acq_runs, DATA.win_rate, "入手：")}</td>
+      ${bks.map((b, i) => {
+        const x = bucketOf(r, b.rent);
+        const src = srcMeta(cfg, i);
+        return `<td>${bucketCell(x.wins, x.runs, x.picks, x.offers,
+                                  src ? src.win_rate : b.win_rate)}</td>`;
+      }).join("")}
+    </tr>`).join("");
+
+  const cols = 8 + bks.length;
+  sec.querySelector("tbody").innerHTML = rows.length
+    ? baseRow + body
+    : `<tr><td colspan="${cols}" class="muted" style="text-align:center;padding:18px">当前筛选下没有行</td></tr>`;
+}
+
+function render() {
+  renderToolbar(); renderCards(); renderNotes();
+  for (const c of KINDS) renderSection(c);
+  showKind();
+}
+
+/* one table at a time: the three kinds are tabs, not three stacked tables */
+function showKind() {
+  for (const c of KINDS) {
+    const sec = document.querySelector(`[data-sec="${c.sec}"]`);
+    sec.hidden = c.k !== kindTab;
+  }
+  document.querySelectorAll(".chip.kd").forEach(el => {
+    const k = el.dataset.kind;
+    el.classList.toggle("on", k === kindTab);
+    el.textContent = `${KINDS.find(x => x.k === k).t} ${DATA.rows.filter(r => r.kind === k).length}`;
+  });
+}
+
+document.querySelectorAll(".chip.kd").forEach(c => c.onclick = () => {
+  kindTab = c.dataset.kind; render();
+});
+document.querySelectorAll(".chip.rf").forEach(c => c.onclick = () => {
+  document.querySelectorAll(".chip.rf").forEach(x => x.classList.remove("on"));
+  c.classList.add("on"); rarity = c.dataset.f; render();
+});
+document.querySelectorAll(".chip.bk").forEach(c => c.onclick = () => {
+  document.querySelectorAll(".chip.bk").forEach(x => x.classList.remove("on"));
+  c.classList.add("on"); nb = +c.dataset.nb; render();
+});
+document.querySelectorAll(".chip.mt").forEach(c => c.onclick = () => {
+  document.querySelectorAll(".chip.mt").forEach(x => x.classList.remove("on"));
+  // both metrics are always shown; the chip only picks which one the bucket
+  // headers sort by, so the current sort column is kept as-is
+  c.classList.add("on"); metric = c.dataset.m; render();
+});
+document.getElementById("q").oninput = e => { q = e.target.value.trim().toLowerCase(); render(); };
+document.getElementById("csv").onclick = () => {
+  const head = ["name","kind","rarity","runs_seen","runs_offered","runs_picked","pick_rate",
+                "first_offer_n","first_pick_n","first_pick_rate","acq_runs","acq_wins","acq_win_rate"];
+  for (const b of DATA.buckets) {
+    head.push(`b${b.ordinal}_rent${b.rent}_runs`, `b${b.ordinal}_rent${b.rent}_wins`,
+              `b${b.ordinal}_rent${b.rent}_win_rate`, `b${b.ordinal}_rent${b.rent}_offers`,
+              `b${b.ordinal}_rent${b.rent}_picks`, `b${b.ordinal}_rent${b.rent}_pick_rate`);
+  }
+  const rows = DATA.rows.filter(r => (rarity === "all" || r.rarity === rarity) && (!q || r.name.toLowerCase().includes(q)));
+  const lines = [head.join(",")];
+  for (const r of rows) {
+    const v = [r.name, r.kind, r.rarity, r.runs_seen, r.runs_offered, r.runs_picked, r.pick_rate,
+               r.first_offer_n, r.first_pick_n, r.first_pick_rate, r.acq_runs, r.acq_wins, r.acq_win_rate];
+    for (const b of DATA.buckets) {
+      const x = bucketOf(r, b.rent);
+      v.push(x.runs, x.wins, x.win_rate == null ? "" : x.win_rate,
+             x.offers, x.picks, x.pick_rate == null ? "" : x.pick_rate);
+    }
+    lines.push(v.map(x => x == null ? "" : x).join(","));
+  }
+  const blob = new Blob(["\ufeff"+lines.join("\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `symbols_${ds}_rentbuckets.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+render();
+</script>
+</body></html>

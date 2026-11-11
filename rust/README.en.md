@@ -21,6 +21,8 @@ Supply the following four files from a legally obtained game copy in the reposit
 
 You can also use `LBAL_DATA_DIR`, the CLI's `--data-dir DIR`, or the Python constructor's `data_dir` argument. The repository's policy data is optional; the original game JSON is required.
 
+The data preparation tool reads the four files from a Steam installation. The release also provides a prebuilt binding for Windows x64 and Python 3.12. [Data setup and panel installation](../docs/TRAINING.en.md)
+
 On Windows, use the pinned GNU Rust toolchain and a MinGW-w64 linker. On Linux or macOS, select the native toolchain with `rustup override set stable`. The Python extension must match the target CPython installation; this release was verified on Windows with CPython 3.12.
 
 ## Batch simulation and replay
