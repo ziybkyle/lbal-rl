@@ -41,8 +41,9 @@ RARITY_RANK = {"none": 0, "common": 1, "uncommon": 2, "rare": 3, "very_rare": 4}
 
 
 class RustEnv:
-    def __init__(self, seed: int = 0, data_dir: str | None = None, seed_text: str | None = None):
-        self._env = lbal_py.Env(seed, data_dir, seed_text)
+    def __init__(self, seed: int = 0, data_dir: str | None = None, seed_text: str | None = None, *, manual_decisions: bool = False, binding_module=None):
+        self._env = (lbal_py if binding_module is None else binding_module).Env(seed, data_dir, seed_text)
+        self._env.set_manual_decisions(manual_decisions)
         self.seed = seed
         self.seed_text = seed_text
         self.observation = json.loads(self._env.observe())
@@ -85,6 +86,27 @@ class RustEnv:
         if ok:
             self.observation = json.loads(self._env.observe())
         return ok
+
+    def use_managed(self, essence: bool, type_id: int) -> bool:
+        ok = self._env.use_managed(essence, type_id)
+        if ok:
+            self.observation = json.loads(self._env.observe())
+        return ok
+
+    def set_diagnostics(self, enabled=True):
+        self._env.set_diagnostics(bool(enabled))
+
+    def diagnostics(self):
+        return json.loads(self._env.diagnostics())
+
+    def fine_prints(self):
+        """Manual UI only; older archived simulators may not provide this view."""
+        getter = getattr(self._env, 'fine_prints', None)
+        return json.loads(getter()) if getter else None
+
+    def training_grant(self, kind, name, count=1):
+        self.observation = json.loads(self._env.training_grant(str(kind), str(name), int(count)))
+        return self.observation
 
 
 class BatchRustEnv:

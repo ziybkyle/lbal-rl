@@ -4,87 +4,29 @@ Author: 群友镜中人
 
 [中文](README.md) | [English](README.en.md)
 
-A Rust rule simulator for *Luck be a Landlord*, built for high-throughput batch simulation, baseline policy research, and reinforcement-learning training. It reproduces the rules, numbers, and policy only; it does not rewrite the Godot UI, animations, or art. The original Godot project is used as a rules reference.
+A headless rule simulator for *Luck be a Landlord*, for batch simulation, policy evaluation, and reinforcement learning. The current rules identifier is `2026-11-09-prespin-overflow-rent-offer-v15`. It targets Floor 20 and covers the 5×4 board, rent, offers, items, essences, tokens, and the 1,500 HP landlord fight. It provides a Rust CLI, Python bindings, and an environment with action masks.
 
-This is the first public version. The rules, numbers, policy, and APIs may still contain bugs. Issues, forks, and pull requests are welcome. When reporting a problem, please include the seed, the command you ran, the expected result, and the actual result.
+## Main fixes since the previous release
 
-## Features
+- **Spin resolution and chains:** destruction and removal now use separate symbol histories. Fixed shared targets, when generated symbols occupy vacancies or stay off-screen, and payout and RNG order for chains involving ore, urns, soap, and coconuts. Rabbit and Wine mature only once.
+- **Offers and tokens:** Credit Card and its essence can produce 20 or 30 symbol offers. Only symbol offers can be rerolled; the current offer's rarity guarantees and restrictions persist. Rent reward offers now precede the extra offer from Frozen Pizza where applicable.
+- **Items, essences, and rent:** corrected pre-spin removal payouts, essence counters and consumption, item toggles, and retrying rent after using Piggy Bank, Swear Jar, Coffee, or Devil's Deal. Comfy Pillow and its essence can be accepted when available.
+- **Landlord fight and replay:** corrected fine-print selection, targets, and activation. Python exposes clauses, item progress, per-symbol destruction/removal counts, and pre-spin offer effects. Optional diagnostics record spin resolution details. Seeds and actions support reproducible comparisons; native-game differences remain.
 
-- 168 symbols, 114 items (one placeholder), 113 essences, and 31 A20 fine prints.
-- Complete spin, rent, reward, token, item, essence, and landlord-fight flow.
-- A pure Rust core with a command-line batch simulator and PyO3 bindings.
-- About 2,176 games/s on 20 threads over 10,000 games; about 5,300 steps/s for a 100,000-step Gym run (hardware-dependent).
-- 166 Rust tests (140 unit + 26 integration) and 12 Python Gym tests (2 require optional local PPO scripts and dependencies; otherwise skipped); 200 seeds, first 12 spins replay: 98.65% income, 98.39% board, 99.96% offers, 98.61% deck, 99.91% items.
-
-## Seed system
-
-Each run is driven by an integer or string seed, and the RNG is PCG32. A string seed is hashed with FNV-1a and derives independent `reel`, `effect`, `reel_shuffle`, and `effect_shuffle` streams per `spin_{n}`, matching the BetterLandlord community seed mod's derivation; the same seed, version, and policy reproduce the same sequence.
-
-- CLI: `--seed N` for integer batch seeds; `--seed-text TEXT` to pass a string seed (used for same-seed cross-checks against the Godot game).
-- Python: `lbal_py.Env(seed, data_dir)` and `lbal_py.BatchEnv(count, seed, data_dir)`.
-- Running the same string seed as the Godot game allows spin-by-spin comparison of symbol placement, offers, and income; income matches on 98.65% of the first 12 spins across 200 seeds.
-
-There is a public community seed system for the original game that is a useful reference:
-
-- [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord): a C# seed mod that hashes a string seed with FNV-1a and derives PCG random streams.
-- It runs on the [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) modding framework.
-
-The Rust core now reproduces this per-purpose stream derivation with the same PCG32 state progression. Remaining same-seed differences are tracked in [rust/FIDELITY.md](rust/FIDELITY.md).
-
-## Baseline policy and test data
-
-Measured 2026-11-07 on Windows, i7-12700F, release build, seeds 42–10041 and 20 threads. Both the hand-written policy and simulator rules changed, so the win-rate difference cannot be attributed solely to the rules. Complete outcomes matched across two runs for all 10,000 seeds, including 1,000 seeds across single- and 20-thread runs; 21 trace-replayed games still have a first difference.
-
-The built-in baseline, `heuristic-marginal-value-v13`, is a hand-written rule set, not a trained neural network. It always plays floor 20. In short: the filling phase ranks offers by rarity and a common-symbol priority table; after the deck reaches 20 symbols it switches to incremental valuation; removal cleans up low-value starting symbols while protecting growth cores; reroll tokens are reserved for rent rewards; one-shot symbols are discounted by remaining spins.
-
-| Item | Result |
-| --- | --- |
-| 10,000-game benchmark, 20 threads | 2,047 wins, 20.47% win rate; average rents 7.72, spins 60.2, deck 28.4, final rent 659.9 |
-| Real-game v13, 50 games | 18% win rate; average rents 7.34, spins 57.5 |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 98.65% income, 98.39% board, 99.96% offers, 98.61% deck, 99.91% items; 179/200 games have no first difference |
-| Gym random masked policy, 100,000 steps | about 5,300 steps/s |
-| Automated tests | 166 Rust tests (140 unit + 26 integration) + 12 Python Gym tests (2 require optional local PPO scripts and dependencies; otherwise skipped) |
-
-20.47% is the win rate of the built-in hand-written policy, not an upper bound of the simulator. The real-game v13 record over 50 games is 18%; running the same v13 rules against this simulator scores in the same 10–13% range over 40 games (too small to estimate a win rate). Rule fidelity and policy strength should be evaluated separately.
-
-Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
-
-The full strategy rules are in [当前基线策略说明.md](当前基线策略说明.md), guide trade-offs in [攻略策略取舍.md](攻略策略取舍.md), and historical batches in [进阶20基线与记录.md](进阶20基线与记录.md). These detailed notes are currently in Chinese.
+See [fidelity notes](rust/FIDELITY.md) for the verified cases and their limits.
 
 ## Quick start
 
+Supply the original symbol, item, essence, and fine-print JSON files in `game/JSON`, or specify their directory with `LBAL_DATA_DIR` or `--data-dir`. See the [Rust guide](rust/README.en.md) for builds and Python usage.
+
 ```bash
 cd rust
-cargo test --release
-cargo run --release -p lbal_cli -- --games 2000 --seed 1 --threads 20 --hist
+cargo test --release --workspace
+cargo run --release -p lbal_cli -- --games 10000 --seed 42 --threads 20 --hist
 ```
 
-The original game JSON is not distributed with the repository. Put it in `game/JSON`, or point to it with `LBAL_DATA_DIR` / `--data-dir`. See [rust/README.en.md](rust/README.en.md#preparing-game-data).
+The current built-in heuristic won **645 of 10,000 games (6.45%)** on seeds 42–10041, averaging **6.51 rents**, **49.8 spins**, and **25.5 symbols** in the final inventory. On Windows with an i7-12700F, the release build took about **3.9 seconds** on 20 threads (about **2,567 games/s**). This is a heuristic benchmark; batch simulation throughput is separate from neural-network training speed.
 
-## Repository layout
+For a bug report, include the rules version, seed, actions, and first divergence.
 
-```text
-godot_kernel/
-├─ rust/                  Rust workspace (core, CLI, PyO3 bindings)
-├─ python/                Python wrappers (RustEnv, Gym environment, v13 adapter)
-├─ tests/                 Python tests
-├─ data/                  policy valuations, priors, and statistics reports
-└─ game/                  game JSON (not committed; prepare it yourself)
-```
-
-Documentation:
-
-- [rust/README.md](rust/README.md): full Chinese documentation
-- [rust/README.en.md](rust/README.en.md): full English documentation, build steps, APIs, and baseline policy
-- [rust/FIDELITY.md](rust/FIDELITY.md): rule fidelity and known differences
-- [rust/RUST_PORT_PLAN.md](rust/RUST_PORT_PLAN.md): implementation plan and acceptance notes
-
-## Project status and feedback
-
-This is the first public version. Many interactions are still approximated or missing. Issues, forks, and pull requests are welcome, especially rule fixes, seed cross-checks, and policy improvements. Please include the seed, command, expected result, and actual result so the problem can be reproduced.
-
-## Copyright
-
-The Rust code is by 群友镜中人 and licensed under the [MIT License](LICENSE).
-
-*Luck be a Landlord*, its game data, text, and art remain copyright their original author. This repository does not include the game, the original data, or extracted scripts; the MIT License does not cover them.
+Rust source is licensed under [MIT](LICENSE). The game, its original data, text, and art remain the property of their owners and are not distributed here.

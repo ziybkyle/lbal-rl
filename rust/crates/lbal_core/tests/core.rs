@@ -357,9 +357,9 @@ fn piggy_bank_is_smashed_to_pay_rent() {
     state.coins = 24;
     state.spins_left = 1;
     state.spin();
-    // Spin leaves 23 coins; the piggy bank saved 2 and pays round(2 * 2.5) = 5.
+    // Spin cost leaves 23, depositing 2 leaves 21, then the bank pays 5.
     assert_eq!(state.rents_paid, 1);
-    assert_eq!(state.coins, 3);
+    assert_eq!(state.coins, 1);
     assert!(state
         .items_held
         .iter()

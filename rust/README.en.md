@@ -1,288 +1,68 @@
-# Luck be a Landlord — Rust Rule Simulator
+# Rust workspace guide
 
-Author: 群友镜中人
+[Project overview](../README.en.md) | [中文](README.md) | [Fidelity notes](FIDELITY.md)
 
-[中文](README.md) | [English](README.en.md)
+Current rules: `2026-11-09-prespin-overflow-rent-offer-v15`.
 
-This is a Rust rewrite of the rules of *Luck be a Landlord*, built for high-throughput batch simulation, strategy research, and reinforcement-learning training. It reproduces the rules, numbers, and policy only; it does not rewrite the Godot UI, animations, or art. The original Godot project is used as a rules reference.
-
-This is the first public version. The rules, numbers, policy, and APIs may still contain bugs. Issues, forks, and pull requests are welcome. When reporting a problem, please include the seed, the command you ran, the expected result, the actual result, and a minimal reproduction if possible.
-
-## Seed system
-
-Every run is driven by an integer or string seed, and the random number generator is PCG32. A string seed is hashed with FNV-1a and derives independent `reel`, `effect`, `reel_shuffle`, and `effect_shuffle` streams per `spin_{n}`; the same seed, version, and policy reproduce the same sequence, which makes experiments repeatable.
-
-- CLI: `--seed N` for integer batch seeds (game *i* uses `seed + i`); `--seed-text TEXT` for a string seed.
-- Python: `lbal_py.Env(seed, data_dir)` and `lbal_py.BatchEnv(count, seed, data_dir)`.
-- Changing the rules or the RNG implementation can change results for an old seed; bit-for-bit equality across platforms is not guaranteed.
-
-This project's seed system is part of the public Rust source. There is also a public community seed system for the original game that is a useful reference:
-
-- [Piraeus42/BetterLandlord](https://github.com/Piraeus42/BetterLandlord): a C# seed mod with a seed system, run history, and win-rate statistics. Its seed flow hashes a string seed with FNV-1a and derives PCG streams for different purposes.
-- It runs on the [Piraeus42/SlotWeave](https://github.com/Piraeus42/SlotWeave) modding framework, which handles Godot runtime script injection and state reads.
-
-The Rust core now reproduces BetterLandlord's per-purpose stream derivation with the same PCG32 state progression; `--seed-text` accepts the game's `B2A...` seed strings for spin-by-spin comparison of placement, offers, and income. Across 200 seeds and the first 12 spins (2026-11-07), income matches on 98.65% of spins, board on 98.39%, deck on 98.61%, offers on 99.96%; 179/200 games have no first difference. The 100% phase-3 acceptance target is not yet met (21 games still differ); remaining differences are in [FIDELITY.md](FIDELITY.md).
-
-## Crates
-
-| Crate | Purpose |
+| Component | Purpose |
 | --- | --- |
-| `lbal_core` | Rules core: deck, board, spins, rent, rewards, items, essences, fine print, landlord fight, and heuristic policy |
-| `lbal_cli` | Command-line batch simulation, benchmarks, and income replay of real-game traces |
-| `lbal_py` | PyO3 bindings: `Env`, `BatchEnv`, and compact binary observations |
+| `lbal_core` | Floor 20 rules, seeded simulation, resolution, and built-in heuristic |
+| `lbal_cli` | Parallel simulation, per-game export, and native trace replay |
+| `lbal_py` | Single-game and batch Python bindings with JSON and compact observations |
 
-## Rule coverage
+## Data and tools
 
-- 168 symbols (including a few unused placeholders), 114 items (one placeholder), 113 essences, and 31 A20 fine prints (fine print 31 blocks manual item toggles).
-- 5 columns × 4 rows, per-column draws, empty slots preserved, spin cost, and Dud growth.
-- A20 rent curve 25/50/100/150/225/300/375/450/600/650/700/777; after the 12th rent payment, the 1500-HP landlord fight begins.
-- Adjacency, suits, wildcards, destruction, and growth for symbols; per-spin and triggered item effects; essence charging and one-shot effects; rent rewards and token settlement.
-- One coin is granted when the post-rent reward chain ends at exactly zero (also dealing one boss damage); the simulator also grants a coin at zero before a spin and fails a spin at negative balance. The latter behavior has not been verified against the current Steam version.
-- Valuation and policy priors can be overridden by `data/symbol_values.json` and `data/baseline_priors.json`; built-in defaults are used when those files are absent.
+Supply the following four files from a legally obtained game copy in the repository's `game/JSON` directory:
 
-The full rule list, approximations, and known differences are in [FIDELITY.md](FIDELITY.md). The implementation plan and acceptance notes are in [RUST_PORT_PLAN.md](RUST_PORT_PLAN.md).
+- `Symbols - JSON.json`
+- `Items - JSON.json`
+- `Essences - JSON.json`
+- `Fine Print - JSON.json`
 
-## Performance and test data
+You can also use `LBAL_DATA_DIR`, the CLI's `--data-dir DIR`, or the Python constructor's `data_dir` argument. The repository's policy data is optional; the original game JSON is required.
 
-Measured on one i7-12700F on 2026-11-07 with the current rule set and hand-written policy, seeds 42–10041; numbers will change with hardware and compiler options:
+On Windows, use the pinned GNU Rust toolchain and a MinGW-w64 linker. On Linux or macOS, select the native toolchain with `rustup override set stable`. The Python extension must match the target CPython installation; this release was verified on Windows with CPython 3.12.
 
-| Item | Result |
-| --- | --- |
-| 10,000-game benchmark, 20 threads | 2,047 wins, 20.47% win rate; average rents 7.72, spins 60.2, deck 28.4, final rent 659.9 |
-| Throughput | about 2,176 games/s over 10,000 games (20 threads) |
-| Single thread | about 230 games/s (1,000 games) |
-| Gym random masked policy, 100,000 steps | about 5,300 steps/s |
-| Real-game trace replay, first 12 spins | 2,367 spins across 200 seeds: 98.65% income, 98.39% board, 99.96% offers, 98.61% deck, 99.91% items; 179/200 games have no first difference |
-| Automated tests | 166 Rust tests (140 unit + 26 integration) + 12 Python Gym tests (2 require optional local PPO scripts and dependencies; otherwise skipped) |
-
-20.47% is the current hand-written policy’s win rate, not a simulator upper bound. Both the rules and policy changed since the previous 16.60% run, so the change cannot be attributed solely to the rules. The CLI policy does not manually toggle or destroy items. Trace replay still has 21/200 games with a first difference and 2 action mismatches; the 100% fidelity target remains unmet.
-
-Final rents paid in this batch (12+ includes the landlord fight):
-
-| Rents | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12+ |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Games | 100 | 330 | 205 | 492 | 758 | 1759 | 833 | 879 | 936 | 554 | 159 | 200 | 2795 |
-
-Watch the sample size: 40 games has a standard deviation of about 5%, so older "ten-game smoke test" claims are noise and have been retired. Compare policies over at least 2,000 games, and compare rule changes with same-seed replays.
-
-## Baseline policy
-
-The built-in baseline is called `heuristic-marginal-value-v13`. It is a hand-written rule set, not a trained neural network. It always plays floor 20. The main rules are:
-
-- **Filling phase (before the deck first reaches 20 symbols)**: compare rarity first; within the same rarity, compare the common-symbol priority table, associations, feeding synergies, and special combos. The priority table comes from `data/baseline_priors.json`. Take at most 3 coal symbols, and do not take coal on the hand immediately after taking one; do not take a cow without a cat; skip only when all three offers are common and near the bottom of the priority table. Normally at most 2 skips; with 2 or more coal, at most 1.
-- **After 20 symbols**: rank by incremental value. Long-lived symbols count as 1 effective slot, food with an existing consumer as 0.5, self-destroying one-shot symbols as 0.2, and timed symbols as 0.5. Each effective slot above 20 costs 0.25 points; each empty slot below 20 adds 0.25. Rent-phase thresholds are 1/2/3/4. Skip normal offers that do not meet the threshold, and do not reroll normal offers.
-- **Removal**: clean up the starting symbols in the order cherry → flower → banana peel → coin → cat → pearl. From rent 300, remove negative curses such as destruction and hoarding; from 375, remove drain, dullness, and emptiness. Other low-value symbols are removed by current incremental value. Growth cores, their food, key/chest pairs, arrow/Robin Hood/target pairs, and key multiplier cores are protected. Keep at least 1 removal token from rent 300 and at least 2 for the landlord fight from rent 600.
-- **Rent-reward rerolls**: reroll tokens are reserved for rent rewards. At rent 650 and above, keep rerolling while the best offer is below 4.5 and tokens remain. At 600, reroll at most twice and keep one token; at 300–450, reroll at most once and keep one. Once the deck reaches 24 symbols, do not reroll rewards below 650.
-- **One-shot symbols and gacha**: wealth gacha, void symbols, chemical seven, and the various gacha symbols are discounted as one-time income and scaled by remaining spins. Removal, reroll, item, and essence gacha are prioritized after the deck is full. A raw-value floor is used when comparing against “skip”, so one-shot symbols are not skipped by mistake.
-- **Items and essences**: compare item rarity first; within a rarity, combine the first-pick rates in `data/baseline_priors.json`, existing positive/negative associations, and item synergies. The CLI policy currently selects the first essence. The oil can picks the highest-value column; the swapping device enumerates adjacent swaps and only swaps when the gain exceeds 0.2.
-- **Flush and coin on a string**: cards are valued as one-time cash collected before the spin when the flush item or its essence is held. Coins generated by King Midas and the Midas box are valued by generation rate when coin-on-a-string or its essence is held.
-
-The baseline is still weak at item toggles, swap timing, capsule-content expectations, dice expectations, and parts of the late-game growth engine. The full v13 rules are in [当前基线策略说明.md](../当前基线策略说明.md), the guide trade-offs are in [攻略策略取舍.md](../攻略策略取舍.md), and historical batches and report fields are in [进阶20基线与记录.md](../进阶20基线与记录.md). These detailed notes are currently in Chinese.
-
-Reproduce the benchmark:
-
-```bash
-cargo run --release -p lbal_cli -- --games 10000 --seed 42 --threads 20 --hist
-```
-
-Reproduce the real v13 policy adapter (requires the `python/` directory from the full repository):
-
-```bash
-cd ..
-python python/v13_rust.py --games 10 --seed 100
-```
-
-## Requirements
-
-- Windows: Rust stable with the GNU toolchain. The repository's `rust-toolchain.toml` pins `stable-x86_64-pc-windows-gnu`, which requires a working MinGW-w64 linker.
-- Linux / macOS: the code itself is not Windows-specific, but the author has only verified it on Windows. Delete `rust-toolchain.toml` or run `rustup override set stable` to use the host's default toolchain.
-- Python 3.12 (only needed for the PyO3 bindings). Build the extension with the same CPython version you will use to run it.
-- Game JSON data; see the next section.
-
-## Preparing game data
-
-By default the simulator reads these files from `game/JSON` at the repository root:
-
-```text
-game/JSON/
-├─ Symbols - JSON.json
-├─ Items - JSON.json
-├─ Essences - JSON.json
-└─ Fine Print - JSON.json
-```
-
-Because of copyright, the repository does not include the game or the original JSON. Export them from a copy of the game you legally own, or ask the author.
-
-If you only share the `rust` directory, put the data in `rust/game/JSON`. You can also point to another location with an environment variable or a command-line argument:
-
-```bash
-# Environment variable (used by the CLI, tests, and PyO3)
-export LBAL_DATA_DIR=/path/to/game/JSON
-# Windows command prompt:
-# set LBAL_DATA_DIR=D:\path\to\game\JSON
-
-# Command-line argument (overrides automatic discovery)
-cargo run --release -p lbal_cli -- --data-dir /path/to/game/JSON
-```
-
-In Python, pass the directory to the constructor:
-
-```python
-env = lbal_py.Env(0, "/path/to/game/JSON")
-```
-
-Optional policy data lives in `data/` two levels above the data directory, for example `data/symbol_values.json` and `data/baseline_priors.json` at the repository root. The simulator still runs without them, but the heuristic policy becomes weaker. If you share only the `rust` directory, copy these two files into `rust/data/`.
-
-## Build
+## Batch simulation and replay
 
 ```bash
 cd rust
-cargo test --release
-cargo build --release -p lbal_cli
-```
-
-### Build the Python extension
-
-```bash
-cargo build --release -p lbal_py
-```
-
-Windows:
-
-```bat
-copy target\release\lbal_py.dll python_bindings\lbal_py.pyd
-```
-
-Linux / macOS:
-
-```bash
-# Linux
-cp target/release/liblbal_py.so python_bindings/lbal_py.so
-# macOS
-cp target/release/liblbal_py.dylib python_bindings/lbal_py.so
-```
-
-The repository's `.cargo/config.toml` sets `PYO3_USE_RAW_DYLIB=0` so the Windows GNU toolchain does not need `dlltool` and links against CPython's import library instead. The python.org Windows installer includes that library by default. Linux and macOS ignore this variable.
-
-## Command line
-
-```bash
-cd rust
+cargo test --release --workspace --locked
 cargo run --release -p lbal_cli -- --games 10000 --seed 42 --threads 20 --hist
+cargo run --release -p lbal_cli -- --games 1 --seed-text 1234567 --detail
 ```
 
-Example output:
+- `--seed N` selects integer batch seeds. `--seed-text TEXT` uses the literal seed shown by the community mod; a numeric string is distinct from an integer seed.
+- `--threads N` sets the simulation threads; `0` uses the available logical threads.
+- `--hist` prints the final rent histogram; `--results-json FILE` exports per-game results.
+- `--replay-actions DIR` replays a native action trace; `--replay-spins N` limits comparison length. Run `--help` for the complete options.
 
-```text
-games=10000 threads=20 elapsed=4.595s games_per_sec=2176.4
-wins=2047 losses=7953 win_rate=20.47% avg_rents=7.72 avg_spins=60.2 avg_deck=28.4 avg_final_rent=659.9
-```
+Text seeds use FNV-1a and separate PCG32 streams by purpose and spin, to support comparison with [BetterLandlord](https://github.com/Piraeus42/BetterLandlord). Reproduction requires the same data, rules, and action sequence. The default CLI policy is a [hand-written heuristic](../当前基线策略说明.md).
 
-Common options:
+## Python
 
-| Option | Meaning |
-| --- | --- |
-| `--games N` | Number of games; default 10000 |
-| `--seed N` | Starting seed; game *i* uses `seed + i` |
-| `--seed-text TEXT` | Pass a string seed directly (for same-seed comparisons with the game) |
-| `--threads N` | Number of threads; 0 means all logical CPUs |
-| `--max-spins N` | Maximum spins per game, to stop abnormal runs |
-| `--detail` | Print details for the first 10 games |
-| `--hist` | Print the rent-payment distribution |
-| `--replay DIR` | Replay `game_*.jsonl` real-game traces and compare income |
-| `--replay-actions DIR` | Replay real actions and compare offers/deck/items/income |
-| `--action-json FILE` | Write action-replay comparison results to JSON |
-| `--replay-spins N` | Replay the first N spins; default is 5 |
-| `--data-dir DIR` | Game JSON directory |
+From `rust`, run `cargo build --release --locked -p lbal_py`. Create `rust/python_bindings/` if needed and copy the extension there. Rename the Windows `target/release/lbal_py.dll` to `lbal_py.pyd`, or the Linux/macOS shared library to `lbal_py.so`. Set `PYO3_PYTHON` before building if you need to select a particular Python installation.
 
-## Python usage
-
-In the full repository, the `python/` directory provides higher-level wrappers:
+From the repository root:
 
 ```bash
-cd ..   # back to godot_kernel
 python python/rust_env.py --games 20
-python python/gym_env.py --steps 2000
 python -m unittest discover -s tests -p "test_gym_env.py"
 ```
 
-Using the PyO3 binding directly:
-
 ```python
-import json
 import sys
+sys.path.insert(0, "python")
 
-sys.path.insert(0, "python_bindings")
-import lbal_py
+from gym_env import RustGymEnv
 
-env = lbal_py.Env(0, None)          # seed, data directory; None means auto-discover
-obs = json.loads(env.observe())
-print(obs["phase"], obs["coins"])
-
-obs = json.loads(env.step(0))       # ready phase: spin
+env = RustGymEnv(seed=42, enable_management=True, offer_capacity=168)
+obs, info = env.reset()
+obs, reward, terminated, truncated, info = env.step(0)
 ```
 
-By default, the Gym action space has a fixed 128-wide layout:
+Use `action_mask()` to check what can be done. The existing action numbers remain: `0` spins or confirms rent; `1` skips; `2` rerolls a symbol offer; `3..18` select the first 16 offers; `19..127` remove a deck symbol. Management adds `128..383` for toggles and `384..639` for item/essence use. With expanded offer capacity, the 17th and later offers start at action `640`. Use `offer_action(index)` for either range.
 
-```text
-0          spin (ready phase only)
-1          skip the current reward
-2          reroll the current reward (needs a reroll token)
-3..18      take offer i - 3
-19..127    remove deck symbol i - 19
-```
+The lower-level `lbal_py.Env` has a separate interface: `step(0)` spins in the ready phase; during an offer, pass a zero-based index or a negative number to skip. Rerolls, removals, and item management use separate methods. `lbal_py.BatchEnv` runs independent games.
 
-`RustGymEnv(enable_management=True, reward_mode="fixed")` opts into an extended action mask: slots 128–383 toggle item/essence stacks and 384–639 manually destroy eligible item stacks. The index identifies a sorted entry in `managed_items`; inspect its mask and state at each step. A stack may be toggled once per spin and each toggle costs −0.05; destruction has no extra penalty. Fine print 31 and some items prohibit toggling. The `fixed` reward adds 1 per successful payment of the first 12 rents and 20 for a win. The CLI baseline does not use these management actions. Direct `Env` provides `toggle_managed(essence, type_id)` and `use_item(type_id)`; `BatchEnv` and compact observations do not expose these management actions.
-
-`BatchEnv(count, seed, data_dir)` drives multiple environments in parallel, and `observe_compact()` returns a little-endian `i32` binary observation suitable for training loops. See `../python/gym_env.py` for the action mask and vectorized environment.
-
-## Known differences
-
-- Same-seed RNG now aligns spin by spin (PCG32 with BetterLandlord derivation). Income matches on 98.65% of the first 12 spins (2026-11-07), and 21 games still have a first difference.
-- Fine print 31 blocks item/essence toggling. Some essences and items are approximations, and a few trigger orders differ from the real game.
-- The landlord fight models HP, the rent loop, and win/loss, but not phase skills or combat presentation.
-- The shop and some per-instance item state are not implemented. Manual item management is available through `Env`, but not through `BatchEnv`.
-- The hand-written policy still has limited late-game growth and does not manage items; its win rate cannot be directly compared across different simulator versions.
-
-See [FIDELITY.md](FIDELITY.md) for details.
-
-## Repository layout
-
-```text
-rust/
-├─ Cargo.toml
-├─ crates/
-│  ├─ lbal_core/          rules core
-│  ├─ lbal_cli/           batch simulation and benchmarks
-│  └─ lbal_py/            PyO3 bindings
-├─ python_bindings/       built extension (not committed; build locally)
-├─ FIDELITY.md            rule fidelity and known differences
-├─ RUST_PORT_PLAN.md      implementation plan and acceptance notes
-└─ .cargo/config.toml     PyO3 linking configuration
-```
-
-## Project status and feedback
-
-This is the first public version. Many interactions are still approximated or missing, so bugs are expected. Contributions are welcome:
-
-- Open an issue with the seed, command, expected result, and actual result.
-- Fork the repository and send a pull request, especially for rule fixes, seed cross-checks, and policy improvements.
-- Share your seeds, win-rate records, or a better baseline so others can reproduce and compare.
-
-## FAQ
-
-**`failed to load game data`**: `game/JSON` was not found. Place the data as described above, or set `LBAL_DATA_DIR` / `--data-dir`.
-
-**`No module named 'lbal_py'`**: build `lbal_py`, copy the dynamic library into `rust/python_bindings/`, and rename it to `lbal_py.pyd` on Windows or `lbal_py.so` on Linux / macOS.
-
-**`dlltool.exe not found` on Windows GNU**: make sure the repository's `.cargo/config.toml` is in effect (it sets `PYO3_USE_RAW_DYLIB=0`) and that `libs/python3xx.lib` exists in your Python installation.
-
-**`link: extra operand` when building with MSVC in Git Bash**: Git's own `link.exe` is shadowing the MSVC linker. Use the GNU toolchain pinned by the repository, or build from a Visual Studio developer command prompt.
-
-**Python version mismatch**: the `.pyd` is tied to the CPython version it was built against. Rebuild after changing Python.
-
-## Copyright and license
-
-Rust code author: 群友镜中人, licensed under the [MIT License](../LICENSE).
-
-*Luck be a Landlord*, its game data, text, and art are copyright their original author. This repository does not include the game, the original data, or scripts extracted from the game; the MIT License does not cover them.
+JSON observations include `rules_version`, `managed_items`, `boss_context`, `symbol_history_counts`, and each symbol offer's `pre_spin_effect`. Detailed spin accounting is opt-in: call `set_diagnostics(True)` and then read `diagnostics()` after a spin for payout details and both symbol histories.

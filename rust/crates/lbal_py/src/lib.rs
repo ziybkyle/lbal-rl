@@ -125,6 +125,10 @@ fn phase_name(phase: &Phase) -> &'static str {
 
 fn observation_for(state: &RunState<'_>) -> String {
     let expert_scores = expert_offer_scores(state);
+    let pre_spin_effects = match &state.phase {
+        Phase::SpinReward { offer } | Phase::SymbolReward { offer } => state.pre_spin_symbol_observations(offer),
+        _ => Vec::new(),
+    };
     let offer: Vec<Value> = match &state.phase {
             Phase::SpinReward { offer } | Phase::SymbolReward { offer } => offer
                 .iter()
@@ -135,10 +139,11 @@ fn observation_for(state: &RunState<'_>) -> String {
                         "index": index,
                         "type_id": type_id,
                         "name": def.name,
-                        "rarity": def.rarity,
+                        "rarity": state.effective_symbol_rarity(*type_id),
                         "base_value": def.base_value,
                         "kind": "symbol",
                         "expert_score": expert_scores.get(index).copied().unwrap_or(0.0),
+                        "pre_spin_effect": pre_spin_effects[index],
                     })
                 })
                 .collect(),
@@ -183,10 +188,12 @@ fn observation_for(state: &RunState<'_>) -> String {
                     "index": index,
                     "type_id": symbol.type_id,
                     "name": def.name,
-                    "rarity": def.rarity,
-                    "bonus": symbol.bonus,
-                    "multiplier": symbol.multiplier,
+                    "rarity": state.effective_symbol_rarity(symbol.type_id as usize),
+                    "bonus": symbol.bonus + state.symbol_rule_bonus(symbol.type_id as usize),
+                    "multiplier": symbol.multiplier as f64 * state.symbol_rule_multiplier(symbol.type_id as usize),
                     "times_displayed": symbol.times_displayed,
+                    "times_coins_given": symbol.times_coins_given,
+                    "saved": symbol.saved,
                     "can_remove": state.can_remove_symbol(index),
                 })
             })
@@ -217,9 +224,26 @@ fn observation_for(state: &RunState<'_>) -> String {
             let def = if essence { &state.data.essences[id] } else { &state.data.items[id] };
             json!({"kind": if essence {"essence"} else {"item"}, "type_id": id, "name": def.name,
                 "disabled": disabled, "count": count, "can_toggle": state.can_toggle_managed(essence, id),
-                "can_use": !essence && state.can_use_managed_item(id)})
+                "can_use": state.can_use_managed(essence, id),
+                "state": state.managed_item_observation(essence, id),
+                "saved": if essence { 0 } else { state.managed_item_saved(id) }})
         }).collect();
         let board: Vec<i64> = state.last_board.iter().map(|id| *id as i64).collect();
+        let history_counts = |ids: &[u16]| {
+            let mut counts = std::collections::BTreeMap::<&str, usize>::new();
+            if ids.len() <= 16 {
+                for &id in ids { *counts.entry(state.data.symbols[id as usize].name.as_str()).or_default() += 1; }
+                return counts;
+            }
+            // Count by the already validated type id, then order only the
+            // distinct names for JSON. Long histories need no string lookups.
+            let mut by_type = vec![0usize; state.data.symbols.len()];
+            for &id in ids { by_type[id as usize] += 1; }
+            for (id, count) in by_type.into_iter().enumerate() {
+                if count > 0 { *counts.entry(state.data.symbols[id].name.as_str()).or_default() += count; }
+            }
+            counts
+        };
         json!({
             "phase": phase_name(&state.phase),
             "done": matches!(state.phase, Phase::Done),
@@ -238,9 +262,19 @@ fn observation_for(state: &RunState<'_>) -> String {
             "removal_cost": state.removal_cost(),
             "reroll_cost": state.reroll_cost(),
             "can_remove": state.removal_tokens >= state.removal_cost(),
-            "can_reroll": state.reroll_tokens >= state.reroll_cost(),
+            "can_reroll": state.can_reroll(),
             "boss_fight": state.boss_fight_active(),
             "boss_hp": state.boss_hp(),
+            "rules_version": lbal_core::state::RULES_VERSION,
+            "item_state_version": lbal_core::state::ITEM_STATE_VERSION,
+            "rule_context_version": "rule_context_v1",
+            "boss_context": state.fine_print_details(),
+            "symbol_history_counts": {"destroyed": history_counts(state.destroyed_symbol_history()),
+                                      "removed": history_counts(state.removed_symbol_history())},
+            "manual_decisions": state.manual_decisions,
+            "rent_pending": state.rent_pending,
+            "destroyed_symbols": state.destroyed_symbol_count(),
+            "removed_symbols": state.removed_symbol_count(),
             "must_take_symbol": state.must_take_symbol(),
             "deck": deck,
             "items": items,
@@ -320,9 +354,9 @@ impl Env {
         expert_gym_action(&self.state, &mut self.teacher) as u64
     }
 
-    /// Re-roll the current reward if a token is available.
+    /// Re-roll a symbol offer if a token is available. Items/essences cannot reroll.
     fn reroll(&mut self) -> bool {
-        if self.state.reroll_tokens >= self.state.reroll_cost() {
+        if self.state.can_reroll() {
             self.state.reroll_reward();
             true
         } else {
@@ -344,17 +378,50 @@ impl Env {
 
     fn toggle_managed(&mut self, essence: bool, id: usize) -> bool { self.state.toggle_managed(essence, id) }
     fn use_item(&mut self, id: usize) -> bool { self.state.use_item(id) }
+    fn use_managed(&mut self, essence: bool, id: usize) -> bool { self.state.use_managed(essence, id) }
+    fn set_manual_decisions(&mut self, enabled: bool) { self.state.manual_decisions = enabled; }
+    /// Optional training practice; normal environments never invoke this hook.
+    fn training_grant(&mut self, kind: &str, name: &str, count: usize) -> PyResult<String> {
+        self.state.grant_training_card(kind, name, count)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(self.observation())
+    }
+    /// Enable detailed accounting only for human diagnostics, never for PPO observations.
+    fn set_diagnostics(&mut self, enabled: bool) {
+        self.state.diagnostics_enabled = enabled;
+        if !enabled { self.state.last_spin_diagnostics = None; }
+    }
+
+    /// Read the exact exit pools and optional spin accounting without advancing RNG.
+    fn diagnostics(&self) -> String {
+        let history = |ids: &[u16]| ids.iter().enumerate().map(|(index,id)| {
+            json!({"index": index, "type_id": id, "name": self.state.data.symbols[*id as usize].name})
+        }).collect::<Vec<_>>();
+        json!({"version": "manual_diagnostics_v1", "last_spin": self.state.last_spin_diagnostics,
+            "destroyed": history(self.state.destroyed_symbol_history()),
+            "removed": history(self.state.removed_symbol_history())}).to_string()
+    }
+
+    fn fine_prints(&self) -> String { self.state.fine_print_details().to_string() }
 
     /// Restart with a new seed and return the initial observation.
     fn reset(&mut self, seed: u64) -> String {
+        let manual_decisions = self.state.manual_decisions;
+        let diagnostics = self.state.diagnostics_enabled;
         self.state = RunState::new(self.state.data, seed);
+        self.state.manual_decisions = manual_decisions;
+        self.state.diagnostics_enabled = diagnostics;
         self.teacher = ExpertMemory::default();
         self.observation()
     }
 
     /// Restart with a BetterLandlord seed string.
     fn reset_text(&mut self, seed_text: String) -> String {
+        let manual_decisions = self.state.manual_decisions;
+        let diagnostics = self.state.diagnostics_enabled;
         self.state = RunState::new_with_seed_text(self.state.data, &seed_text);
+        self.state.manual_decisions = manual_decisions;
+        self.state.diagnostics_enabled = diagnostics;
         self.teacher = ExpertMemory::default();
         self.observation()
     }
@@ -540,6 +607,9 @@ impl BatchEnv {
 
 #[pymodule]
 fn lbal_py(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add("RULES_VERSION", lbal_core::state::RULES_VERSION)?;
+    module.add("ITEM_STATE_VERSION", lbal_core::state::ITEM_STATE_VERSION)?;
+    module.add("RULE_CONTEXT_VERSION", "rule_context_v1")?;
     module.add_class::<Env>()?;
     module.add_class::<BatchEnv>()?;
     Ok(())

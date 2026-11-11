@@ -5,6 +5,29 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 pub const BOARD_COLS: usize = 5;
 pub const BOARD_ROWS: usize = 4;
 pub const BOARD_SLOTS: usize = BOARD_COLS * BOARD_ROWS;
+pub const RULES_VERSION: &str = "2026-11-09-prespin-overflow-rent-offer-v15";
+pub const ITEM_STATE_VERSION: &str = "item_state_v1";
+#[path = "managed_observation.rs"]
+mod managed_observation;
+pub use managed_observation::{ManagedItemObservation, ManagedProgress};
+#[path = "spin_diagnostics.rs"]
+mod spin_diagnostics;
+pub use spin_diagnostics::SpinDiagnostics;
+
+/// Removal leaves no destroy event or on-destroy payout. Both kinds free a
+/// board position, but only destruction can be prevented by a dove.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+enum SymbolExit {
+    #[default]
+    Present,
+    Destroyed,
+    Removed,
+}
+
+impl SymbolExit {
+    fn is_gone(self) -> bool { self != Self::Present }
+    fn is_destroyed(self) -> bool { self == Self::Destroyed }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Rarity {
@@ -34,7 +57,7 @@ struct SpawnedValue {
     sum: i32,
     mult: f64,
     saved: i32,
-    destroyed: bool,
+    exit: SymbolExit,
     /// Off-screen icons never appear in `check_values`.
     visible: bool,
 }
@@ -58,6 +81,8 @@ pub struct Symbol {
     pub times_coins_given: u32,
     /// Per-instance `saved_value` used by symbols such as the light bulb.
     pub saved: i32,
+    /// Resurrection limits follow each lineage, separately for the two items.
+    revivals: [u8;2],
 }
 
 impl Symbol {
@@ -69,6 +94,7 @@ impl Symbol {
             times_displayed: 0,
             times_coins_given: 0,
             saved: 0,
+            revivals: [0;2],
         }
     }
 
@@ -82,6 +108,7 @@ impl Symbol {
             times_displayed: 0,
             times_coins_given: 0,
             saved: 0,
+            revivals: [0;2],
         }
     }
 
@@ -117,6 +144,9 @@ pub struct Board {
     pub reels: [Vec<Option<usize>>; BOARD_COLS],
     /// Screen row for each icon: -1 means off-screen.
     pub positions: [Vec<i32>; BOARD_COLS],
+    /// Full-reel additions are materialized at the next spin, as in
+    /// `Reel.icon_types_to_be_added`; they must not affect intervening picks.
+    pub deferred: [Vec<usize>; BOARD_COLS],
     initialized: bool,
 }
 
@@ -126,12 +156,28 @@ impl Board {
             slots: [None; BOARD_SLOTS],
             reels: Default::default(),
             positions: Default::default(),
+            deferred: Default::default(),
             initialized: false,
         }
     }
 
     pub fn occupied(&self) -> usize {
         self.slots.iter().filter(|slot| slot.is_some()).count()
+    }
+
+    /// Import a directly supplied test/replay board without changing its cells.
+    fn adopt_slots(&mut self) {
+        if self.initialized { return; }
+        for x in 0..BOARD_COLS { self.reels[x] = vec![None; REEL_ICONS]; }
+        self.rebuild_positions();
+        for slot in 0..BOARD_SLOTS {
+            let x = slot % BOARD_COLS;
+            let y = slot / BOARD_COLS;
+            if let Some(at) = self.positions[x].iter().position(|row| *row == y as i32) {
+                self.reels[x][at] = self.slots[slot];
+            }
+        }
+        self.initialized = true;
     }
 
     fn base_layout(data: &GameData, deck: &[Symbol]) -> Option<[Vec<Option<usize>>; BOARD_COLS]> {
@@ -179,6 +225,10 @@ impl Board {
     }
 
     fn rebuild_positions(&mut self) {
+        self.rebuild_positions_with_offset(1);
+    }
+
+    fn rebuild_positions_with_offset(&mut self, offset: usize) {
         for reel in 0..BOARD_COLS {
             let count = self.reels[reel].len();
             self.positions[reel] = (0..count)
@@ -186,7 +236,7 @@ impl Board {
                     if count == 0 {
                         -1
                     } else {
-                        ((index + reel + 1) % count) as i32 - 1
+                        ((index + reel + offset) % count) as i32 - 1
                     }
                 })
                 .collect();
@@ -207,6 +257,14 @@ impl Board {
 
     /// Exact Godot `shuffle_tiles()` for the base layout.
     pub fn deal(&mut self, deck: &[Symbol], rng: &mut BetterLandlordRng, data: &GameData) {
+        self.flush_deferred();
+        self.deal_current_reels(deck,rng,data);
+    }
+
+    /// Pre-spin effects may queue new symbols after the previous additions
+    /// were flushed. Native keeps those new overflow additions pending until
+    /// the next spin, so they must not be included in this shuffle.
+    fn deal_current_reels(&mut self, deck: &[Symbol], rng: &mut BetterLandlordRng, data: &GameData) {
         if !self.initialized || self.reels.iter().all(|reel| reel.is_empty()) {
             if let Some(reels) = Self::base_layout(data, deck) {
                 self.reels = reels;
@@ -219,11 +277,11 @@ impl Board {
                 }
                 for (index, symbol) in deck.iter().enumerate() {
                     let reel = index % BOARD_COLS;
-                    let slot = self.reels[reel]
-                        .iter()
-                        .position(|entry| entry.is_none())
-                        .unwrap_or(0);
-                    self.reels[reel][slot] = Some(index);
+                    if let Some(slot) = self.reels[reel].iter().position(|entry| entry.is_none()) {
+                        self.reels[reel][slot] = Some(index);
+                    } else {
+                        self.reels[reel].push(Some(index));
+                    }
                     let _ = symbol;
                 }
                 self.initialized = true;
@@ -290,15 +348,56 @@ impl Board {
             self.reels[empty.0][empty.1] = value;
             self.reels[other.0][other.1] = None;
         }
+        // shuffle_tiles first uses the reel_num + 1 layout for its empty-cell
+        // swaps. Reel.update then stops at 16 + reel_num icon widths. The
+        // extra 15 is invisible with five icons, but rotates longer reels.
+        self.rebuild_positions_with_offset(16);
         self.sync_slots();
     }
 
-    /// Place a newly acquired symbol into an empty slot.
-    ///
-    /// Mirrors `Main.add_tile` + `Reel.add_tile`: prefer a reel with a
-    /// *visible* empty, then any reel with an empty (possibly off-screen),
-    /// and only append a sixth icon when the reels are completely full.
     pub fn add_symbol(&mut self, deck_index: usize, rng: &mut BetterLandlordRng) {
+        self.add_symbols(&[deck_index],rng);
+    }
+
+    /// Mirror a single `Main.add_tile(batch)` call. Fill visible and hidden
+    /// empties first. On overflow the reference draws a reel for the first
+    /// deferred icon, then draws once more for the whole remaining batch.
+    /// Those deferred additions do not change the candidate list mid-batch.
+    pub fn add_symbols(&mut self, indices: &[usize], rng: &mut BetterLandlordRng) {
+        self.adopt_slots();
+        for (order,&index) in indices.iter().enumerate() {
+            if self.add_symbol_to_empty(index,rng) { continue; }
+            let mut candidates:Vec<usize> = Vec::new();
+            // Preserve the reference's scan exactly, including its ties and
+            // the trailing smaller reels after the most recent larger reel.
+            for reel in 0..BOARD_COLS {
+                if !candidates.is_empty() && self.reels[reel].len() > self.reels[candidates[0]].len() {
+                    candidates.clear();candidates.push(reel);
+                } else if !self.reels[reel].is_empty() { candidates.push(reel); }
+            }
+            let first=candidates[rng.randi_max(candidates.len())];
+            self.deferred[first].push(index);
+            if order+1 < indices.len() {
+                let rest=candidates[rng.randi_max(candidates.len())];
+                for &index in &indices[order+1..] {
+                    self.deferred[rest].push(index);
+                }
+            }
+            break;
+        }
+        self.sync_slots();
+    }
+
+    fn flush_deferred(&mut self) {
+        for reel in 0..BOARD_COLS {
+            for index in self.deferred[reel].drain(..) {
+                self.reels[reel].push(Some(index));self.positions[reel].push(-1);
+            }
+        }
+    }
+
+    fn add_symbol_to_empty(&mut self, deck_index: usize, rng: &mut BetterLandlordRng) -> bool {
+        self.adopt_slots();
         let mut visible_reels: Vec<usize> = Vec::new();
         let mut any_reels: Vec<usize> = Vec::new();
         for reel in 0..BOARD_COLS {
@@ -318,19 +417,7 @@ impl Board {
         } else if !any_reels.is_empty() {
             any_reels[rng.randi_max(any_reels.len())]
         } else {
-            // Full reels: Godot appends to the reel with the most icons.
-            let mut best = 0usize;
-            let mut best_count = 0usize;
-            for reel in 0..BOARD_COLS {
-                if self.reels[reel].len() > best_count {
-                    best_count = self.reels[reel].len();
-                    best = reel;
-                }
-            }
-            self.reels[best].push(Some(deck_index));
-            self.rebuild_positions();
-            self.sync_slots();
-            return;
+            return false;
         };
         let visible_empties: Vec<usize> = self.reels[reel]
             .iter()
@@ -356,9 +443,10 @@ impl Board {
             self.reels[reel][slot] = Some(deck_index);
         } else {
             self.reels[reel].push(Some(deck_index));
+            self.positions[reel].push(-1);
         }
-        self.rebuild_positions();
         self.sync_slots();
+        true
     }
 
     pub fn prune_invalid(&mut self, deck_len: usize) {
@@ -366,19 +454,23 @@ impl Board {
             return;
         }
         for reel in 0..BOARD_COLS {
+            self.deferred[reel].retain(|&index|index < deck_len);
             for entry in self.reels[reel].iter_mut() {
                 if entry.map(|index| index >= deck_len).unwrap_or(false) {
                     *entry = None;
                 }
             }
         }
-        self.rebuild_positions();
         self.sync_slots();
     }
 
     /// Remove deck symbols from the reels and shift later deck indices.
     pub fn remove_deck_indices(&mut self, removed: &[usize]) {
         for reel in 0..BOARD_COLS {
+            self.deferred[reel].retain(|index|!removed.contains(index));
+            for index in &mut self.deferred[reel] {
+                *index-=removed.iter().filter(|value|**value < *index).count();
+            }
             for entry in self.reels[reel].iter_mut() {
                 if let Some(index) = *entry {
                     if removed.contains(&index) {
@@ -391,7 +483,6 @@ impl Board {
             }
         }
         if self.initialized {
-            self.rebuild_positions();
             self.sync_slots();
         }
     }
@@ -400,12 +491,14 @@ impl Board {
 fn retain_deck(
     deck: &mut Vec<Symbol>,
     data: &GameData,
+    removed_history: &mut Vec<u16>,
     keep: impl Fn(&crate::data::Def) -> bool,
 ) -> Vec<usize> {
     let mut removed = Vec::new();
     for (index, symbol) in deck.iter().enumerate() {
         if !keep(&data.symbols[symbol.type_id as usize]) {
             removed.push(index);
+            removed_history.push(symbol.type_id);
         }
     }
     let removed_set = removed.clone();
@@ -471,6 +564,10 @@ pub struct RunState<'a> {
     pending_extra_symbol_offers: i32,
     pending_bonus_symbols: Vec<BonusOffer>,
     pending_bonus_items: i32,
+    pending_pepper_items: i32,
+    pending_offer_followup: Option<FollowUp>,
+    /// Item effects resolved during a spin join the normal newborn queue.
+    queued_spin_symbols: Vec<usize>,
     pre_spin_income: i32,
     spin_column_mult: [f64; BOARD_COLS],
     essence_pool: Vec<usize>,
@@ -480,6 +577,9 @@ pub struct RunState<'a> {
     /// Debug breakdown of item and essence income for the latest spin.
     pub last_item_gains: Vec<(String, i32)>,
     pub last_extra_income: i32,
+    /// Optional human-play diagnostics; never enabled by training callers.
+    pub diagnostics_enabled: bool,
+    pub last_spin_diagnostics: Option<SpinDiagnostics>,
     /// Raw effect-stream randf values consumed by the latest spin, for
     /// comparing against Godot's `_bh_rng_effect` call sequence.
     pub last_effect_rng: Vec<f64>,
@@ -496,6 +596,10 @@ pub struct RunState<'a> {
     pub disabled_items: Vec<usize>,
     pub disabled_essences: Vec<usize>,
     toggled_this_spin: HashSet<(bool, usize)>,
+    /// Managed agents choose emergency items and pillow offers themselves.
+    /// Legacy callers retain their automatic emergency policy.
+    pub manual_decisions: bool,
+    pub rent_pending: bool,
     passed_symbols: HashSet<usize>,
     taken_symbols: HashSet<usize>,
     pub failure_reason: Option<&'static str>,
@@ -503,6 +607,7 @@ pub struct RunState<'a> {
     /// Real clauses name one dynamic icon per reliant clause; effects only hit
     /// that symbol/item type.
     fine_print_icons: HashMap<u32, String>,
+    pending_fine_prints: Vec<(u32, Option<String>)>,
     fine_print_counter: i32,
     spin_rarity_penalty: f64,
     spin_rarity_factor: f64,
@@ -515,6 +620,10 @@ pub struct RunState<'a> {
     item_ages: HashMap<usize, i32>,
     item_saved: HashMap<usize, i32>,
     essence_destroy_counters: HashMap<usize, i32>,
+    spin_essence_triggers: HashSet<usize>,
+    spin_effect_essences: HashSet<usize>,
+    spin_consumptions: HashSet<(u16,u16)>,
+    spin_dove_blocks: HashSet<(usize,usize)>,
     lefty_saved: i32,
     telescope_saved: i32,
     protractor_saved: i32,
@@ -523,12 +632,16 @@ pub struct RunState<'a> {
     spin_all_adjacent: bool,
     spin_corner_adjacent: bool,
     destroyed_history: Vec<u16>,
+    removed_history: Vec<u16>,
     compost_destroyed: u32,
     permanent_name_bonus: HashMap<String, i32>,
     permanent_group_bonus: HashMap<String, i32>,
     permanent_name_mult: HashMap<String, f64>,
     permanent_group_mult: HashMap<String, f64>,
     copycat_active: bool,
+    holy_water_active: bool,
+    quigley_active: bool,
+    permanent_rarity_factor: f64,
     clear_sky_active: bool,
     grave_robber_mult: i32,
     shrine_active: bool,
@@ -538,6 +651,10 @@ pub struct RunState<'a> {
     swapping_essence_swaps: i32,
     item_offer_floor: Option<(Rarity, usize)>,
     symbol_forced_queue: Vec<(Rarity, bool)>,
+    active_symbol_forced: Vec<(Rarity,bool)>,
+    active_symbol_extra: usize,
+    active_bonus_offer: Option<BonusOffer>,
+    active_item_peppers: bool,
     force_skip_reward: bool,
     force_take_symbol: bool,
     boss_fight: bool,
@@ -604,6 +721,9 @@ impl<'a> RunState<'a> {
             pending_extra_symbol_offers: 0,
             pending_bonus_symbols: Vec::new(),
             pending_bonus_items: 0,
+            pending_pepper_items: 0,
+            pending_offer_followup: None,
+            queued_spin_symbols: Vec::new(),
             pre_spin_income: 0,
             spin_column_mult: [1.0; BOARD_COLS],
             essence_pool: (0..data.essences.len()).collect(),
@@ -611,6 +731,8 @@ impl<'a> RunState<'a> {
             last_symbol_income: Vec::new(),
             last_item_gains: Vec::new(),
             last_extra_income: 0,
+            diagnostics_enabled: false,
+            last_spin_diagnostics: None,
             last_effect_rng: Vec::new(),
             last_reel_shuffle: Vec::new(),
             last_effect_shuffle: Vec::new(),
@@ -622,11 +744,14 @@ impl<'a> RunState<'a> {
             disabled_items: Vec::new(),
             disabled_essences: Vec::new(),
             toggled_this_spin: HashSet::new(),
+            manual_decisions: false,
+            rent_pending: false,
             passed_symbols: data.symbol_id("coin").into_iter().collect(),
             taken_symbols: HashSet::new(),
             failure_reason: None,
             fine_prints: Vec::new(),
             fine_print_icons: HashMap::new(),
+            pending_fine_prints: Vec::new(),
             fine_print_counter: 0,
             spin_rarity_penalty: 1.0,
             spin_rarity_factor: 1.0,
@@ -637,6 +762,10 @@ impl<'a> RunState<'a> {
             item_ages: HashMap::new(),
             item_saved: HashMap::new(),
             essence_destroy_counters: HashMap::new(),
+            spin_essence_triggers: HashSet::new(),
+            spin_effect_essences: HashSet::new(),
+            spin_consumptions: HashSet::new(),
+            spin_dove_blocks: HashSet::new(),
             lefty_saved: 0,
             telescope_saved: 0,
             protractor_saved: 0,
@@ -645,12 +774,16 @@ impl<'a> RunState<'a> {
             spin_all_adjacent: false,
             spin_corner_adjacent: false,
             destroyed_history: Vec::new(),
+            removed_history: Vec::new(),
             compost_destroyed: 0,
             permanent_name_bonus: HashMap::new(),
             permanent_group_bonus: HashMap::new(),
             permanent_name_mult: HashMap::new(),
             permanent_group_mult: HashMap::new(),
             copycat_active: false,
+            holy_water_active: false,
+            quigley_active: false,
+            permanent_rarity_factor: 1.0,
             clear_sky_active: false,
             grave_robber_mult: 1,
             shrine_active: false,
@@ -660,6 +793,10 @@ impl<'a> RunState<'a> {
             swapping_essence_swaps: 0,
             item_offer_floor: None,
             symbol_forced_queue: Vec::new(),
+            active_symbol_forced: Vec::new(),
+            active_symbol_extra: 0,
+            active_bonus_offer: None,
+            active_item_peppers: false,
             force_skip_reward: false,
             force_take_symbol: false,
             boss_fight: false,
@@ -794,134 +931,118 @@ impl<'a> RunState<'a> {
     /// Floor 20 adds a dud every 15 spins while the run is still alive.
     fn add_dud_if_due(&mut self) {
         if self.rents_paid < 12 && self.total_spins > 0 && self.total_spins % 15 == 0 {
-            if let Some(index) = self.data.symbol_id("dud") {
-                self.deck.push(Symbol::new(index, 0));
-            }
+            self.add_symbols("dud", 1);
         }
     }
 
-    fn store_eggs_and_fish(&mut self) {
-        let has_carton = self
-            .items_held
-            .iter()
-            .any(|id| self.data.items[*id].name == "egg_carton");
-        let carton_essence = self
-            .data
-            .essence_index
-            .get("egg_carton_essence")
-            .copied()
-            .filter(|id| self.essences_held.contains(id));
-        if has_carton || carton_essence.is_some() {
-            let before = self.deck.len();
-            let removed = retain_deck(&mut self.deck, self.data, |def| def.name != "egg");
-            if !removed.is_empty() {
-                self.board.remove_deck_indices(&removed);
-            }
-            let count = (before - self.deck.len()) as i32;
-            if has_carton {
-                self.stored_eggs += count;
-            }
-            if let Some(essence_id) = carton_essence {
-                if count > 0 {
-                    let values = &self.data.essences[essence_id].values;
-                    let threshold = values.first().copied().unwrap_or(12.0) as i32;
-                    let per_egg = values.get(1).copied().unwrap_or(1.0) as i32;
-                    self.coins += count * per_egg;
-                    *self.essence_saved.entry(essence_id).or_insert(0) += count;
-                    if self.essence_saved.get(&essence_id).copied().unwrap_or(0)
-                        >= threshold.max(1)
-                    {
-                        self.try_destroy_essence(essence_id);
-                    }
-                }
-            }
-        }
-        if self
-            .items_held
-            .iter()
-            .any(|id| self.data.items[*id].name == "fish_bowl")
-        {
-            let before = self.deck.len();
-            let removed = retain_deck(&mut self.deck, self.data, |def| def.name != "goldfish");
-            if !removed.is_empty() {
-                self.board.remove_deck_indices(&removed);
-            }
-            self.stored_goldfish += (before - self.deck.len()) as i32;
-        }
-    }
+    #[cfg(test)]
+    fn store_eggs_and_fish(&mut self) { self.consume_symbols_pre_spin(); }
 
     /// Coin-on-a-string, flush and the lint roller consume matching symbols
     /// before the reels are dealt, paying a fixed amount per symbol consumed.
-    fn consume_symbols_pre_spin(&mut self) {
-        let mut item_rules: Vec<(&'static str, i32, bool)> = Vec::new();
-        for item_id in self.items_held.clone() {
-            let name = self.data.items[item_id].name.clone();
-            let values = self.data.items[item_id].values.clone();
-            let v0 = values.first().copied().unwrap_or(0.0) as i32;
-            let v1 = values.get(1).copied().unwrap_or(0.0) as i32;
-            match name.as_str() {
-                "coin_on_a_string" => item_rules.push(("coin", v1, true)),
-                "flush" => item_rules.push(("suit", v0, false)),
-                "lint_roller" => item_rules.push(("rabbit_fluff", v0, false)),
-                _ => {}
-            }
+    fn pre_spin_consumer_rules(&self) -> Vec<(&'static str, i32, Option<usize>, i32)> {
+        // Determine all consumers before removing anything: an item and its
+        // essence both pay for the same batch, without removing it twice.
+        let mut rules: Vec<(&str, i32, Option<usize>, i32)> = Vec::new();
+        for &id in &self.items_held {
+            let def = &self.data.items[id];
+            let v0 = def.values.first().copied().unwrap_or(0.0) as i32;
+            let v1 = def.values.get(1).copied().unwrap_or(0.0) as i32;
+            let rule = match def.name.as_str() {
+                "coin_on_a_string" if !self.has_fine_print(20) => Some(("coin", v1)),
+                "flush" => Some(("suit", v0)),
+                "lint_roller" => Some(("rabbit_fluff", v0)),
+                "egg_carton" if !self.has_fine_print(21) => Some(("egg", 0)),
+                "fish_bowl" => Some(("goldfish", 0)),
+                _ => None,
+            };
+            if let Some((target, payout)) = rule { rules.push((target, payout, None, 0)); }
         }
-        let mut essence_rules: Vec<(&'static str, i32, usize, i32)> = Vec::new();
-        for essence_id in self.essences_held.clone() {
-            let name = self.data.essences[essence_id].name.clone();
-            let values = self.data.essences[essence_id].values.clone();
-            let v0 = values.first().copied().unwrap_or(0.0) as i32;
-            let v1 = values.get(1).copied().unwrap_or(0.0) as i32;
-            let (target, payout) = match name.as_str() {
-                "coin_on_a_string_essence" => ("coin", v1),
-                "flush_essence" => ("suit", v1),
-                "lint_roller_essence" => ("rabbit_fluff", v1),
-                "fish_bowl_essence" => ("goldfish", v1),
-                "barrel_o_dwarves_essence" => ("dwarf", v1),
+        let mut seen = HashSet::new();
+        for &id in &self.essences_held {
+            if !seen.insert(id) { continue; }
+            let def = &self.data.essences[id];
+            let target = match def.name.as_str() {
+                "coin_on_a_string_essence" if !self.has_fine_print(20) => "coin",
+                "egg_carton_essence" if !self.has_fine_print(21) => "egg",
+                "flush_essence" => "suit",
+                "lint_roller_essence" => "rabbit_fluff",
+                "fish_bowl_essence" => "goldfish",
+                "barrel_o_dwarves_essence" => "dwarf",
                 _ => continue,
             };
-            essence_rules.push((target, payout, essence_id, v0.max(1)));
+            let payout = def.values.get(1).copied().unwrap_or(0.0) as i32
+                * self.essence_count(&def.name);
+            let threshold = def.values.first().copied().unwrap_or(1.0) as i32;
+            rules.push((target, payout, Some(id), threshold.max(1)));
         }
-        if item_rules.is_empty() && essence_rules.is_empty() {
-            return;
+        rules
+    }
+
+    /// Exact active consumers at the current decision point. This does not
+    /// predict future toggles, additions, RNG, or essence expiry before a spin.
+    pub fn pre_spin_symbol_observation(&self, type_id: usize) -> serde_json::Value {
+        let rules = self.pre_spin_consumer_rules();
+        self.pre_spin_symbol_observation_with_rules(type_id, &rules,
+            self.has_item("egg_carton") && !self.has_fine_print(21), self.has_item("fish_bowl"))
+    }
+
+    /// All offers share the same active consumers. Construct this read-only
+    /// context once, including for credit-card offers containing 20/30 icons.
+    pub fn pre_spin_symbol_observations(&self, type_ids: &[usize]) -> Vec<serde_json::Value> {
+        if type_ids.is_empty() { return Vec::new(); }
+        let rules = self.pre_spin_consumer_rules();
+        let stored_eggs = self.has_item("egg_carton") && !self.has_fine_print(21);
+        let stored_goldfish = self.has_item("fish_bowl");
+        type_ids.iter().map(|&type_id| self.pre_spin_symbol_observation_with_rules(
+            type_id, &rules, stored_eggs, stored_goldfish)).collect()
+    }
+
+    fn pre_spin_symbol_observation_with_rules(&self, type_id: usize,
+        rules: &[(&str, i32, Option<usize>, i32)], stored_eggs: bool, stored_goldfish: bool,
+    ) -> serde_json::Value {
+        let def = &self.data.symbols[type_id];
+        let mut consumer_count = 0usize;
+        let mut cash_per_symbol = 0;
+        for &(target, payout, _, _) in rules {
+            let matches = if target == "suit" { def.groups.iter().any(|group| group == "suit") }
+                else { def.name == target };
+            if matches { consumer_count += 1; cash_per_symbol += payout; }
         }
-        let mut income = 0;
-        for (target, payout, blocked_by_fp20) in item_rules {
-            if blocked_by_fp20 && self.has_fine_print(20) {
-                continue;
+        serde_json::json!({"removed": consumer_count > 0,
+            "cash_per_symbol": cash_per_symbol, "consumer_count": consumer_count,
+            "stored_as_egg": def.name == "egg" && stored_eggs,
+            "stored_as_goldfish": def.name == "goldfish" && stored_goldfish})
+    }
+
+    fn consume_symbols_pre_spin(&mut self) {
+        let rules = self.pre_spin_consumer_rules();
+        if rules.is_empty() { return; }
+        let matches = |def: &crate::data::Def, target: &str| {
+            if target == "suit" { def.groups.iter().any(|g| g == "suit") }
+            else { def.name == target }
+        };
+        let mut counts = Vec::new();
+        for &(target, payout, essence, threshold) in &rules {
+            let count = self.deck.iter().filter(|s| matches(&self.data.symbols[s.type_id as usize],target)).count() as i32;
+            counts.push((count, payout, essence, threshold));
+        }
+        let egg_count = self.deck.iter().filter(|s| self.data.symbols[s.type_id as usize].name == "egg").count() as i32;
+        let fish_count = self.deck.iter().filter(|s| self.data.symbols[s.type_id as usize].name == "goldfish").count() as i32;
+        if self.has_item("egg_carton") && !self.has_fine_print(21) {
+            self.stored_eggs += egg_count;
+        }
+        if self.has_item("fish_bowl") { self.stored_goldfish += fish_count; }
+        let removed = retain_deck(&mut self.deck, self.data, &mut self.removed_history,
+            |def| !rules.iter().any(|(target,_,_,_)| matches(def,target)));
+        self.board.remove_deck_indices(&removed);
+        for (count, payout, essence, threshold) in counts {
+            self.pre_spin_income += count * payout;
+            if let Some(id) = essence.filter(|_| count > 0) {
+                *self.essence_saved.entry(id).or_insert(0) += count;
+                if self.essence_saved[&id] >= threshold { self.try_destroy_essence(id); }
             }
-            let removed = retain_deck(&mut self.deck, self.data, |def| {
-                !match target {
-                    "suit" => def.groups.iter().any(|group| group == "suit"),
-                    other => def.name == other,
-                }
-            });
-            self.board.remove_deck_indices(&removed);
-            income += removed.len() as i32 * payout;
         }
-        let mut destroyed: Vec<usize> = Vec::new();
-        for (target, payout, essence_id, threshold) in essence_rules {
-            let removed = retain_deck(&mut self.deck, self.data, |def| {
-                !match target {
-                    "suit" => def.groups.iter().any(|group| group == "suit"),
-                    other => def.name == other,
-                }
-            });
-            self.board.remove_deck_indices(&removed);
-            if removed.is_empty() {
-                continue;
-            }
-            income += removed.len() as i32 * payout;
-            let saved = self.essence_saved.entry(essence_id).or_insert(0);
-            *saved += removed.len() as i32;
-            if *saved >= threshold {
-                destroyed.push(essence_id);
-            }
-        }
-        for essence_id in destroyed {
-            self.try_destroy_essence(essence_id);
-        }
-        self.pre_spin_income += income;
     }
 
     /// Oil can: after a five-spin charge it re-deals the most valuable reel and
@@ -1288,6 +1409,14 @@ impl<'a> RunState<'a> {
         if self.phase != Phase::Ready {
             return SpinOutcome::default();
         }
+        if self.rent_pending {
+            self.rent_pending = false;
+            let paid = self.coins >= self.rent_due();
+            if paid { self.pay_rent(); }
+            else { self.phase = Phase::Done; self.failure_reason = Some("unpaid_rent"); }
+            return SpinOutcome { coins: self.coins, spins_left: self.spins_left,
+                occupied: self.board.occupied(), rent_paid: paid, ..SpinOutcome::default() };
+        }
         if self.coins >= 1_000_000_000 && self.has_essence("guillotine_essence") {
             self.phase = Phase::Done;
             return SpinOutcome::default();
@@ -1300,9 +1429,8 @@ impl<'a> RunState<'a> {
             return SpinOutcome { coins: self.coins, spins_left: self.spins_left, ..SpinOutcome::default() };
         }
         if self.coins == 0 { self.coins = 1; }
-        self.coins -= 1;
         self.toggled_this_spin.clear();
-        if !self.boss_fight
+        if !self.manual_decisions && !self.boss_fight
             && self.spins_left == 2
             && self.has_essence("comfy_pillow_essence")
             && self.coins >= self.rent_due()
@@ -1316,7 +1444,7 @@ impl<'a> RunState<'a> {
             {
                 self.try_destroy_essence(essence_id);
             }
-            if !self.has_essence("comfy_pillow_essence") {
+            {
                 self.spins_left = 0;
                 self.item_offer_floor = Some((Rarity::VeryRare, 1));
                 self.last_income = 0;
@@ -1330,7 +1458,7 @@ impl<'a> RunState<'a> {
                 };
             }
         }
-        if !self.boss_fight && self.spins_left == 1 && self.has_item("comfy_pillow") {
+        if !self.manual_decisions && !self.boss_fight && self.spins_left == 1 && self.has_item("comfy_pillow") {
             let count = self
                 .items_held
                 .iter()
@@ -1359,15 +1487,19 @@ impl<'a> RunState<'a> {
                 };
             }
         }
+        self.coins -= 1;
+        // The reference seeds this spin's streams before adding the periodic
+        // floor-20 Dud. Its placement must advance this spin's reel stream,
+        // including the draws used by subsequent newborn placement.
+        self.rng.begin_spin(self.total_spins + 1);
+        self.board.flush_deferred();
         self.add_dud_if_due();
-        self.store_eggs_and_fish();
         self.consume_symbols_pre_spin();
         self.spin_column_mult = [1.0; BOARD_COLS];
         self.board.prune_invalid(self.deck.len());
-        self.rng.begin_spin(self.total_spins + 1);
         self.rng.effect().begin_log();
         let mut reel_shuffle = self.rng.reel_shuffle();
-        self.board.deal(&self.deck, &mut reel_shuffle, self.data);
+        self.board.deal_current_reels(&self.deck, &mut reel_shuffle, self.data);
         self.apply_oil_can();
         self.apply_oil_can_essence();
         self.apply_swapping_device();
@@ -1403,6 +1535,11 @@ impl<'a> RunState<'a> {
         }
 
         let mut rent_paid = false;
+        if self.spins_left <= 0 && self.has_essence("coffee_essence") {
+            let id = self.data.essence_index["coffee_essence"];
+            self.spins_left += self.data.essences[id].values.first().copied().unwrap_or(2.0) as i32;
+            self.try_destroy_essence(id);
+        }
         if self.spins_left <= 0 {
             if self.coins < self.rent_due() {
                 self.cash_out_savings();
@@ -1410,40 +1547,25 @@ impl<'a> RunState<'a> {
             if self.coins >= self.rent_due() {
                 self.pay_rent();
                 rent_paid = true;
+            } else if self.manual_decisions && self.management_stacks().iter().any(|(essence,id,_,_)| {
+                !essence && matches!(self.data.items[*id].name.as_str(), "piggy_bank" | "swear_jar" | "devils_deal" | "coffee")
+            }) {
+                // Pause before declaring bankruptcy. Action 0 now confirms
+                // the rent check; item actions can first change its outcome.
+                self.rent_pending = true;
+                self.phase = Phase::Ready;
             } else if let Some(position) = self
                 .items_held
                 .iter()
                 .position(|id| self.data.items[*id].name == "devils_deal")
             {
-                self.items_held.remove(position);
+                let id = self.items_held.remove(position);
+                let count = self.data.items[id].values.first().copied().unwrap_or(6.0) as i32;
+                // Each Dud starts a fresh 33-displayed-spin countdown.
+                self.add_symbols("dud", count);
                 self.item_saved.retain(|id, _| self.items_held.contains(id) || self.disabled_items.contains(id));
                 self.pay_rent_waived();
                 rent_paid = true;
-            } else if self.has_essence("coffee_essence") {
-                // Coffee essence buys a few extra spins instead of ending the run.
-                let extra = self
-                    .data
-                    .essence_index
-                    .get("coffee_essence")
-                    .map(|id| {
-                        self.data.essences[*id]
-                            .values
-                            .first()
-                            .copied()
-                            .unwrap_or(0.0) as i32
-                            + 1
-                    })
-                    .unwrap_or(2);
-                if let Some(position) = self
-                    .essences_held
-                    .iter()
-                    .position(|id| self.data.essences[*id].name == "coffee_essence")
-                {
-                    self.essences_held.remove(position);
-                }
-                self.essence_saved
-                    .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
-                self.spins_left += extra;
             } else if let Some(position) = self
                 .items_held
                 .iter()
@@ -1465,6 +1587,7 @@ impl<'a> RunState<'a> {
             let offer = self.roll_spin_reward();
             self.phase = Phase::SpinReward { offer };
         }
+        if self.phase == Phase::Ready && !self.rent_pending { self.activate_pending_fine_prints(); }
         SpinOutcome {
             income,
             coins: self.coins,
@@ -1476,249 +1599,73 @@ impl<'a> RunState<'a> {
 
     /// Advances essence charge counters and resolves their one-shot payouts.
     /// Essences are free pickups offered at rent from payment four onward.
-    fn tick_essences(&mut self, entries: &[(usize, usize, usize)], destroyed_count: i32) -> i32 {
-        if self.essences_held.is_empty() {
-            return 0;
-        }
-        // Preserve acquisition order: randomized HashMap iteration must not
-        // change effect ordering or consume the seeded RNG in another order.
-        let mut counts = Vec::<(usize, i32)>::new();
+    fn tick_essences(&mut self, entries: &[(usize, usize, usize)], destroyed_count: i32, spin_bonus: &[i32]) -> i32 {
+        let mut counts = Vec::<(usize,i32)>::new();
         for &id in &self.essences_held {
-            if let Some((_, copies)) = counts.iter_mut().find(|(held, _)| *held == id) {
-                *copies += 1;
-            } else {
-                counts.push((id, 1));
-            }
+            if let Some((_,n)) = counts.iter_mut().find(|(held,_)| *held == id) { *n += 1; }
+            else { counts.push((id,1)); }
         }
-        let mut booze_displayed = false;
-        let mut chest_displayed = false;
-        for (index, _, _) in entries {
-            let def = &self.data.symbols[self.deck[*index].type_id as usize];
-            if def.groups.iter().any(|group| group == "booze") {
-                booze_displayed = true;
-            }
-            if def.groups.iter().any(|group| group == "chest") {
-                chest_displayed = true;
-            }
-        }
-
         let mut payout = 0;
-        let mut destroyed: Vec<usize> = Vec::new();
-        for (essence_id, copies) in counts {
-            let def = &self.data.essences[essence_id];
+        let mut spent = Vec::new();
+        for (id,copies) in counts {
+            let def = &self.data.essences[id];
             let name = def.name.clone();
             let v0 = def.values.first().copied().unwrap_or(0.0) as i32;
             let v1 = def.values.get(1).copied().unwrap_or(0.0) as i32;
             let v2 = def.values.get(2).copied().unwrap_or(0.0) as i32;
-            if name == "black_pepper_essence" {
-                if destroyed_count > 0 {
-                    payout += v0 * destroyed_count * copies;
-                    destroyed.push(essence_id);
+            let (increment,threshold) = match name.as_str() {
+                "black_pepper_essence" => {
+                    if destroyed_count > 0 { payout += v0 * destroyed_count * copies; spent.push(id); }
+                    continue;
                 }
-                continue;
-            }
-            if name == "recycling_essence" {
-                self.reroll_tokens += v1.max(1);
-                destroyed.push(essence_id);
-                continue;
-            }
-            if name == "checkered_flag_essence" {
-                let charges = entries
-                    .iter()
-                    .filter(|(index, _, _)| {
-                        self.has_group(self.deck[*index].type_id as usize, "slow")
-                            && self.deck[*index].current_value(self.data) > 0
-                    })
-                    .count() as i32;
-                if charges > 0 {
-                    *self.essence_saved.entry(essence_id).or_insert(0) += charges;
-                    let saved = self.essence_saved.get(&essence_id).copied().unwrap_or(0);
-                    if saved >= v0.max(1) {
-                        destroyed.push(essence_id);
-                    }
+                "recycling_essence" => { self.reroll_tokens += v1 * copies; spent.push(id); continue; }
+                "piggy_bank_essence" => { payout -= v0 * copies; (copies,v1) }
+                "checkered_flag_essence" => {
+                    let n = entries.iter().filter(|(index,_,_)| {
+                        let def = &self.data.symbols[self.deck[*index].type_id as usize];
+                        (self.has_group(self.deck[*index].type_id as usize,"slow") || def.name == "robin_hood")
+                            && self.deck[*index].current_value(self.data) + spin_bonus.get(*index).copied().unwrap_or(0) > 0
+                    }).count() as i32;
+                    (n,v0)
                 }
-                continue;
-            }
-            if name == "piggy_bank_essence" {
-                *self.essence_saved.entry(essence_id).or_insert(0) += copies;
-                let saved = self.essence_saved.get(&essence_id).copied().unwrap_or(0);
-                if saved >= v1.max(1) {
-                    destroyed.push(essence_id);
-                    payout += v2 * copies;
+                "lockpick_essence" | "happy_hour_essence" | "time_machine_essence" | "lucky_dice_essence" => (0,v0),
+                "horseshoe_essence" | "pool_ball_essence" | "bowling_ball_essence" | "four_leaf_clover_essence" => {
+                    payout += v1 * copies; (copies,v0)
                 }
-                continue;
-            }
-            if matches!(
-                name.as_str(),
-                "horseshoe_essence"
-                    | "pool_ball_essence"
-                    | "bowling_ball_essence"
-                    | "four_leaf_clover_essence"
-            ) {
-                payout += v1 * copies;
-            }
-            let increments = match name.as_str() {
-                "lockpick_essence" => {
-                    if chest_displayed {
-                        copies
-                    } else {
-                        0
-                    }
-                }
-                "happy_hour_essence" => {
-                    if booze_displayed {
-                        copies
-                    } else {
-                        0
-                    }
-                }
-                "lunchbox_essence"
-                | "adoption_papers_essence"
-                | "coin_on_a_string_essence"
-                | "flush_essence"
-                | "lint_roller_essence"
-                | "fish_bowl_essence"
-                | "barrel_o_dwarves_essence"
-                | "nori_the_rabbit_essence"
-                | "lucky_cat_essence"
-                | "black_cat_essence"
-                | "ritual_candle_essence"
-                | "holy_water_essence"
-                | "anthropology_degree_essence"
-                | "blue_suits_essence"
-                | "red_suits_essence"
-                | "triple_coins_essence"
-                | "birdhouse_essence"
-                | "undertaker_essence"
-                | "red_pepper_essence"
-                | "green_pepper_essence"
-                | "blue_pepper_essence"
-                | "yellow_pepper_essence"
-                | "purple_pepper_essence"
-                | "cyan_pepper_essence"
-                | "tax_evasion_essence"
-                | "looting_glove_essence"
-                | "kyle_the_kernite_essence"
-                | "ricky_the_banana_essence"
-                | "quigley_the_wolf_essence"
-                | "compost_heap_essence"
-                | "cleaning_rag_essence"
-                | "fruit_basket_essence"
-                | "goldilocks_essence"
-                | "egg_carton_essence"
-                | "lemon_essence"
-                | "gray_pepper_essence"
-                | "lime_pepper_essence"
-                | "pink_pepper_essence"
-                | "brown_pepper_essence"
-                | "shedding_season_essence"
-                | "sunglasses_essence"
-                | "ancient_lizard_blade_essence"
-                | "turtle_and_rabbit_essence"
-                | "ninja_and_mouse_essence"
-                | "rain_cloud_essence"
-                | "cursed_katana_essence"
-                | "fifth_ace_essence"
-                | "copycat_essence"
-                | "clear_sky_essence"
-                | "mining_pick_essence"
-                | "mobius_strip_essence"
-                | "void_party_essence"
-                | "void_portal_essence"
-                | "credit_card_essence"
-                | "dark_humor_essence"
-                | "dwarven_anvil_essence"
-                | "jackolantern_essence"
-                | "maxwell_the_bear_essence"
-                | "oswald_the_monkey_essence"
-                | "wanted_poster_essence"
-                | "zaroffs_contract_essence"
-                | "grave_robber_essence"
-                | "shrine_essence"
-                | "frying_pan_essence"
-                | "rusty_gear_essence"
-                | "guillotine_essence"
-                | "chicken_coop_essence"
-                | "chili_powder_essence"
-                | "comfy_pillow_essence"
-                | "conveyor_belt_essence"
-                | "oil_can_essence"
-                | "reroll_essence"
-                | "swapping_device_essence" => 0,
-                _ => copies,
+                "booster_pack_essence" | "golden_carrot_essence" | "lucky_carrot_essence" => (copies,v1),
+                "cardboard_box_essence" | "dishwasher_essence" | "treasure_map_essence" |
+                "lucky_seven_essence" | "telescope_essence" | "protractor_essence" => (copies,v0),
+                // All remaining essences charge on a particular action or
+                // event. They must never expire merely because spins pass.
+                _ => continue,
             };
-            if increments == 0 {
-                continue;
-            }
-            *self.essence_saved.entry(essence_id).or_insert(0) += increments;
-            let saved = self.essence_saved.get(&essence_id).copied().unwrap_or(0);
-            let threshold = match name.as_str() {
-                "booster_pack_essence" => v1,
-                "golden_carrot_essence" | "lucky_carrot_essence" => v1,
-                _ => v0,
-            }
-            .max(1);
-            if saved < threshold {
-                continue;
-            }
-            destroyed.push(essence_id);
+            *self.essence_saved.entry(id).or_insert(0) += increment;
+            if self.essence_saved[&id] < threshold.max(1) { continue; }
+            spent.push(id);
             match name.as_str() {
-                "shattered_mirror_essence" => payout += v2 * copies,
+                "piggy_bank_essence" => payout += v2 * copies,
                 "dishwasher_essence" => self.essence_tokens += v1 * copies,
                 "cardboard_box_essence" => self.removal_tokens += v1 * copies,
-                "symbol_bomb_small_essence"
-                | "symbol_bomb_big_essence"
-                | "symbol_bomb_very_big_essence" => {
-                    self.reroll_tokens += v1 * copies;
-                    self.removal_tokens += v1 * copies;
-                }
-                "symbol_bomb_quantum_essence" => {
-                    if let Some(item) = self.data.item_index.get("symbol_bomb_quantum").copied() {
-                        for _ in 0..copies {
-                            self.grant_item(item);
-                        }
-                    }
+                "booster_pack_essence" => {
+                    for _ in 0..v0 * copies { self.pending_bonus_symbols.push(BonusOffer::Rarity(Rarity::Uncommon)); }
+                    for _ in 0..v2 * copies { self.pending_bonus_symbols.push(BonusOffer::Rarity(Rarity::VeryRare)); }
                 }
                 "golden_carrot_essence" | "lucky_carrot_essence" => {
-                    let extra = (v0 as usize * copies as usize).max(1);
-                    for _ in 0..extra {
-                        self.symbol_forced_queue.push((Rarity::VeryRare, true));
-                    }
+                    for _ in 0..v0 * copies { self.symbol_forced_queue.push((Rarity::VeryRare,true)); }
                 }
                 "treasure_map_essence" => {
-                    for name in ["key", "mega_chest"] {
-                        if let Some(symbol) = self.data.symbol_id(name) {
-                            let value = self.data.symbols[symbol].base_value;
-                            self.deck.push(Symbol::new(symbol, value));
-                            self.note_symbol_added(symbol);
+                    for name in ["key","mega_chest"] {
+                        if let Some(type_id) = self.data.symbol_id(name) {
+                            self.queued_spin_symbols.push(type_id);
                         }
                     }
                 }
-                "lucky_seven_essence" => {
-                    self.chemical_seven_common = true;
-                    self.refresh_symbol_pools();
-                }
-                "happy_hour_essence" => {
-                    let multiplier = def.values.get(1).copied().unwrap_or(1.0);
-                    for symbol in self.deck.iter_mut() {
-                        if self.data.symbols[symbol.type_id as usize]
-                            .groups
-                            .iter()
-                            .any(|group| group == "booze")
-                        {
-                            let extra =
-                                (symbol.current_value(self.data) as f64 * (multiplier - 1.0))
-                                    .round() as i32;
-                            symbol.bonus += extra.max(1);
-                        }
-                    }
-                }
+                "lucky_seven_essence" => { self.chemical_seven_common = true; self.refresh_symbol_pools(); }
+                "happy_hour_essence" => self.multiply_permanent_group("booze",def.values[1].powi(copies)),
                 _ => {}
             }
         }
-        for essence_id in destroyed {
-            self.try_destroy_essence(essence_id);
-        }
+        for id in spent { self.try_destroy_essence(id); }
         payout
     }
 
@@ -1751,6 +1698,7 @@ impl<'a> RunState<'a> {
         }
         let mut fired: Vec<(usize, String, i32, f64)> = Vec::new();
         for (essence_id, copies) in counts {
+            if self.spin_essence_triggers.contains(&essence_id) { continue; }
             let def = &self.data.essences[essence_id];
             let name = def.name.clone();
             let v0 = def.values.first().copied().unwrap_or(0.0) as i32;
@@ -1766,13 +1714,13 @@ impl<'a> RunState<'a> {
                 "blue_suits_essence" => name_count("clubs") + name_count("spades") >= v0,
                 "red_suits_essence" => name_count("hearts") + name_count("diamonds") >= v0,
                 "triple_coins_essence" => name_count("coin") >= v0,
-                "birdhouse_essence" => group_count("bird") >= v0,
+                "birdhouse_essence" => self.has_matching_clump(entries, &[], Some("bird"), v0 as usize),
                 "undertaker_essence" => name_count("spirit") >= v0,
                 "kyle_the_kernite_essence" => group_count("kyle") >= v0,
                 "ricky_the_banana_essence" => {
                     name_count("banana") + name_count("banana_peel") >= v0
                 }
-                "quigley_the_wolf_essence" => name_count("dog") + name_count("wolf") >= v0,
+                "quigley_the_wolf_essence" => self.has_matching_clump(entries, &["dog","wolf"], None, v0 as usize),
                 "cleaning_rag_essence" => group_count("gem") >= v0,
                 "fruit_basket_essence" => group_count("fruit") >= v0,
                 "goldilocks_essence" => name_count("bear") >= v0,
@@ -1783,6 +1731,11 @@ impl<'a> RunState<'a> {
             }
         }
         for (essence_id, name, copies, v1) in fired {
+            if name == "lucky_cat_essence" {
+                self.permanent_rarity_factor *= v1.powi(copies);
+                self.try_destroy_essence(essence_id);
+                continue;
+            }
             let (names, groups): (&[&str], &[&str]) = match name.as_str() {
                 "nori_the_rabbit_essence" => (&["rabbit", "rabbit_fluff"], &[]),
                 "black_cat_essence" => (&["cat"], &[]),
@@ -1815,24 +1768,19 @@ impl<'a> RunState<'a> {
                     | "cleaning_rag_essence"
                     | "fruit_basket_essence"
             );
-            for symbol in self.deck.iter_mut() {
-                let def = &self.data.symbols[symbol.type_id as usize];
-                let hit = names.iter().any(|name| def.name == *name)
-                    || groups
-                        .iter()
-                        .any(|group| def.groups.iter().any(|tag| tag == group));
-                if !hit {
-                    continue;
-                }
+            for &name in names {
                 if multiplier {
-                    let current = symbol.current_value(self.data);
-                    symbol.multiplier = 1;
-                    symbol.bonus =
-                        (current as f64 * v1.powi(copies)).round() as i32 - def.base_value;
+                    self.multiply_permanent_name(name, v1.powi(copies));
                 } else {
-                    symbol.bonus += v1 as i32 * copies;
+                    self.add_permanent_name_bonus(name, v1 as i32 * copies);
                 }
             }
+            for &group in groups {
+                if multiplier { self.multiply_permanent_group(group, v1.powi(copies)); }
+                else { self.add_permanent_group_bonus(group, v1 as i32 * copies); }
+            }
+            if name == "holy_water_essence" { self.holy_water_active = true; }
+            if name == "quigley_the_wolf_essence" { self.quigley_active = true; }
             self.try_destroy_essence(essence_id);
         }
         self.essence_saved
@@ -1858,30 +1806,9 @@ impl<'a> RunState<'a> {
                 counts.push((id, 1));
             }
         }
-        let destroyed_boxes = self
-            .destroyed_history
-            .iter()
-            .filter(|type_id| self.has_group(**type_id as usize, "box"))
-            .count() as i32;
-        let destroyed_void = self
-            .destroyed_history
-            .iter()
-            .filter(|type_id| self.has_group(**type_id as usize, "void"))
-            .count() as i32;
-        let destroyed_minerlikes = self
-            .destroyed_history
-            .iter()
-            .filter(|type_id| self.has_group(**type_id as usize, "minerlikes"))
-            .count() as i32;
-        let destroyed_spirits = self
-            .destroyed_history
-            .iter()
-            .filter(|type_id| {
-                self.data.symbols[**type_id as usize].name == "spirit"
-            })
-            .count() as i32;
         let mut fired: Vec<(usize, String, i32)> = Vec::new();
         for (essence_id, copies) in counts {
+            if self.spin_essence_triggers.contains(&essence_id) { continue; }
             let def = &self.data.essences[essence_id];
             let name = def.name.clone();
             let v0 = def.values.first().copied().unwrap_or(0.0) as i32;
@@ -1913,43 +1840,34 @@ impl<'a> RunState<'a> {
                 }
                 "copycat_essence" => self.has_clump_of(entries, "cat", v0.max(1) as usize),
                 "clear_sky_essence" => self.has_adjacent_pair(entries, "sun", "moon"),
-                "mining_pick_essence" => destroyed_minerlikes >= v0,
-                "mobius_strip_essence" => destroyed_boxes >= v0,
-                "void_party_essence" => destroyed_void >= v0,
+                "mining_pick_essence" => self.essence_saved.get(&essence_id).copied().unwrap_or(0) >= v0,
+                "mobius_strip_essence" => self.essence_saved.get(&essence_id).copied().unwrap_or(0) >= v0,
+                "void_party_essence" => self.essence_saved.get(&essence_id).copied().unwrap_or(0) >= v0,
                 "void_portal_essence" => destroyed_count > 0,
-                "dark_humor_essence" => {
-                    self.destroyed_matching(entries, destroyed, Some("comedian"), None)
-                        && self.displayed_matching(entries, destroyed, "banana_peel")
-                }
+                "dark_humor_essence" => self.destroyed_matching(entries, destroyed, Some("comedian"), None),
                 "dwarven_anvil_essence" => {
-                    self.destroyed_matching(entries, destroyed, None, Some("anvillikes"))
-                        && self.displayed_matching(entries, destroyed, "dwarf")
+                    self.consumed_by(&["dwarf"],None,Some("anvillikes"))
                 }
                 "jackolantern_essence" => {
-                    self.destroyed_matching(entries, destroyed, Some("candy"), None)
-                        && self.displayed_matching(entries, destroyed, "toddler")
+                    self.consumed_by(&["toddler"],Some("candy"),None)
                 }
                 "maxwell_the_bear_essence" => {
-                    self.destroyed_matching(entries, destroyed, Some("honey"), None)
-                        && self.displayed_matching(entries, destroyed, "bear")
+                    self.consumed_by(&["bear"],Some("honey"),None)
                 }
                 "oswald_the_monkey_essence" => {
-                    self.destroyed_matching(entries, destroyed, None, Some("monkeylikes"))
-                        && self.displayed_matching(entries, destroyed, "monkey")
+                    self.consumed_by(&["monkey"],None,Some("monkeylikes"))
                 }
                 "wanted_poster_essence" => {
-                    self.destroyed_matching(entries, destroyed, Some("thief"), None)
-                        && self.displayed_matching(entries, destroyed, "bounty_hunter")
+                    self.consumed_by(&["bounty_hunter"],Some("thief"),None)
                 }
                 "zaroffs_contract_essence" => {
-                    self.destroyed_matching(entries, destroyed, None, Some("human"))
-                        && (self.displayed_matching(entries, destroyed, "bounty_hunter")
-                            || self.displayed_matching(entries, destroyed, "general_zaroff"))
+                    self.consumed_by(&["bounty_hunter","general_zaroff"],None,Some("human"))
                 }
+                "pizza_the_cat_essence" => self.consumed_by(&["cat"],Some("milk"),None),
                 "grave_robber_essence" => {
                     self.destroyed_matching(entries, destroyed, None, Some("spiritbox"))
                 }
-                "shrine_essence" => destroyed_spirits >= v0,
+                "shrine_essence" => self.essence_saved.get(&essence_id).copied().unwrap_or(0) >= v0,
                 "rusty_gear_essence" => {
                     let mut names: Vec<String> = entries
                         .iter()
@@ -2035,6 +1953,7 @@ impl<'a> RunState<'a> {
                 "wanted_poster_essence" => {
                     self.multiply_permanent_name("bounty_hunter", v0.powi(copies));
                 }
+                "pizza_the_cat_essence" => self.multiply_permanent_name("cat",v0.powi(copies)),
                 "zaroffs_contract_essence" => {
                     payout += v0 as i32 * copies;
                 }
@@ -2124,6 +2043,8 @@ impl<'a> RunState<'a> {
         if self.phase != Phase::Ready || !self.items_held.contains(&item_id) { return false; }
         let Some(def) = self.data.items.get(item_id) else { return false; };
         match def.name.as_str() {
+            "coffee" | "devils_deal" => self.rent_pending,
+            "comfy_pillow" => !self.boss_fight && !self.rent_pending && self.spins_left == 1 && self.coins >= self.rent_due(),
             "symbol_bomb_small" | "symbol_bomb_big" | "symbol_bomb_very_big" | "symbol_bomb_quantum" |
             "booster_pack" | "piggy_bank" | "swear_jar" | "barrel_o_dwarves" |
             "lunchbox" | "adoption_papers" | "goldilocks" => true,
@@ -2132,6 +2053,39 @@ impl<'a> RunState<'a> {
             }
             _ => false,
         }
+    }
+
+    pub fn managed_item_saved(&self, item_id: usize) -> i32 {
+        self.item_saved.get(&item_id).copied().unwrap_or(0)
+    }
+
+    pub fn can_use_managed(&self, essence: bool, id: usize) -> bool {
+        if !essence { return self.can_use_managed_item(id); }
+        self.phase == Phase::Ready && !self.rent_pending && !self.boss_fight
+            && self.spins_left == 2 && self.coins >= self.rent_due()
+            && self.essences_held.contains(&id)
+            && self.data.essences.get(id).map(|def| def.name == "comfy_pillow_essence").unwrap_or(false)
+    }
+
+    fn use_comfy_pillow(&mut self, essence: bool) {
+        let id = if essence { self.data.essence_index["comfy_pillow_essence"] }
+            else { self.data.item_index["comfy_pillow"] };
+        let (rarity, count) = if essence {
+            self.try_destroy_essence(id);
+            (Rarity::VeryRare, 1)
+        } else {
+            (Rarity::Rare, self.data.items[id].values.get(1).copied().unwrap_or(1.0).max(1.0) as usize)
+        };
+        self.spins_left = 0;
+        self.item_offer_floor = Some((rarity, count));
+        self.last_income = 0;
+        self.pay_rent();
+    }
+
+    pub fn use_managed(&mut self, essence: bool, id: usize) -> bool {
+        if !self.can_use_managed(essence, id) { return false; }
+        if essence { self.use_comfy_pillow(true); true }
+        else { self.use_item(id) }
     }
 
     pub fn has_item(&self, name: &str) -> bool {
@@ -2144,6 +2098,11 @@ impl<'a> RunState<'a> {
         self.essences_held
             .iter()
             .any(|id| self.data.essences[*id].name == name)
+    }
+
+    fn has_spin_essence(&self, name: &str) -> bool {
+        self.has_essence(name) || self.data.essence_index.get(name)
+            .map(|id| self.spin_effect_essences.contains(id)).unwrap_or(false)
     }
 
     fn essence_protection_limit(&self) -> Option<i32> {
@@ -2175,6 +2134,7 @@ impl<'a> RunState<'a> {
     }
 
     fn try_destroy_essence(&mut self, essence_id: usize) {
+        self.spin_essence_triggers.insert(essence_id);
         if let Some(limit) = self.essence_protection_limit() {
             let counter = self
                 .essence_destroy_counters
@@ -2182,6 +2142,13 @@ impl<'a> RunState<'a> {
                 .or_insert(0);
             *counter += 1;
             if *counter < limit.max(1) {
+                self.essence_saved.insert(essence_id, 0);
+                match self.data.essences[essence_id].name.as_str() {
+                    "conveyor_belt_essence" => self.spawner_spawns = 0,
+                    "swapping_device_essence" => self.swapping_essence_swaps = 0,
+                    "reroll_essence" => self.reroll_essence_rerolls = 0,
+                    _ => {}
+                }
                 return;
             }
         }
@@ -2247,9 +2214,7 @@ impl<'a> RunState<'a> {
                 .copied()
             {
                 self.try_destroy_essence(essence_id);
-                if !self.has_essence("conveyor_belt_essence") {
-                    self.spawner_bonus_mult *= factor;
-                }
+                self.spawner_bonus_mult *= factor;
             }
         }
     }
@@ -2278,7 +2243,128 @@ impl<'a> RunState<'a> {
         for group in &def.groups {
             bonus += self.permanent_group_bonus.get(group).copied().unwrap_or(0);
         }
+        if def.name == "eldritch_beast" {
+            bonus += self.fossil_progress() * def.values.first().copied().unwrap_or(1.0) as i32;
+        }
         bonus
+    }
+
+    fn fossil_progress(&self) -> i32 {
+        self.destroyed_history.iter().chain(self.removed_history.iter())
+            .filter(|id| self.has_group(**id as usize, "fossillikes"))
+            .count() as i32
+    }
+
+    /// Actual rarity after active item effects; disabling an item restores it.
+    pub fn effective_symbol_rarity(&self, type_id: usize) -> &str {
+        let def = &self.data.symbols[type_id];
+        match def.name.as_str() {
+            "comedian" if self.has_item("dark_humor") => "uncommon",
+            "rain" if self.has_item("rain_cloud") => "common",
+            "clubs" | "diamonds" | "hearts" | "spades" if self.has_item("flush") => "common",
+            "void_fruit" | "void_creature" | "void_stone" if self.has_item("void_party") => "common",
+            "chemical_seven" if self.chemical_seven_common => "common",
+            _ => &def.rarity,
+        }
+    }
+
+    pub fn destroyed_symbol_count(&self) -> usize { self.destroyed_history.len() }
+    pub fn removed_symbol_count(&self) -> usize { self.removed_history.len() }
+    pub fn destroyed_symbol_history(&self) -> &[u16] { &self.destroyed_history }
+    pub fn removed_symbol_history(&self) -> &[u16] { &self.removed_history }
+    pub fn symbol_rule_bonus(&self, type_id: usize) -> i32 {
+        self.permanent_bonus_for(&self.data.symbols[type_id])
+    }
+    pub fn symbol_rule_multiplier(&self, type_id: usize) -> f64 {
+        self.permanent_mult_for(&self.data.symbols[type_id])
+    }
+
+    fn timed_destroy_threshold(&self, name: &str, base: i32) -> i32 {
+        if self.has_spin_essence("time_machine_essence") { return 0; }
+        let at = if name == "coal" { 0 }
+            else if matches!(name,"golem"|"matryoshka_doll_1"|"matryoshka_doll_2"|"matryoshka_doll_3"|"matryoshka_doll_4") { 1 }
+            else { 2 };
+        base - self.items_held.iter().filter(|id| self.data.items[**id].name == "time_machine")
+            .map(|id| self.data.items[*id].values.get(at).copied().unwrap_or(0.0) as i32).sum::<i32>()
+    }
+
+    fn grow_when_buffed(&mut self, index: usize) -> i32 {
+        let def = &self.data.symbols[self.deck[index].type_id as usize];
+        if !matches!(def.name.as_str(),"amethyst"|"pear") { return 0; }
+        let gain = def.values.first().copied().unwrap_or(1.0) as i32;
+        self.deck[index].bonus += gain;
+        gain
+    }
+
+    fn roll_die(&mut self, name: &str, high: i32, registered: Option<i32>) -> i32 {
+        if self.has_item("lucky_dice") || self.has_spin_essence("lucky_dice_essence") { return high; }
+        let mut roll = registered.unwrap_or_else(|| self.rng.range(1,high.max(2) as usize + 1) as i32);
+        let axis = if name == "d3" { 0 } else { 1 };
+        if let Some(id) = self.data.essence_index.get("reroll_essence").copied().filter(|id| self.essences_held.contains(id)) {
+            let values = self.data.essences[id].values.clone();
+            if roll < values[axis] as i32 {
+                roll = high;
+                self.reroll_essence_rerolls += 1;
+                if self.reroll_essence_rerolls >= values[2] as i32 && !self.spin_essence_triggers.contains(&id) {
+                    self.try_destroy_essence(id);
+                }
+            }
+        } else if let Some(id) = self.items_held.iter().copied().find(|id| self.data.items[*id].name == "reroll") {
+            if roll < self.data.items[id].values[axis] as i32 {
+                if let Some(value) = if axis == 0 { self.reroll_d3_roll } else { self.reroll_d5_roll } { roll = value; }
+            }
+        }
+        roll
+    }
+
+    fn removal_payout(&mut self, type_id: usize) -> i32 {
+        let def = &self.data.symbols[type_id];
+        let gain = def.values.first().copied().unwrap_or(0.0) as i32;
+        match def.name.as_str() {
+            "pufferfish" => self.reroll_tokens += gain,
+            "jellyfish" => self.removal_tokens += gain,
+            "sand_dollar" => return gain,
+            _ => {}
+        }
+        0
+    }
+
+    fn record_destruction(&mut self, type_id: u16) {
+        self.destroyed_history.push(type_id);
+        if self.has_group(type_id as usize,"capsule") {
+            if let Some(id) = self.data.essence_index.get("capsule_machine_essence").copied()
+                .filter(|id| self.essences_held.contains(id) && !self.spin_essence_triggers.contains(id)) {
+                self.try_destroy_essence(id);
+            }
+        }
+        for name in ["mining_pick_essence", "mobius_strip_essence", "void_party_essence", "shrine_essence",
+            "lockpick_essence", "happy_hour_essence", "time_machine_essence"] {
+            let Some(&id) = self.data.essence_index.get(name) else { continue; };
+            if !self.essences_held.contains(&id) { continue; }
+            let matches = match name {
+                "mining_pick_essence" => self.has_group(type_id as usize, "minerlikes"),
+                "mobius_strip_essence" => self.has_group(type_id as usize, "box"),
+                "void_party_essence" => self.has_group(type_id as usize, "void"),
+                "lockpick_essence" => self.has_group(type_id as usize,"chest"),
+                "happy_hour_essence" => self.has_group(type_id as usize,"booze"),
+                "time_machine_essence" => matches!(self.data.symbols[type_id as usize].name.as_str(),
+                    "coal"|"frozen_fossil"|"golem"|"present"|"matryoshka_doll_1"|"matryoshka_doll_2"|"matryoshka_doll_3"|"matryoshka_doll_4"),
+                _ => self.data.symbols[type_id as usize].name == "spirit",
+            };
+            if matches { *self.essence_saved.entry(id).or_insert(0) += 1; }
+        }
+    }
+
+    fn note_consumption(&mut self, source: usize, target: usize) {
+        self.spin_consumptions.insert((self.deck[source].type_id,self.deck[target].type_id));
+    }
+
+    fn consumed_by(&self, sources: &[&str], target_name: Option<&str>, target_group: Option<&str>) -> bool {
+        self.spin_consumptions.iter().any(|&(source,target)| {
+            sources.contains(&self.data.symbols[source as usize].name.as_str())
+                && target_name.map(|n| self.data.symbols[target as usize].name == n).unwrap_or(true)
+                && target_group.map(|g| self.has_group(target as usize,g)).unwrap_or(true)
+        })
     }
 
     fn permanent_mult_for(&self, def: &crate::data::Def) -> f64 {
@@ -2346,16 +2432,25 @@ impl<'a> RunState<'a> {
         })
     }
 
-    fn displayed_matching(
-        &self,
-        entries: &[(usize, usize, usize)],
-        destroyed: &[bool],
-        name: &str,
-    ) -> bool {
-        entries.iter().any(|(index, _, _)| {
-            !destroyed[*index]
-                && self.data.symbols[self.deck[*index].type_id as usize].name == name
-        })
+    fn has_matching_clump(&self, entries: &[(usize,usize,usize)], names: &[&str], group: Option<&str>, need: usize) -> bool {
+        let mut remaining: HashSet<usize> = entries.iter().filter_map(|(index,_,_)| {
+            let def = &self.data.symbols[self.deck[*index].type_id as usize];
+            (names.contains(&def.name.as_str()) || group.map_or(false,|g| def.groups.iter().any(|x| x == g))).then_some(*index)
+        }).collect();
+        for &(start,_,_) in entries {
+            if !remaining.remove(&start) { continue; }
+            let mut queue = vec![start];
+            let mut at = 0;
+            while at < queue.len() {
+                let index = queue[at]; at += 1;
+                if queue.len() >= need { return true; }
+                let Some(slot) = self.board_slot_of(index) else { continue; };
+                for neighbor in self.neighbor_indexes(slot % BOARD_COLS,slot / BOARD_COLS,index) {
+                    if remaining.remove(&neighbor) { queue.push(neighbor); }
+                }
+            }
+        }
+        false
     }
 
     fn has_adjacent_pair(
@@ -2444,11 +2539,10 @@ impl<'a> RunState<'a> {
                 multiplier *= def.values.first().copied().unwrap_or(1.0) as i32;
             }
         }
-        for essence_id in &self.essences_held {
-            let def = &self.data.essences[*essence_id];
-            if def.name == "capsule_machine_essence" {
-                multiplier *= def.values.first().copied().unwrap_or(1.0) as i32;
-            }
+        if self.has_spin_essence("capsule_machine_essence") {
+            let id = self.data.essence_index["capsule_machine_essence"];
+            let copies = self.essence_count("capsule_machine_essence").max(1);
+            multiplier *= (self.data.essences[id].values[0] as i32).pow(copies as u32);
         }
         multiplier.max(1)
     }
@@ -2461,36 +2555,17 @@ impl<'a> RunState<'a> {
         if gap <= 0 {
             return;
         }
-        // Devil's deal essences are one-shot rent bailouts.
-        if self.has_essence("devils_deal_essence") {
-            let payout = self
-                .data
-                .essence_index
-                .get("devils_deal_essence")
-                .map(|id| {
-                    self.data.essences[*id]
-                        .values
-                        .first()
-                        .copied()
-                        .unwrap_or(33.0) as i32
-                })
-                .unwrap_or(33);
-            while self.coins < due && self.has_essence("devils_deal_essence") {
-                if let Some(position) = self
-                    .essences_held
-                    .iter()
-                    .position(|id| self.data.essences[*id].name == "devils_deal_essence")
-                {
-                    self.essences_held.remove(position);
-                    self.coins += payout;
-                }
-            }
-            self.essence_saved
-                .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
-            if self.coins >= due {
-                return;
-            }
+        // A protected essence fires once at this rent check, then must wait
+        // for another failure check; do not spend its second life immediately.
+        if let Some(id) = self.data.essence_index.get("devils_deal_essence").copied()
+            .filter(|id| self.essences_held.contains(id)) {
+            let payout = self.data.essences[id].values.first().copied().unwrap_or(33.0) as i32
+                * self.essence_count("devils_deal_essence");
+            self.coins += payout;
+            self.try_destroy_essence(id);
+            if self.coins >= due { return; }
         }
+        if self.manual_decisions { return; }
         let mut options: Vec<(usize, usize, i32)> = Vec::new();
         for (position, item_id) in self.items_held.iter().copied().enumerate() {
             let def = &self.data.items[item_id];
@@ -2547,151 +2622,107 @@ impl<'a> RunState<'a> {
             && self
                 .fine_print_icons
                 .get(&number)
-                .map_or(true, |icon| icon == name)
+                // In the native effect code a missing dynamic icon is not
+                // a wildcard. Only the explicitly static clauses fall back.
+                .map_or(!matches!(number,8|9|10|11|12|13|15|17|19|27|33|36|37), |icon| icon == name)
     }
 
-    /// Pick the one symbol/item type a reliant clause names; the real game
-    /// chooses among the most-held matching types.
-    fn choose_fine_print_icon(&mut self, number: u32) -> Option<String> {
-        let def = self.data.fine_prints.get(&number)?;
-        if let Some(name) = def
-            .reliant_types
-            .iter()
-            .find_map(|value| value.strip_prefix("item_"))
-        {
-            return Some(name.to_string());
-        }
-        if let Some(group) = def
-            .reliant_groups
-            .iter()
-            .find_map(|value| value.strip_prefix("item_"))
-        {
-            let group = group.to_string();
-            let names = self.most_common_item(|item| {
-                item.groups.iter().any(|value| value == &group)
-            });
-            if !names.is_empty() {
-                let pick = self.rng.fineprint().randi_max(names.len());
-                return Some(names[pick].clone());
-            }
-            return None;
-        }
-        if let Some(name) = def.reliant_types.first() {
-            return Some(name.clone());
-        }
-        if let Some(group) = def.reliant_groups.first() {
-            let group = group.clone();
-            let names = self.most_common_symbol(|symbol| {
-                symbol.groups.iter().any(|value| value == &group)
-            });
-            if !names.is_empty() {
-                let pick = self.rng.fineprint().randi_max(names.len());
-                return Some(names[pick].clone());
-            }
-        }
-        None
-    }
-
-    fn most_common_symbol<F>(&self, matches: F) -> Vec<String>
-    where
-        F: Fn(&crate::data::Def) -> bool,
-    {
-        let mut counts: HashMap<&str, usize> = HashMap::new();
-        for symbol in &self.deck {
-            let def = &self.data.symbols[symbol.type_id as usize];
-            if def.name != "empty" && matches(def) {
-                *counts.entry(def.name.as_str()).or_default() += 1;
-            }
-        }
-        let Some(highest) = counts.values().copied().max() else {
-            return Vec::new();
-        };
+    /// Candidate order and zero-count entries follow the reference databases.
+    /// Native get_fine_print retries after drawing an inapplicable clause;
+    /// filtering the pool beforehand changes both the result and RNG cursor.
+    fn fine_print_target_counts(&self, number: u32, symbols_available: bool) -> Vec<(String, usize)> {
+        let Some(def) = self.data.fine_prints.get(&number) else { return Vec::new(); };
         let mut result = Vec::new();
-        for symbol in &self.deck {
-            let name = self.data.symbols[symbol.type_id as usize].name.as_str();
-            if counts.get(name) == Some(&highest) && !result.iter().any(|existing| existing == name) {
-                result.push(name.to_string());
+        for name in &def.reliant_types {
+            let count = if let Some(item) = name.strip_prefix("item_") {
+                self.items_held.iter().chain(&self.disabled_items)
+                    .filter(|&&id| self.data.items[id].name == item).count()
+            } else if symbols_available {
+                self.deck.iter().filter(|symbol| self.data.symbols[symbol.type_id as usize].name == *name).count()
+            } else { 0 };
+            result.push((name.strip_prefix("item_").unwrap_or(name).to_string(), count));
+        }
+        for group in &def.reliant_groups {
+            if let Some(item_group) = group.strip_prefix("item_") {
+                for &id in self.items_held.iter().chain(&self.disabled_items) {
+                    let item = &self.data.items[id];
+                    if item.groups.iter().any(|g| g == item_group)
+                        && !result.iter().any(|(name,_)| *name == item.name) {
+                        let count = self.items_held.iter().chain(&self.disabled_items).filter(|&&held| held == id).count();
+                        result.push((item.name.clone(), count));
+                    }
+                }
+            } else {
+                for symbol in &self.data.symbols {
+                    if symbol.groups.iter().any(|g| g == group) {
+                        let count = if symbols_available {
+                            self.deck.iter().filter(|s| self.data.symbols[s.type_id as usize].name == symbol.name).count()
+                        } else { 0 };
+                        result.push((symbol.name.clone(), count));
+                    }
+                }
             }
         }
         result
     }
 
-    fn most_common_item<F>(&self, matches: F) -> Vec<String>
-    where
-        F: Fn(&crate::data::Def) -> bool,
-    {
-        let mut counts: HashMap<&str, usize> = HashMap::new();
-        for item_id in &self.items_held {
-            let def = &self.data.items[*item_id];
-            if matches(def) {
-                *counts.entry(def.name.as_str()).or_default() += 1;
+    fn draw_fine_print(&mut self, mut pool: Vec<u32>) -> Option<(u32, Option<String>)> {
+        // Native get_fine_print tests the LOCALIZED description, not just
+        // the English text. In the Chinese reference used by this project,
+        // clause 37 has a fixed <icon_guillotine> rather than <dynamic_capsule>.
+        // It is accepted without drawing a target (even with no capsules),
+        // and its null target does not suppress any capsule's actual effects.
+        const DYNAMIC: &[u32] = &[1,2,3,5,6,7,8,9,10,11,12,13,15,17,19,27,33,36];
+        let mut first = None;
+        let mut symbols_available = true;
+        while !pool.is_empty() {
+            let pick = self.rng.fineprint().randi_max(pool.len());
+            let number = pool[pick];
+            let counts = self.fine_print_target_counts(number, symbols_available);
+            let highest = counts.iter().map(|(_,count)| *count).max().unwrap_or(0);
+            let names: Vec<_> = counts.iter().filter(|(_,count)| *count == highest)
+                .map(|(name,_)| name.clone()).collect();
+            let dynamic = DYNAMIC.contains(&number);
+            let mut target = None;
+            let mut valid = highest > 0;
+            if dynamic && !names.is_empty() {
+                // A single eligible icon still consumes a random draw.
+                target = Some(names[self.rng.fineprint().randi_max(names.len())].clone());
+            } else if !dynamic && ![1,2,3,5,6,7].contains(&pick) {
+                // Reference uses the candidate's array index here, not its ID.
+                // Static clauses can be selected even without a matching icon.
+                valid = true;
             }
-        }
-        let Some(highest) = counts.values().copied().max() else {
-            return Vec::new();
-        };
-        let mut result = Vec::new();
-        for id in &self.items_held {
-            let name = self.data.items[*id].name.as_str();
-            if counts.get(name) == Some(&highest) && !result.iter().any(|existing| existing == name) {
-                result.push(name.to_string());
-            }
-        }
-        result
-    }
-
-    fn fp_applicable(&self, number: u32) -> bool {
-        let Some(def) = self.data.fine_prints.get(&number) else {
-            return false;
-        };
-        if !def.reliant_types.is_empty() {
-            let has = def.reliant_types.iter().any(|name| {
-                if let Some(item_name) = name.strip_prefix("item_") {
-                    self.items_held
-                        .iter()
-                        .any(|id| self.data.items[*id].name == item_name)
-                } else {
-                    self.deck
-                        .iter()
-                        .any(|symbol| self.data.symbols[symbol.type_id as usize].name == *name)
+            if !valid {
+                let def = &self.data.fine_prints[&number];
+                if let Some(name) = def.reliant_types.first() {
+                    target = Some(name.strip_prefix("item_").unwrap_or(name).to_string());
+                } else if !names.is_empty() {
+                    target = Some(names[self.rng.fineprint().randi_max(names.len())].clone());
                 }
-            });
-            if !has {
-                return false;
             }
+            let selected = (number, target);
+            if first.is_none() { first = Some(selected.clone()); }
+            if valid { return Some(selected); }
+            pool.remove(pick);
+            // Native clears its symbol_types array between failed attempts.
+            symbols_available = false;
         }
-        if !def.reliant_groups.is_empty() {
-            let has = def.reliant_groups.iter().any(|group| {
-                if let Some(item_group) = group.strip_prefix("item_") {
-                    self.items_held.iter().any(|id| {
-                        self.data.items[*id]
-                            .groups
-                            .iter()
-                            .any(|item| item == item_group)
-                    })
-                } else {
-                    self.deck.iter().any(|symbol| {
-                        self.data.symbols[symbol.type_id as usize]
-                            .groups
-                            .iter()
-                            .any(|item| item == group)
-                    })
-                }
-            });
-            if !has {
-                return false;
-            }
-        }
-        true
+        first
     }
 
     /// A20 boss: three fine prints for every 150 damage the landlord takes.
     fn apply_boss_damage(&mut self, damage: i32) {
+        if damage <= 0 { return; }
         self.fine_print_counter += damage;
-        while self.fine_print_counter >= 150 && self.fine_prints.len() < 31 {
+        if damage >= self.boss_hp { return; }
+        // The seeded mod uses the fineprint stream for hit sounds and the
+        // 15-frame shake (two draws per frame), even in a silent simulation.
+        if self.rng.fineprint().randf() >= 0.33 { self.rng.fineprint().randf(); }
+        while self.fine_print_counter >= 150 && self.fine_prints.len() + self.pending_fine_prints.len() < 31 {
             self.fine_print_counter -= 150;
             for _ in 0..3 {
-                if self.fine_prints.len() >= 31 {
+                if self.fine_prints.len() + self.pending_fine_prints.len() >= 31 {
                     break;
                 }
                 // Base game pool is 4 plus 8-37; the 1/2/3/5/6/7 theft
@@ -2704,18 +2735,25 @@ impl<'a> RunState<'a> {
                     .iter()
                     .copied()
                     .filter(|number| {
-                        !self.fine_prints.contains(number) && self.fp_applicable(*number)
+                        !self.fine_prints.contains(number)
+                            && !self.pending_fine_prints.iter().any(|(n,_)| n == number)
                     })
                     .collect();
                 if candidates.is_empty() {
                     break;
                 }
-                let pick = self.rng.fineprint().range(0, candidates.len());
-                let number = candidates[pick];
+                if let Some(selected) = self.draw_fine_print(candidates) { self.pending_fine_prints.push(selected); }
+            }
+        }
+        for _ in 0..30 { self.rng.fineprint().randf(); }
+    }
+
+    /// Fine-print mail follows the completed candidate choices. In particular,
+    /// its Dud/Hex is added after the chosen symbol using that spin's stream.
+    fn activate_pending_fine_prints(&mut self) {
+        for (number, icon) in std::mem::take(&mut self.pending_fine_prints) {
                 self.fine_prints.push(number);
-                if let Some(icon) = self.choose_fine_print_icon(number) {
-                    self.fine_print_icons.insert(number, icon);
-                }
+                if let Some(icon) = icon { self.fine_print_icons.insert(number, icon); }
                 match number {
                     1 => self.steal_item_of_rarity("common"),
                     2 => self.steal_item_of_rarity("uncommon"),
@@ -2724,19 +2762,26 @@ impl<'a> RunState<'a> {
                     6 => self.steal_symbol_of_rarity("uncommon"),
                     7 => self.steal_symbol_of_rarity("rare"),
                     4 => {
-                        if let Some(dud) = self.data.symbol_id("dud") {
-                            self.deck.push(Symbol::new(dud, 0));
-                        }
+                        self.add_symbols("dud", 1);
                     }
                     14 => {
-                        if let Some(hex) = self.data.symbol_id("hex_of_destruction") {
-                            self.deck.push(Symbol::new(hex, 0));
-                        }
+                        self.add_symbols("hex_of_destruction", 1);
                     }
                     _ => {}
                 }
-            }
         }
+    }
+
+    /// Read-only manual UI data; does not alter PPO observation layouts or RNG.
+    pub fn fine_print_details(&self) -> serde_json::Value {
+        let clause = |number: u32, target: Option<&String>, pending: bool| {
+            let def = &self.data.fine_prints[&number];
+            serde_json::json!({"number":number,"target":target,"values":def.values,"pending":pending})
+        };
+        let clauses: Vec<_> = self.fine_prints.iter().map(|&n| clause(n,self.fine_print_icons.get(&n),false))
+            .chain(self.pending_fine_prints.iter().map(|(n,t)| clause(*n,t.as_ref(),true))).collect();
+        serde_json::json!({"boss_fight":self.boss_fight,"hp":self.boss_hp,"max_hp":1500,
+            "damage_to_next":150 - self.fine_print_counter % 150,"clauses":clauses})
     }
 
     /// Clauses 1-3: the landlord takes one copy of the most-held item of a rarity.
@@ -2783,8 +2828,12 @@ impl<'a> RunState<'a> {
         choices.sort_unstable();
         let pick = choices[self.rng.range(0, choices.len())] as u16;
         if let Some(position) = self.deck.iter().position(|symbol| symbol.type_id == pick) {
+            self.removed_history.push(pick);
+            let payout = self.removal_payout(pick as usize);
+            self.credit_outside_spin(payout);
             self.board.remove_deck_indices(&[position]);
             self.deck.remove(position);
+            if self.data.symbols[pick as usize].name == "oyster" { self.add_symbols("pearl",1); }
         }
     }
 
@@ -2898,6 +2947,20 @@ impl<'a> RunState<'a> {
         self.pick_group_rarity(group, min)
     }
 
+    fn roll_ore_gems(&mut self, type_id: usize) -> Vec<usize> {
+        let floor = if self.has_spin_essence("x_ray_machine_essence") {
+            Rarity::VeryRare
+        } else if self.has_item("x_ray_machine") {
+            Rarity::Rare
+        } else {
+            Rarity::Common
+        };
+        let count = if self.data.symbols[type_id].name == "big_ore" {
+            self.data.symbols[type_id].values.first().copied().unwrap_or(2.0) as usize
+        } else { 1 };
+        (0..count).filter_map(|_| self.pick_group_min("gem", floor)).collect()
+    }
+
     /// Godot's `tiles_to_add` with a `group`: first roll a rarity with the
     /// per-rent symbol chances (effect stream), then pick a member of that
     /// rarity with another effect-stream draw.  Falls back to the other
@@ -2914,7 +2977,7 @@ impl<'a> RunState<'a> {
             if !def.groups.iter().any(|item| item == group) {
                 continue;
             }
-            if let Some(rarity) = Rarity::parse(&def.rarity) {
+            if let Some(rarity) = Rarity::parse(self.effective_symbol_rarity(index)) {
                 pools[rarity as usize].push(index);
             }
         }
@@ -2981,8 +3044,8 @@ impl<'a> RunState<'a> {
                 .get("lucky_cat")
                 .map(|id| self.data.items[*id].values.first().copied().unwrap_or(1.0))
                 .unwrap_or(1.0)
-                * lucky_cats;
-            lucky *= multiplier.powi(cat_count);
+;
+            lucky *= multiplier.powi(cat_count * lucky_cats as i32);
         }
         for item_id in &self.items_held {
             let item = &self.data.items[*item_id];
@@ -2990,19 +3053,7 @@ impl<'a> RunState<'a> {
                 lucky *= item.values.first().copied().unwrap_or(1.0);
             }
         }
-        if let Some(lucky_cat) = self
-            .data
-            .essence_index
-            .get("lucky_cat_essence")
-            .copied()
-            .filter(|id| self.essences_held.contains(id))
-        {
-            lucky *= self.data.essences[lucky_cat]
-                .values
-                .get(1)
-                .copied()
-                .unwrap_or(2.5);
-        }
+        lucky *= self.permanent_rarity_factor;
         for (index, _, _) in entries.iter().copied() {
             let def = &self.data.symbols[self.deck[index].type_id as usize];
             if matches!(def.name.as_str(), "shiny_pebble" | "rabbit_fluff") {
@@ -3047,17 +3098,25 @@ impl<'a> RunState<'a> {
         &mut self,
         entries: &[(usize, usize, usize)],
     ) -> HashMap<usize, SpinPreRoll> {
-        let holy_water = self.has_item("holy_water") || self.has_essence("holy_water_essence");
+        self.register_symbol_effect_rolls(entries,true)
+    }
+
+    fn register_symbol_effect_rolls(
+        &mut self,
+        entries: &[(usize,usize,usize)],
+        count_display: bool,
+    ) -> HashMap<usize,SpinPreRoll> {
+        let holy_water = self.has_item("holy_water") || self.holy_water_active;
         let mut result: HashMap<usize, SpinPreRoll> = HashMap::with_capacity(entries.len());
         for (index, x, y) in entries.iter().copied() {
-            self.deck[index].times_displayed += 1;
+            if count_display {self.deck[index].times_displayed += 1;}
             let type_id = self.deck[index].type_id as usize;
             let name = self.data.symbols[type_id].name.clone();
             let values = self.data.symbols[type_id].values.clone();
             let mut pre = SpinPreRoll::default();
             match name.as_str() {
                 "d3" | "d5" => {
-                    let lucky = self.has_essence("reroll_essence") || self.has_item("lucky_dice");
+                    let lucky = self.has_essence("lucky_dice_essence") || self.has_item("lucky_dice");
                     if !lucky {
                         let high = if name == "d3" {
                             values.get(1).copied().unwrap_or(3.0) as usize
@@ -3129,7 +3188,7 @@ impl<'a> RunState<'a> {
                 "bronze_arrow" | "silver_arrow" | "golden_arrow" => {
                     let first = 1 + self.rng.range(0, 8);
                     let mut directions = vec![first];
-                    if self.has_item("quiver") || self.has_essence("quiver_essence") {
+                    if self.has_item("quiver") || self.has_spin_essence("quiver_essence") {
                         let mut remaining: Vec<usize> =
                             (1..=8).filter(|direction| *direction != first).collect();
                         let pick = self.rng.range(0, remaining.len());
@@ -3144,20 +3203,81 @@ impl<'a> RunState<'a> {
         result
     }
 
+    /// `change_type(..., true)` re-registers the new form and its neighbours;
+    /// the Reels transformation flag then re-registers the whole board. Random
+    /// arguments are still evaluated, while already registered results (e.g.
+    /// a die's first value) are retained. Neither pass counts another display.
+    fn refresh_transformed_symbol_rolls(
+        &mut self,index:usize,entries:&[(usize,usize,usize)],exits:&[SymbolExit],
+    ) {
+        let Some(&source)=entries.iter().find(|entry|entry.0==index) else {return;};
+        let mut local=vec![source];
+        for neighbor in self.neighbor_indexes(source.1,source.2,index) {
+            if !exits[neighbor].is_gone() {
+                if let Some(&entry)=entries.iter().find(|entry|entry.0==neighbor) {local.push(entry);}
+            }
+        }
+        let active:Vec<_>=entries.iter().copied().filter(|entry|!exits[entry.0].is_gone()).collect();
+        self.register_symbol_effect_rolls(&local,false);
+        self.register_symbol_effect_rolls(&active,false);
+    }
+
+    /// The current form's coin value, before any prior forms in the same cell.
+    /// Feeding and ordinary payouts must see the same temporary bonuses.
+    fn spin_coin_components(&self, index: usize, x: usize, bonus: &[i32], mult: &[f64]) -> (i32,f64) {
+        let type_id=self.deck[index].type_id as usize;
+        let def=&self.data.symbols[type_id];
+        let mut flat=bonus[index];
+        if self.has_fine_print(26) && self.effective_symbol_rarity(type_id)=="very_rare" {flat-=self.fp_value(26,0) as i32;}
+        for (fp,group) in [(27,"eachother"),(33,"suit")] {
+            if self.fp_affects(fp,&def.name) && def.groups.iter().any(|g|g==group) {flat-=self.fp_value(fp,0) as i32;}
+        }
+        for (name,fp) in [("d3",29),("d5",35)] {
+            if def.name==name && self.has_fine_print(fp) {flat-=self.fp_value(fp,0) as i32;}
+        }
+        let mut multiplier=mult[index]*self.permanent_mult_for(def)*self.spin_column_mult[x];
+        if (def.name=="dwarf" && self.has_fine_print(28)) || (def.name=="monkey" && self.has_fine_print(32)) {
+            multiplier*=0.5;
+        }
+        if def.groups.iter().any(|g|g=="scaler") && self.fp_affects(19,&def.name) {multiplier*=0.5;}
+        (def.base_value+self.deck[index].bonus+self.permanent_bonus_for(def)+flat,multiplier)
+    }
+
     fn resolve_spin_effects(&mut self) -> i32 {
         self.spin_rarity_penalty = 1.0;
+        self.spin_essence_triggers.clear();
+        self.spin_effect_essences = self.essences_held.iter().copied().collect();
+        self.spin_consumptions.clear();
+        self.spin_dove_blocks.clear();
+        self.board.adopt_slots();
         self.board.prune_invalid(self.deck.len());
+        self.start_spin_diagnostics();
         let deck_len = self.deck.len();
         let mut spin_bonus = vec![0i32; deck_len];
+        let mut dynamic_feeds: Vec<(usize,usize,f64)> = Vec::new();
         let mut mult = vec![1.0f64; deck_len];
-        let mut destroyed = vec![false; deck_len];
+        let mut exits = vec![SymbolExit::Present; deck_len];
         let mut spawned: Vec<usize> = Vec::new();
+        // Natural additions flush in effect order while no destruction is
+        // pending. Once a victim is pending, queued additions wait for that
+        // destruction batch. Death-triggered additions belong to the latter.
+        let mut spawn_origins = std::collections::BTreeMap::new();
+        let mut spawned_revivals: HashMap<usize,[u8;2]> = HashMap::new();
         // (deck index, x, y, coin per empty neighbour, destroy threshold,
         //  fine-print 36 keeps the symbol alive regardless of empty count)
         let mut void_effects: Vec<(usize, usize, usize, i32, i32, bool)> = Vec::new();
         let mut extra_income = 0i32;
         let mut item_gains_sink: Vec<(String, i32)> = Vec::new();
         let items_at_start = self.items_held.clone();
+        let capsule_factor = self.capsule_multiplier();
+        let looting_essence = self.data.essence_index.get("looting_glove_essence").copied()
+            .filter(|id| self.essences_held.contains(id));
+        let black_essence_rate = self.data.essence_index.get("black_pepper_essence")
+            .filter(|id| self.essences_held.contains(id))
+            .map(|id| self.data.essences[*id].values[0] as i32 * self.essence_count("black_pepper_essence")).unwrap_or(0);
+        let void_essence_rate = self.data.essence_index.get("void_portal_essence")
+            .filter(|id| self.essences_held.contains(id))
+            .map(|id| self.data.essences[*id].values[0] as i32 * self.essence_count("void_portal_essence")).unwrap_or(0);
 
         // Godot resolves effects column by column (`for x` then `for y`), and
         // random effects consume the effect stream in that same order.
@@ -3170,25 +3290,6 @@ impl<'a> RunState<'a> {
             }
         }
 
-        self.spin_rarity_factor = self.compute_rarity_factor(&entries);
-
-        // Quigley the Wolf turns every displayed dog into a wolf when the
-        // item is held (Godot registers this as a `type` change effect).
-        if self.has_item("quigley_the_wolf") {
-            if let Some(wolf) = self.data.symbol_id("wolf") {
-                for (index, _, _) in entries.iter().copied() {
-                    if self.data.symbols[self.deck[index].type_id as usize].name == "dog" {
-                        self.deck[index].type_id = wolf as u16;
-                        // Godot's `change_type` keeps the dog's original
-                        // `value` and the already-applied doglikes +2 bonus.
-                        // Swapping the type id here raises base 1 -> 2 and
-                        // makes the doglikes pass below see a wolf instead of
-                        // a dog, so the net correction is +1 per conversion.
-                        spin_bonus[index] += 1;
-                    }
-                }
-            }
-        }
 
         if let Some(essence_id) = self
             .data
@@ -3219,7 +3320,6 @@ impl<'a> RunState<'a> {
         }
 
         let mut destroy_turtle_item = false;
-        let mut milk_eaten = false;
         let mut egg_became_chick = false;
         let mut chick_became_chicken = false;
 
@@ -3313,6 +3413,48 @@ impl<'a> RunState<'a> {
             self.try_destroy_essence(essence_id);
         }
 
+        // Conversion effects register before this spin consumes an essence.
+        let quigley_conversion = self.has_item("quigley_the_wolf") || self.quigley_active;
+        self.tick_trigger_essences(&entries);
+        self.spin_rarity_factor = self.compute_rarity_factor(&entries);
+        // Quigley the Wolf turns every displayed dog into a wolf when the
+        // item is held (Godot registers this as a `type` change effect).
+        if quigley_conversion {
+            if let Some(wolf) = self.data.symbol_id("wolf") {
+                for (index, _, _) in entries.iter().copied() {
+                    if self.data.symbols[self.deck[index].type_id as usize].name == "dog" {
+                        self.deck[index].type_id = wolf as u16;
+                        // Godot's `change_type` keeps the dog's original
+                        // `value` and the already-applied doglikes +2 bonus.
+                        // Swapping the type id here raises base 1 -> 2 and
+                        // makes the doglikes pass below see a wolf instead of
+                        // a dog, so the net correction is +1 per conversion.
+                        spin_bonus[index] += 1;
+                    }
+                }
+            }
+        }
+
+        let mut dove_protected = vec![false; deck_len];
+        for (index,x,y) in entries.iter().copied() {
+            if self.data.symbols[self.deck[index].type_id as usize].name == "dove" {
+                for neighbor in self.neighbor_indexes(x,y,index) { dove_protected[neighbor] = true; }
+            }
+        }
+        let mut dove_attempts = HashSet::new();
+        let cannot_destroy: Vec<bool> = self.deck.iter().map(|symbol| {
+            let def = &self.data.symbols[symbol.type_id as usize];
+            (def.name == "spirit" && self.has_item("undertaker"))
+                || (def.name == "coin" && self.has_fine_print(20))
+                || (def.name == "egg" && self.has_fine_print(21))
+                || (def.groups.iter().any(|g| g == "chest") && self.fp_affects(10,&def.name))
+                || (def.groups.iter().any(|g| g == "void") && self.fp_affects(36,&def.name))
+        }).collect();
+        let mut can_destroy = |target: usize| {
+            if cannot_destroy[target] { false }
+            else if dove_protected[target] { dove_attempts.insert(target); false } else { true }
+        };
+
         // Reverse adjacency effects: symbols carrying these groups gain a
         // bonus for every adjacent source symbol (dog/bee/omelette).
         let dog_bonus = self
@@ -3331,6 +3473,8 @@ impl<'a> RunState<'a> {
             .and_then(|id| self.data.symbols[id].values.first().copied())
             .unwrap_or(2.0) as i32;
 
+        let mut ninja_mouse_targets = HashSet::new();
+        let mut rusty_gear_targets = HashSet::new();
         for item_id in self.items_held.clone() {
             let item = &self.data.items[item_id];
             let name = item.name.clone();
@@ -3454,8 +3598,9 @@ impl<'a> RunState<'a> {
                 for (_, members) in clump_members {
                     if members.len() >= threshold {
                         for index in members {
-                            if !destroyed[index] {
+                            if !exits[index].is_gone() {
                                 mult[index] *= factor;
+                                rusty_gear_targets.insert(index);
                             }
                         }
                     }
@@ -3466,13 +3611,14 @@ impl<'a> RunState<'a> {
                 self.lefty_saved += 1;
                 if let Some(fluff) = self.data.symbol_id("rabbit_fluff") {
                     while self.lefty_saved >= need {
+                        spawn_origins.insert(spawned.len(),usize::MAX); // item stage
                         spawned.push(fluff);
                         self.lefty_saved -= need;
                     }
                 }
                 let factor = if v1 > 1.0 { v1 } else { 2.0 };
                 for (index, x, _) in entries.iter().copied() {
-                    if x != 0 || destroyed[index] {
+                    if x != 0 || exits[index].is_gone() {
                         continue;
                     }
                     let symbol_name = self.data.symbols[self.deck[index].type_id as usize]
@@ -3493,52 +3639,14 @@ impl<'a> RunState<'a> {
             };
             extra_income += flat_income;
             match name.as_str() {
-                "dwarven_anvil" => {
-                    // Dwarves also destroy adjacent minerlikes and gain the
-                    // victim's permanent value times the anvil's value[0].
-                    for (index, x, y) in entries.iter().copied() {
-                        if self.data.symbols[self.deck[index].type_id as usize].name != "dwarf" {
-                            continue;
-                        }
-                        for neighbor in self.neighbor_indexes(x, y, index) {
-                            if destroyed[neighbor]
-                                || !self.has_group(self.deck[neighbor].type_id as usize, "minerlikes")
-                            {
-                                continue;
-                            }
-                            destroyed[neighbor] = true;
-                            let victim_def =
-                                &self.data.symbols[self.deck[neighbor].type_id as usize];
-                            let victim = ((self.deck[neighbor].bonus + victim_def.base_value)
-                                as f64
-                                + self.permanent_bonus_for(victim_def) as f64)
-                                * self.permanent_mult_for(victim_def);
-                            spin_bonus[index] += (victim * v0).round() as i32;
-                        }
-                    }
-                }
+                "dwarven_anvil" => {} // Enables ore targets in the dwarf's own effect.
                 "ninja_and_mouse" => {
-                    let mut found = false;
-                    for (index, x, y) in entries.iter().copied() {
-                        let name = self.data.symbols[self.deck[index].type_id as usize].name.clone();
-                        let wanted = match name.as_str() {
-                            "ninja" => "mouse",
-                            "mouse" => "ninja",
-                            _ => continue,
-                        };
-                        for neighbor in self.neighbor_indexes(x, y, index) {
-                            if self.data.symbols[self.deck[neighbor].type_id as usize].name == wanted
-                                && !destroyed[index]
-                                && !destroyed[neighbor]
-                            {
-                                mult[index] *= v0;
-                                mult[neighbor] *= v0;
-                                found = true;
-                                break;
-                            }
-                        }
-                        if found {
-                            break;
+                    for (index,x,y) in entries.iter().copied() {
+                        let name = self.data.symbols[self.deck[index].type_id as usize].name.as_str();
+                        let wanted = match name { "ninja" => "mouse", "mouse" => "ninja", _ => continue };
+                        if self.neighbor_indexes(x,y,index).iter().any(|&n| self.data.symbols[self.deck[n].type_id as usize].name == wanted) {
+                            mult[index] *= v0;
+                            ninja_mouse_targets.insert(index);
                         }
                     }
                 }
@@ -3555,7 +3663,6 @@ impl<'a> RunState<'a> {
                                 self.data.symbols[self.deck[neighbor].type_id as usize].name.clone();
                             if wanted.contains(&other.as_str()) {
                                 spin_bonus[index] += amount as i32;
-                                break;
                             }
                         }
                     }
@@ -3586,7 +3693,7 @@ impl<'a> RunState<'a> {
                             if self.data.symbols[self.deck[index].type_id as usize].name
                                 == "billionaire"
                             {
-                                destroyed[index] = true;
+                                if can_destroy(index) { exits[index] = SymbolExit::Destroyed; }
                             }
                         }
                     }
@@ -3602,6 +3709,10 @@ impl<'a> RunState<'a> {
         // 被检查时才掷点。所以摇号必须发生在该图标的回合，而不是所有符号
         // 之前；否则整条 effect 流会提前错位一格。
         let mut item_destroy_chances: Vec<(&'static str, f64)> = Vec::new();
+        if self.has_spin_essence("lockpick_essence") {
+            let id = self.data.essence_index["lockpick_essence"];
+            item_destroy_chances.push(("chest",self.data.essences[id].values[1]));
+        }
         {
             let mut seen: Vec<String> = Vec::new();
             for item_id in self.items_held.clone() {
@@ -3637,7 +3748,7 @@ impl<'a> RunState<'a> {
             let factor = def.values.get(1).copied().unwrap_or(3.0);
             let mut shown = 0;
             for (index, x, _) in entries.iter().copied() {
-                if destroyed[index] {
+                if exits[index].is_gone() {
                     continue;
                 }
                 let symbol_name =
@@ -3692,10 +3803,10 @@ impl<'a> RunState<'a> {
                 }
             }
         }
-        for n in dog_targets {
+        for &n in &dog_targets {
             spin_bonus[n] += dog_bonus;
         }
-        for n in omelette_targets {
+        for &n in &omelette_targets {
             spin_bonus[n] += omelette_bonus;
         }
 
@@ -3715,12 +3826,50 @@ impl<'a> RunState<'a> {
             }
         }
 
+        // Removal has priority over destruction, but every registered
+        // geologist/pirate consumer can still grow from the removed victim.
+        // This is independent of the columns in which the consumers appear.
+        for (index,x,y) in entries.iter().copied() {
+            if self.data.symbols[self.deck[index].type_id as usize].name != "diver" { continue; }
+            let gain = self.data.symbols[self.deck[index].type_id as usize].values[0] as i32;
+            for n in self.neighbor_indexes(x,y,index) {
+                if self.has_group(self.deck[n].type_id as usize,"poslikes") && self.can_remove_symbol(n) {
+                    exits[n] = SymbolExit::Removed;
+                    self.deck[index].bonus += gain;
+                }
+            }
+        }
+
+        // Consumer effects are registered on the victim before checking any
+        // icon. Roll an ore's death additions at that victim's column-order
+        // turn, even if its miner/dwarf/geologist is visited later by this
+        // implementation. Deferring these draws until the final death pass
+        // incorrectly lets later grave-robber or generator rolls go first.
+        // Only preselect identities here: removal, protection, payouts and
+        // the actual newborn placement retain their existing phases.
+        let mut ore_targets = HashSet::new();
+        for (source,x,y) in entries.iter().copied() {
+            let source_name = self.data.symbols[self.deck[source].type_id as usize].name.as_str();
+            let group = match source_name {
+                "miner" => "minerlikes",
+                "archaeologist" => "archlikes",
+                "dwarf" if self.has_item("dwarven_anvil") => "minerlikes",
+                _ => continue,
+            };
+            for target in self.neighbor_indexes(x,y,source) {
+                let def = &self.data.symbols[self.deck[target].type_id as usize];
+                if matches!(def.name.as_str(),"ore"|"big_ore") && self.has_group(self.deck[target].type_id as usize,group) {
+                    ore_targets.insert(target);
+                }
+            }
+        }
+        let mut ore_births = HashMap::new();
         for (index, x, y) in entries.iter().copied() {
-            if !destroyed[index] && !item_destroy_chances.is_empty() {
+            if !exits[index].is_gone() && !item_destroy_chances.is_empty() {
                 let type_id = self.deck[index].type_id as usize;
                 for (group, chance) in item_destroy_chances.iter().copied() {
                     if self.has_group(type_id, group) && self.rng.unit() * 100.0 < chance {
-                        destroyed[index] = true;
+                        if can_destroy(index) { exits[index] = SymbolExit::Destroyed; }
                         break;
                     }
                 }
@@ -3729,7 +3878,16 @@ impl<'a> RunState<'a> {
             let name = self.data.symbols[type_id].name.clone();
             let values = self.data.symbols[type_id].values.clone();
             let neighbors = self.neighbor_indexes(x, y, index);
-            if destroyed[index] {
+            if matches!(name.as_str(),"ore"|"big_ore")
+                && exits[index] != SymbolExit::Removed
+                && (exits[index].is_destroyed() || ore_targets.contains(&index))
+                && !cannot_destroy[index] && !dove_protected[index]
+                && !self.fp_affects(15,&name)
+            {
+                ore_births.insert(index,self.roll_ore_gems(type_id));
+            }
+            if exits[index] == SymbolExit::Removed { continue; }
+            if exits[index].is_gone() {
                 // Godot registers every icon's conditional effects before any
                 // of them resolves, so an icon destroyed earlier in the pass
                 // still applies the effects it already registered.  Only the
@@ -3746,6 +3904,7 @@ impl<'a> RunState<'a> {
                         };
                         for n in &neighbors {
                             if self.has_group(self.deck[*n].type_id as usize, tag) {
+                                self.grow_when_buffed(*n);
                                 mult[*n] *= v0.max(1.0);
                             }
                         }
@@ -3768,6 +3927,7 @@ impl<'a> RunState<'a> {
                                 self.has_group(target, tag)
                             };
                             if hit {
+                                self.grow_when_buffed(*n);
                                 mult[*n] *= if name == "sun" { 5.0 } else if name == "moon" { 3.0 } else if name == "king_midas" { 3.0 } else { v0.max(1.0) };
                             }
                         }
@@ -3801,26 +3961,14 @@ impl<'a> RunState<'a> {
                             if !hit {
                                 continue;
                             }
-                            destroyed[*n] = true;
+                            if !can_destroy(*n) { continue; }
+                            if !exits[*n].is_gone() { exits[*n] = SymbolExit::Destroyed; } self.note_consumption(index, *n);
                             if name == "cat" {
-                                milk_eaten = true;
                                 spin_bonus[index] += gain;
                             } else if name == "mrs_fruit" {
                                 self.deck[index].bonus += v0 as i32;
-                            } else if name == "monkey" {
-                                let victim_def = &self.data.symbols[target];
-                                let victim = ((self.deck[*n].bonus + victim_def.base_value) as f64
-                                    + self.permanent_bonus_for(victim_def) as f64)
-                                    * self.permanent_mult_for(victim_def);
-                                spin_bonus[index] += (victim * v0).round() as i32;
-                            } else if name == "dwarf" {
-                                let victim_def = &self.data.symbols[target];
-                                let victim = ((self.deck[*n].bonus + victim_def.base_value
-                                    + spin_bonus[*n]) as f64
-                                    + self.permanent_bonus_for(victim_def) as f64)
-                                    * self.permanent_mult_for(victim_def)
-                                    * mult[*n];
-                                spin_bonus[index] += (victim * v0).round() as i32;
+                            } else if name == "monkey" || name == "dwarf" {
+                                dynamic_feeds.push((index,*n,v0));
                             } else {
                                 spin_bonus[index] += gain;
                             }
@@ -3830,17 +3978,26 @@ impl<'a> RunState<'a> {
                 }
                 continue;
             }
+            if dove_protected[index] && matches!(name.as_str(),
+                "chemical_seven"|"lucky_capsule"|"rarity_capsule"|"hustler"|"time_capsule"|
+                "tedium_capsule"|"item_capsule"|"removal_capsule"|"reroll_capsule"|"essence_capsule"|"midas_bomb") {
+                can_destroy(index);
+                continue;
+            }
+            if self.has_group(type_id,"hex") && (self.has_item("holy_water") || self.holy_water_active) { continue; }
             let mut destroy_self = false;
+            let additions_before = spawned.len();
             let chance_allowed = !self.fp_affects(13, &name);
             match name.as_str() {
                 "dud" => {
-                    if self.deck[index].times_displayed >= 33 {
+                    if self.deck[index].times_displayed >= values.first().copied().unwrap_or(33.0) as u32 {
                         destroy_self = true;
                     }
                 }
                 "bee" => {
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "beelikes") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         }
                     }
@@ -3849,6 +4006,7 @@ impl<'a> RunState<'a> {
                     let mut gems = 0;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "gem") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                             gems += 1;
                         }
@@ -3863,6 +4021,7 @@ impl<'a> RunState<'a> {
                 "beastmaster" => {
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "animal") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         }
                     }
@@ -3870,6 +4029,7 @@ impl<'a> RunState<'a> {
                 "witch" => {
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "witchlikes") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         }
                     }
@@ -3877,10 +4037,12 @@ impl<'a> RunState<'a> {
                 "dame" => {
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "gem") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         } else if self.data.symbols[self.deck[n].type_id as usize].name == "martini"
                         {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += values.get(1).copied().unwrap_or(40.0) as i32;
                         }
                     }
@@ -3888,6 +4050,7 @@ impl<'a> RunState<'a> {
                 "farmer" => {
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "farmerlikes") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         }
                     }
@@ -3900,6 +4063,7 @@ impl<'a> RunState<'a> {
                     };
                     for n in targets {
                         if self.data.symbols[self.deck[n].type_id as usize].name == "flower" {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(5.0);
                         }
                     }
@@ -3912,6 +4076,7 @@ impl<'a> RunState<'a> {
                     };
                     for n in targets {
                         if self.has_group(self.deck[n].type_id as usize, "night") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(3.0);
                         }
                     }
@@ -3919,6 +4084,7 @@ impl<'a> RunState<'a> {
                 "king_midas" => {
                     for n in neighbors {
                         if self.data.symbols[self.deck[n].type_id as usize].name == "coin" {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(3.0);
                         }
                     }
@@ -3929,8 +4095,8 @@ impl<'a> RunState<'a> {
                 "cat" => {
                     for n in &neighbors {
                         if self.data.symbols[self.deck[*n].type_id as usize].name == "milk" {
-                            destroyed[*n] = true;
-                            milk_eaten = true;
+                            if !can_destroy(*n) { continue; }
+                            if !exits[*n].is_gone() { exits[*n] = SymbolExit::Destroyed; } self.note_consumption(index, *n);
                             spin_bonus[index] += values.first().copied().unwrap_or(9.0) as i32;
                         }
                     }
@@ -3938,7 +4104,8 @@ impl<'a> RunState<'a> {
                 "mouse" => {
                     for n in neighbors {
                         if self.data.symbols[self.deck[n].type_id as usize].name == "cheese" {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += values.first().copied().unwrap_or(20.0) as i32;
                         }
                     }
@@ -3946,7 +4113,8 @@ impl<'a> RunState<'a> {
                 "bear" => {
                     for n in neighbors {
                         if self.data.symbols[self.deck[n].type_id as usize].name == "honey" {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += values.first().copied().unwrap_or(40.0) as i32;
                         }
                     }
@@ -3955,7 +4123,8 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(20.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "minerlikes") {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += gain;
                         }
                     }
@@ -3964,7 +4133,8 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(6.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "toddlerlikes") {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += gain;
                         }
                     }
@@ -3973,15 +4143,16 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(6.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "spiritbox") {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += gain;
                         }
                     }
                 }
                 "chemical_seven" => {
-                    extra_income += values.first().copied().unwrap_or(7.0) as i32;
                     if let Some(seven) = self.data.item_index.get("lucky_seven").copied() {
                         self.grant_item(seven);
+                        self.trace_item_grant("chemical_seven", seven);
                     }
                     destroy_self = true;
                 }
@@ -3997,26 +4168,13 @@ impl<'a> RunState<'a> {
                 "midas_bomb" => {
                     let factor = values.first().copied().unwrap_or(7.0) as i32;
                     for n in &neighbors {
-                        if destroyed[*n] {
+                        if exits[*n].is_gone() {
                             continue;
                         }
-                        let other = &self.deck[*n];
-                        let def = &self.data.symbols[other.type_id as usize];
-                        if def.name == "empty" {
-                            continue;
-                        }
-                        destroyed[*n] = true;
-                        let permanent_bonus = self.permanent_bonus_for(def);
-                        let permanent_mult = self.permanent_mult_for(def);
-                        let slot_mult = self.spin_column_mult[n % BOARD_COLS];
-                        let sum = def.base_value + other.bonus + spin_bonus[*n] + permanent_bonus;
-                        let product = sum as f64 * mult[*n] * permanent_mult * slot_mult;
-                        let value = if product < 0.0 {
-                            sum
-                        } else {
-                            product.round() as i32
-                        };
-                        extra_income += value * factor;
+                        if !can_destroy(*n) { continue; }
+                        self.note_consumption(index, *n); exits[*n] = SymbolExit::Destroyed;
+                        self.grow_when_buffed(*n);
+                        mult[*n] *= factor as f64;
                     }
                     destroy_self = true;
                 }
@@ -4030,7 +4188,7 @@ impl<'a> RunState<'a> {
                             .get(&index)
                             .and_then(|pre| pre.destruction_target)
                         {
-                            if !destroyed[target] {
+                            if !exits[target].is_gone() {
                                 let def = &self.data.symbols[self.deck[target].type_id as usize];
                                 let blocked = def.name == "empty"
                                     || (def.name == "egg" && self.fp_affects(21, "egg"))
@@ -4039,7 +4197,8 @@ impl<'a> RunState<'a> {
                                     || (def.groups.iter().any(|group| group == "void")
                                         && self.fp_affects(36, &def.name));
                                 if !blocked {
-                                    destroyed[target] = true;
+                                    if !can_destroy(target) { continue; }
+                                    self.note_consumption(index, target); exits[target] = SymbolExit::Destroyed;
                                 }
                             }
                         }
@@ -4054,80 +4213,62 @@ impl<'a> RunState<'a> {
                         .get(&index)
                         .and_then(|pre| pre.draining_target)
                     {
-                        if !destroyed[target] && self.rng.unit() * 100.0 < chance {
+                        if !exits[target].is_gone() && self.rng.unit() * 100.0 < chance {
                             mult[target] = 0.0;
                         }
                     }
                 }
                 "magic_key" => {
                     let factor = values.first().copied().unwrap_or(3.0);
+                    let mut opened = false;
                     for n in neighbors {
                         let neighbor_name =
                             self.data.symbols[self.deck[n].type_id as usize].name.clone();
                         if matches!(
                             neighbor_name.as_str(),
                             "lockbox" | "safe" | "treasure_chest" | "mega_chest"
-                        ) && !destroyed[n]
+                        ) && !exits[n].is_gone()
                             && !self.fp_affects(10, &neighbor_name)
                         {
-                            destroyed[n] = true;
-                            let fp9 = if self.fp_affects(9, &neighbor_name) {
-                                self.fp_value(9, 0)
-                            } else {
-                                0.0
-                            };
-                            let bonus = self.data.symbols[self.deck[n].type_id as usize]
-                                .values
-                                .first()
-                                .copied()
-                                .unwrap_or(0.0)
-                                - fp9;
-                            extra_income += (bonus.max(0.0) * (factor - 1.0)) as i32;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
+                            opened = true;
+                            self.grow_when_buffed(n);
+                            mult[n] *= factor;
                         }
                     }
-                    destroy_self = true;
+                    destroy_self = opened;
                 }
                 "archaeologist" => {
                     let gain = values.first().copied().unwrap_or(1.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "archlikes")
-                            && !destroyed[n]
                         {
-                            destroyed[n] = true;
+                            if exits[n] != SymbolExit::Removed && !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             self.deck[index].bonus += gain;
                         }
                     }
                 }
-                "diver" => {
-                    let gain = values.first().copied().unwrap_or(1.0) as i32;
-                    for n in neighbors {
-                        if self.has_group(self.deck[n].type_id as usize, "poslikes")
-                            && !destroyed[n]
-                        {
-                            destroyed[n] = true;
-                            self.deck[index].bonus += gain;
-                        }
-                    }
-                }
+                "diver" => {} // Resolved in the shared removal pre-pass.
                 "pirate" => {
                     let gain = values.first().copied().unwrap_or(1.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "piratelikes")
                         {
-                            destroyed[n] = true;
+                            if exits[n] != SymbolExit::Removed && !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             self.deck[index].bonus += gain;
                         }
                     }
-                }
-                "amethyst" | "pear" => {
-                    self.deck[index].bonus += values.first().copied().unwrap_or(1.0) as i32;
                 }
                 "mrs_fruit" => {
                     let gain = values.first().copied().unwrap_or(1.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "fruitlikes")
                         {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             self.deck[index].bonus += gain;
                         }
                     }
@@ -4136,24 +4277,11 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(10.0);
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "dwarflikes")
+                            || (self.has_item("dwarven_anvil") && self.has_group(self.deck[n].type_id as usize,"minerlikes"))
                         {
-                            destroyed[n] = true;
-                            // Godot multiplies the dwarf's values[0] by the
-                            // victim's `non_prev_final_value`, which is
-                            // recomputed with `get_non_prev_value("coin")` when
-                            // effects resolve.  That helper includes this
-                            // spin's `value_bonus_arr` (e.g. happy_hour +1 to
-                            // booze) and `value_multiplier_arr`, so the victim
-                            // is not just its permanent value.  A beer under
-                            // happy_hour is worth 2, giving dwarf +20, not +10.
-                            let victim_def =
-                                &self.data.symbols[self.deck[n].type_id as usize];
-                            let victim = ((self.deck[n].bonus + victim_def.base_value
-                                + spin_bonus[n]) as f64
-                                + self.permanent_bonus_for(victim_def) as f64)
-                                * self.permanent_mult_for(victim_def)
-                                * mult[n];
-                            spin_bonus[index] += (victim * gain).round() as i32;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
+                            dynamic_feeds.push((index,n,gain));
                         }
                     }
                 }
@@ -4163,10 +4291,11 @@ impl<'a> RunState<'a> {
                         let chest_name =
                             self.data.symbols[self.deck[n].type_id as usize].name.clone();
                         if self.has_group(self.deck[n].type_id as usize, "chest")
-                            && !destroyed[n]
+                            && !exits[n].is_gone()
                             && !self.fp_affects(10, &chest_name)
                         {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             opened = true;
                         }
                     }
@@ -4184,35 +4313,13 @@ impl<'a> RunState<'a> {
                         destroy_self = true;
                     }
                 }
-                "golem" => {
-                    if self.deck[index].times_displayed >= 5 {
-                        destroy_self = true;
-                        if let Some(ore) = self.data.symbol_id("ore") {
-                            for _ in 0..5 {
-                                spawned.push(ore);
-                            }
-                        }
-                    }
-                }
-                "matryoshka_doll_1" | "matryoshka_doll_2" | "matryoshka_doll_3"
-                | "matryoshka_doll_4" => {
-                    let threshold = values.first().copied().unwrap_or(3.0) as u32;
-                    if self.deck[index].times_displayed >= threshold {
-                        destroy_self = true;
-                        let next = match name.as_str() {
-                            "matryoshka_doll_1" => "matryoshka_doll_2",
-                            "matryoshka_doll_2" => "matryoshka_doll_3",
-                            "matryoshka_doll_3" => "matryoshka_doll_4",
-                            _ => "matryoshka_doll_5",
-                        };
-                        if let Some(next_id) = self.data.symbol_id(next) {
-                            spawned.push(next_id);
-                        }
-                    }
+                "golem" | "matryoshka_doll_1" | "matryoshka_doll_2" | "matryoshka_doll_3" | "matryoshka_doll_4" => {
+                    destroy_self = self.deck[index].times_displayed as i32 >= self.timed_destroy_threshold(&name,values[0] as i32);
                 }
                 "chef" => {
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "food") {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         }
                     }
@@ -4245,9 +4352,10 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(25.0) as i32;
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "human")
-                            && !destroyed[n]
+                            && !exits[n].is_gone()
                         {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += gain;
                         }
                     }
@@ -4261,18 +4369,17 @@ impl<'a> RunState<'a> {
                         .count() as i32
                         * 25;
                     for n in neighbors {
-                        if destroyed[n] {
-                            continue;
-                        }
                         let target_is_thief =
                             self.data.symbols[self.deck[n].type_id as usize].name == "thief";
                         let target_is_human =
                             self.has_group(self.deck[n].type_id as usize, "human");
                         if target_is_thief {
-                            destroyed[n] = true;
-                            spin_bonus[index] += gain;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
+                            spin_bonus[index] += gain + contract_bonus;
                         } else if contract_bonus > 0 && target_is_human {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += contract_bonus;
                         }
                     }
@@ -4350,92 +4457,20 @@ impl<'a> RunState<'a> {
                     } else {
                         values.get(1).copied().unwrap_or(5.0) as i32
                     };
-                    let reroll_dice = self.has_essence("reroll_essence");
-                    if reroll_dice || self.has_item("lucky_dice") {
-                        spin_bonus[index] += high;
-                    } else {
-                        let mut roll = pre_rolls
-                            .get(&index)
-                            .and_then(|pre| pre.dice)
-                            .unwrap_or_else(|| {
-                                self.rng.range(1, high.max(2) as usize + 1) as i32
-                            });
-                        if let Some(item_id) = self
-                            .items_held
-                            .iter()
-                            .copied()
-                            .find(|id| self.data.items[*id].name == "reroll")
-                        {
-                            let threshold = self.data.items[item_id]
-                                .values
-                                .get(if name == "d3" { 0 } else { 1 })
-                                .copied()
-                                .unwrap_or(2.0) as i32;
-                            if roll < threshold.max(1) {
-                                // The replacement was rolled during item
-                                // registration; reuse it instead of drawing
-                                // a fresh value here.
-                                let replacement = if name == "d3" {
-                                    self.reroll_d3_roll
-                                } else {
-                                    self.reroll_d5_roll
-                                };
-                                if let Some(value) = replacement {
-                                    roll = value;
-                                }
-                            }
-                        }
-                        spin_bonus[index] += roll;
-                        // A displayed gambler destroys itself whenever a d3 or
-                        // d5 actually rolls a one.
-                        if roll == 1 {
-                            for (other, _, _) in entries.iter().copied() {
-                                if !destroyed[other]
-                                    && self.data.symbols[self.deck[other].type_id as usize].name
-                                        == "gambler"
-                                {
-                                    destroyed[other] = true;
-                                }
+                    let roll = self.roll_die(&name, high, pre_rolls.get(&index).and_then(|pre| pre.dice));
+                    spin_bonus[index] += roll;
+                    if roll == 1 {
+                        for (other,_,_) in entries.iter().copied() {
+                            if self.data.symbols[self.deck[other].type_id as usize].name == "gambler"
+                                && !exits[other].is_gone() && can_destroy(other) {
+                                self.note_consumption(index, other); exits[other] = SymbolExit::Destroyed;
                             }
                         }
                     }
-                    if reroll_dice {
-                        self.reroll_essence_rerolls += 1;
-                        let need = self
-                            .data
-                            .essence_index
-                            .get("reroll_essence")
-                            .map(|id| {
-                                self.data.essences[*id]
-                                    .values
-                                    .get(2)
-                                    .copied()
-                                    .unwrap_or(10.0) as i32
-                            })
-                            .unwrap_or(10)
-                            .max(1);
-                        if self.reroll_essence_rerolls >= need {
-                            if let Some(essence_id) =
-                                self.data.essence_index.get("reroll_essence").copied()
-                            {
-                                self.try_destroy_essence(essence_id);
-                            }
-                        }
-                    }
-                    if self.has_essence("lucky_dice_essence") {
-                        let step = self
-                            .data
-                            .essence_index
-                            .get("lucky_dice_essence")
-                            .map(|id| {
-                                self.data.essences[*id]
-                                    .values
-                                    .get(1)
-                                    .copied()
-                                    .unwrap_or(1.0) as i32
-                            })
-                            .unwrap_or(1);
-                        spin_bonus[index] += step;
+                    if self.has_spin_essence("lucky_dice_essence") {
+                        let id = self.data.essence_index["lucky_dice_essence"];
+                        spin_bonus[index] += self.data.essences[id].values[1] as i32;
+                        *self.essence_saved.entry(id).or_default() += 1;
                     }
                 }
                 "coal" => {
@@ -4444,7 +4479,7 @@ impl<'a> RunState<'a> {
                         .first()
                         .copied()
                         .unwrap_or(20.0) as u32;
-                    if self.has_essence("time_machine_essence") {
+                    if self.has_spin_essence("time_machine_essence") {
                         threshold = 0;
                     }
                     let machines = self
@@ -4471,12 +4506,16 @@ impl<'a> RunState<'a> {
                         if let Some(diamond) = self.data.symbol_id("diamond") {
                             self.deck[index].type_id = diamond as u16;
                             self.deck[index].times_displayed = 0;
+                            self.refresh_transformed_symbol_rolls(index,&entries,&exits);
+                            if let Some(id) = self.data.essence_index.get("time_machine_essence").copied().filter(|id| self.essences_held.contains(id)) {
+                                *self.essence_saved.entry(id).or_default() += 1;
+                            }
                         }
                     }
                 }
                 "present" => {
-                    if self.deck[index].times_displayed
-                        >= values.first().copied().unwrap_or(12.0) as u32
+                    if self.deck[index].times_displayed as i32
+                        >= self.timed_destroy_threshold(&name, values.first().copied().unwrap_or(12.0) as i32)
                     {
                         destroy_self = true;
                     }
@@ -4496,13 +4535,13 @@ impl<'a> RunState<'a> {
                     }
                 }
                 "bar_of_soap" => {
-                    if let Some(bubble) = self.data.symbol_id("bubble") {
-                        spawned.push(bubble);
-                    }
                     let threshold =
                         (values.first().copied().unwrap_or(3.0) as u32).saturating_sub(1);
                     if self.deck[index].times_coins_given >= threshold {
                         destroy_self = true;
+                    }
+                    if let Some(bubble) = self.data.symbol_id("bubble") {
+                        spawned.push(bubble);
                     }
                 }
                 "seed" => {
@@ -4521,30 +4560,7 @@ impl<'a> RunState<'a> {
                             .unwrap_or(20);
                         spin_bonus[index] += bonus;
                     }
-                    let fertilizer_essence = self.has_essence("fertilizer_essence");
-                    let can_multiplier = self
-                        .items_held
-                        .iter()
-                        .filter(|item_id| self.data.items[**item_id].name == "watering_can")
-                        .map(|item_id| {
-                            1.0 + self.data.items[*item_id].values.first().copied().unwrap_or(0.0)
-                                / 100.0
-                        })
-                        .product::<f64>();
-                    let rain_multiplier: f64 = neighbors
-                        .iter()
-                        .filter_map(|neighbor| {
-                            let def = &self.data.symbols[self.deck[*neighbor].type_id as usize];
-                            if def.name == "rain" {
-                                Some(
-                                    1.0 + def.values.get(1).copied().unwrap_or(50.0) / 100.0,
-                                )
-                            } else {
-                                None
-                            }
-                        })
-                        .product::<f64>()
-                        .max(1.0);
+                    let fertilizer_essence = self.has_spin_essence("fertilizer_essence");
                     let fertilizer_copies = self
                         .items_held
                         .iter()
@@ -4561,19 +4577,19 @@ impl<'a> RunState<'a> {
                     if !self.has_fine_print(34)
                         && chance_allowed
                         && self.rng.unit() * 100.0
-                            < values.first().copied().unwrap_or(25.0)
-                                * can_multiplier
-                                * (1.0 + fertilizer_copies)
-                                * rain_multiplier
+                            < self.seed_growth_chance(index,x,y)
                     {
                         let plant = if fertilizer_essence {
                             self.pick_group_min("plant", Rarity::VeryRare)
                         } else if fertilizer_copies > 0.0 {
                             self.pick_group_min("plant", Rarity::Rare)
+                        } else if self.has_item("compost_heap") {
+                            self.pick_group_min("plant",Rarity::Uncommon)
                         } else {
                             self.pick_group("plant")
                         };
                         if let Some(plant) = plant {
+                            spin_bonus[index] += self.deck[index].current_value(self.data);
                             self.deck[index].type_id = plant as u16;
                             if fertilizer_essence {
                                 if let Some(id) =
@@ -4598,7 +4614,7 @@ impl<'a> RunState<'a> {
                         .map(|item_id| {
                             self.data.items[*item_id].values.first().copied().unwrap_or(0.0) as u32
                         })
-                        .sum::<u32>();
+                        .sum::<u32>() * u32::from(name != "crow");
                     let fp12 = if self.fp_affects(12, &name) {
                         self.fp_value(12, 0) as u32
                     } else {
@@ -4607,7 +4623,7 @@ impl<'a> RunState<'a> {
                     let threshold = (values.get(1).copied().unwrap_or(3.0) as u32)
                         .saturating_sub(flag_reduction)
                         + fp12;
-                    let instant = self.has_essence("checkered_flag_essence");
+                    let instant = name != "crow" && self.has_spin_essence("checkered_flag_essence");
                     if instant || self.deck[index].times_displayed >= threshold.max(1) {
                         spin_bonus[index] += values.first().copied().unwrap_or(0.0) as i32;
                         self.deck[index].times_displayed = 0;
@@ -4641,16 +4657,16 @@ impl<'a> RunState<'a> {
                         if self.has_group(other, "robinlikes") {
                             spin_bonus[n] += values.get(2).copied().unwrap_or(3.0) as i32;
                         } else if self.has_group(other, "robinhates") {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += steal;
                         }
                     }
                 }
                 "wine" => {
-                    if self.deck[index].times_displayed >= values.get(1).copied().unwrap_or(8.0) as u32
-                    {
+                    if self.deck[index].saved == 0 && self.deck[index].times_coins_given + 1 >= values.get(1).copied().unwrap_or(8.0) as u32 {
                         self.deck[index].bonus += values.first().copied().unwrap_or(1.0) as i32;
-                        self.deck[index].times_displayed = 0;
+                        self.deck[index].saved = 1;
                     }
                 }
                 "tomb" => {
@@ -4668,7 +4684,8 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(15.0) as i32;
                     for n in neighbors {
                         if self.data.symbols[self.deck[n].type_id as usize].name == "bubble" {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             spin_bonus[index] += gain;
                         }
                     }
@@ -4699,6 +4716,7 @@ impl<'a> RunState<'a> {
                     let amount = values.first().copied().unwrap_or(2.0);
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "suit") {
+                            self.grow_when_buffed(n);
                             mult[n] *= amount;
                         }
                     }
@@ -4715,7 +4733,7 @@ impl<'a> RunState<'a> {
                     }
                     let blue = matches!(name.as_str(), "clubs" | "spades");
                     for n in neighbors {
-                        if destroyed[n] {
+                        if exits[n].is_gone() {
                             continue;
                         }
                         let other = self.data.symbols[self.deck[n].type_id as usize]
@@ -4751,11 +4769,13 @@ impl<'a> RunState<'a> {
                         .unwrap_or(1.0);
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "funny") {
+                            self.grow_when_buffed(n);
                             mult[n] *= amount;
                         }
                         if dark_humor.is_some()
                             && self.has_group(self.deck[n].type_id as usize, "darkhumor")
                         {
+                            self.grow_when_buffed(n);
                             mult[n] *= dark_factor;
                         }
                     }
@@ -4783,18 +4803,31 @@ impl<'a> RunState<'a> {
                     }
                 }
                 "frozen_fossil" => {
-                    if self.deck[index].times_displayed
-                        >= values.first().copied().unwrap_or(20.0) as u32
+                    let time_machine = if self.has_spin_essence("time_machine_essence") { 1_000_000 }
+                        else { self.items_held.iter().filter(|id| self.data.items[**id].name == "time_machine")
+                            .map(|id| self.data.items[*id].values.get(2).copied().unwrap_or(0.0) as i32).sum() };
+                    let progress = self.fossil_progress() + entries.iter().filter(|(n,_,_)|
+                        exits[*n].is_gone() && self.has_group(self.deck[*n].type_id as usize,"fossillikes")).count() as i32;
+                    if self.deck[index].times_displayed as i32
+                        >= values.first().copied().unwrap_or(20.0) as i32 - time_machine
+                            - progress * values.get(1).copied().unwrap_or(0.0) as i32
                     {
                         destroy_self = true;
                     }
                 }
+                "eldritch_beast" => {
+                    for n in neighbors {
+                        if !exits[n].is_gone() && self.has_group(self.deck[n].type_id as usize, "fossillikes") {
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
+                        }
+                    }
+                }
                 "rabbit" => {
-                    if self.deck[index].times_displayed
-                        >= values.get(1).copied().unwrap_or(10.0) as u32
-                    {
+                    if self.deck[index].saved == 0 && self.deck[index].times_coins_given + 1
+                        >= values.get(1).copied().unwrap_or(10.0) as u32 {
                         self.deck[index].bonus += values.first().copied().unwrap_or(2.0) as i32;
-                        self.deck[index].times_displayed = 0;
+                        self.deck[index].saved = 1;
                     }
                     let shedding: f64 = self
                         .items_held
@@ -4821,8 +4854,9 @@ impl<'a> RunState<'a> {
                     let multiplier = values.first().copied().unwrap_or(2.0);
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "richlikes")
-                            && !destroyed[n]
+                            && !exits[n].is_gone()
                         {
+                            self.grow_when_buffed(n);
                             mult[n] *= multiplier;
                         }
                     }
@@ -4847,7 +4881,7 @@ impl<'a> RunState<'a> {
                         .unwrap_or_else(|| {
                             let first = 1 + self.rng.range(0, 8);
                             let mut directions = vec![first];
-                            if self.has_item("quiver") || self.has_essence("quiver_essence") {
+                            if self.has_item("quiver") || self.has_spin_essence("quiver_essence") {
                                 let mut remaining: Vec<usize> =
                                     (1..=8).filter(|direction| *direction != first).collect();
                                 let pick = self.rng.range(0, remaining.len());
@@ -4869,13 +4903,15 @@ impl<'a> RunState<'a> {
                             if let Some(other) =
                                 self.board.slots[cy as usize * BOARD_COLS + cx as usize]
                             {
-                                if !destroyed[other] && !hit.contains(&other) {
+                                if !exits[other].is_gone() && !hit.contains(&other) {
                                     hit.push(other);
+                                    self.grow_when_buffed(other);
                                     mult[other] *= multiplier;
                                     if self.data.symbols[self.deck[other].type_id as usize].name
                                         == "target"
                                     {
-                                        destroyed[other] = true;
+                                        if !can_destroy(other) { continue; }
+                                        self.note_consumption(index, other); exits[other] = SymbolExit::Destroyed;
                                     }
                                 }
                             }
@@ -4883,10 +4919,18 @@ impl<'a> RunState<'a> {
                             cy += dy;
                         }
                     }
+                    if hit.is_empty() {
+                        if let Some(id) = self.data.essence_index.get("quiver_essence").copied()
+                            .filter(|id| self.essences_held.contains(id) && !self.spin_essence_triggers.contains(id)) {
+                            self.try_destroy_essence(id);
+                        }
+                    }
                 }
                 "buffing_powder" => {
-                    let multiplier = values.first().copied().unwrap_or(2.0);
+                    let copies = self.capsule_multiplier();
+                    let multiplier = values.first().copied().unwrap_or(2.0).powi(copies);
                     for n in neighbors {
+                        self.grow_when_buffed(n);
                         mult[n] *= multiplier;
                     }
                     destroy_self = true;
@@ -4894,6 +4938,7 @@ impl<'a> RunState<'a> {
                 "rain" => {
                     for n in neighbors {
                         if self.data.symbols[self.deck[n].type_id as usize].name == "flower" {
+                            self.grow_when_buffed(n);
                             mult[n] *= values.first().copied().unwrap_or(2.0);
                         }
                     }
@@ -5006,13 +5051,12 @@ impl<'a> RunState<'a> {
                         }
                         let pick = pool[self.rng.range(0, pool.len())];
                         self.grant_item(pick);
+                        self.trace_item_grant("item_capsule", pick);
                     }
                     destroy_self = true;
                 }
                 "tedium_capsule" => {
-                    extra_income += values.first().copied().unwrap_or(5.0) as i32
-                        * self.capsule_multiplier();
-                    let count = values.get(1).copied().unwrap_or(1.0).max(1.0) as usize;
+                    let count = values.get(1).copied().unwrap_or(1.0).max(1.0) as usize * self.capsule_multiplier() as usize;
                     for _ in 0..count {
                         self.symbol_forced_queue.push((Rarity::Common, false));
                     }
@@ -5027,13 +5071,9 @@ impl<'a> RunState<'a> {
                     let gain = values.first().copied().unwrap_or(6.0);
                     for n in neighbors {
                         if self.has_group(self.deck[n].type_id as usize, "monkeylikes") {
-                            destroyed[n] = true;
-                            let victim_def =
-                                &self.data.symbols[self.deck[n].type_id as usize];
-                            let victim = ((self.deck[n].bonus + victim_def.base_value) as f64
-                                + self.permanent_bonus_for(victim_def) as f64)
-                                * self.permanent_mult_for(victim_def);
-                            spin_bonus[index] += (victim * gain).round() as i32;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
+                            dynamic_feeds.push((index,n,gain));
                         }
                     }
                 }
@@ -5051,10 +5091,12 @@ impl<'a> RunState<'a> {
                 "banana_peel" => {
                     let mut eaten = false;
                     for n in neighbors {
-                        if self.data.symbols[self.deck[n].type_id as usize].name == "thief"
-                            && !destroyed[n]
+                        if (self.data.symbols[self.deck[n].type_id as usize].name == "thief"
+                            || (self.has_spin_essence("dark_humor_essence") && self.data.symbols[self.deck[n].type_id as usize].name == "comedian"))
+                            && !exits[n].is_gone()
                         {
-                            destroyed[n] = true;
+                            if !can_destroy(n) { continue; }
+                            if !exits[n].is_gone() { exits[n] = SymbolExit::Destroyed; } self.note_consumption(index, n);
                             eaten = true;
                         }
                     }
@@ -5073,57 +5115,15 @@ impl<'a> RunState<'a> {
                         }
                     }
                 }
-                "egg" => {
-                    let coop = self.item_multiplier("chicken_coop", 1);
-                    if chance_allowed
-                        && self.rng.unit() * 100.0
-                            < values.first().copied().unwrap_or(10.0) * coop
-                    {
-                        if let Some(chick) = self.data.symbol_id("chick") {
-                            // The real game pays the icon once before the type
-                            // change and once after it (egg 1 + chick 1 = 2).
-                            spin_bonus[index] += self.deck[index].current_value(self.data);
-                            self.deck[index].type_id = chick as u16;
-                            egg_became_chick = true;
-                        }
-                    }
-                }
-                "chick" => {
-                    if chance_allowed
-                        && self.rng.unit() * 100.0 < values.first().copied().unwrap_or(10.0)
-                    {
-                        if let Some(chicken) = self.data.symbol_id("chicken") {
-                            // chick 1 + chicken 2 = 3 in a single coin sum.
-                            spin_bonus[index] += self.deck[index].current_value(self.data);
-                            self.deck[index].type_id = chicken as u16;
-                            chick_became_chicken = true;
-                        }
-                    }
-                }
-                "chicken" => {
-                    let spawn_multiplier = self.spawn_multiplier();
-                    let coop = self.item_multiplier("chicken_coop", 0);
-                    let egg_chance =
-                        values.first().copied().unwrap_or(5.0) * spawn_multiplier * coop;
-                    let golden_chance =
-                        values.get(1).copied().unwrap_or(1.0) * spawn_multiplier * coop;
-                    if chance_allowed && self.rng.unit() * 100.0 < egg_chance {
-                        if let Some(egg) = self.data.symbol_id("egg") {
-                            spawned.push(egg);
-                            self.note_spawner_spawns(1);
-                        }
-                    }
-                    if chance_allowed && self.rng.unit() * 100.0 < golden_chance {
-                        if let Some(golden) = self.data.symbol_id("golden_egg") {
-                            spawned.push(golden);
-                            self.note_spawner_spawns(1);
-                        }
-                    }
+                "egg" | "chick" | "chicken" => {
+                    let (bonus, born, egg_grew, chick_grew) = self.grow_chicken_and_lay(index);
+                    spin_bonus[index] += bonus;
+                    spawned.extend(born);
+                    egg_became_chick |= egg_grew;
+                    chick_became_chicken |= chick_grew;
                 }
                 "lucky_capsule" => {
                     if !self.fp_affects(37, "lucky_capsule") {
-                        extra_income += values.first().copied().unwrap_or(10.0) as i32
-                            * self.capsule_multiplier();
                         destroy_self = true;
                     }
                 }
@@ -5143,8 +5143,9 @@ impl<'a> RunState<'a> {
                 }
                 _ => {}
             }
-            if destroy_self {
-                destroyed[index] = true;
+            for order in additions_before..spawned.len() { spawn_origins.insert(order,index); }
+            if destroy_self && can_destroy(index) {
+                if can_destroy(index) { exits[index] = SymbolExit::Destroyed; }
             }
         }
 
@@ -5180,7 +5181,7 @@ impl<'a> RunState<'a> {
             };
             if let Some((is_group, tags, amount)) = flat {
                 for (index, _, _) in entries.iter().copied() {
-                    if destroyed[index] {
+                    if exits[index].is_gone() {
                         continue;
                     }
                     let type_id = self.deck[index].type_id as usize;
@@ -5209,7 +5210,7 @@ impl<'a> RunState<'a> {
             };
             if let Some((is_group, tag, amount)) = mult_tag {
                 for (index, _, _) in entries.iter().copied() {
-                    if destroyed[index] {
+                    if exits[index].is_gone() {
                         continue;
                     }
                     let type_id = self.deck[index].type_id as usize;
@@ -5253,9 +5254,7 @@ impl<'a> RunState<'a> {
                 .copied()
             {
                 self.try_destroy_essence(essence_id);
-                if !self.has_essence("chicken_coop_essence") {
-                    self.add_permanent_group_bonus("chickenstuff", bonus);
-                }
+                self.add_permanent_group_bonus("chickenstuff", bonus);
             }
         }
 
@@ -5266,7 +5265,7 @@ impl<'a> RunState<'a> {
         // destroyed icons have turned into empty cells.  The two therefore
         // see slightly different neighbourhoods.
         if !void_effects.is_empty() {
-            let effective_empties = |x: usize, y: usize, destroyed: &[bool]| -> i32 {
+            let effective_empties = |x: usize, y: usize, exits: &[SymbolExit]| -> i32 {
                 let mut count = 0;
                 for dy in -1i32..=1 {
                     for dx in -1i32..=1 {
@@ -5284,7 +5283,7 @@ impl<'a> RunState<'a> {
                         }
                         match self.board.slots[ny as usize * BOARD_COLS + nx as usize] {
                             None => count += 1,
-                            Some(other) if destroyed[other] => count += 1,
+                            Some(other) if exits[other].is_gone() => count += 1,
                             _ => {}
                         }
                     }
@@ -5293,60 +5292,127 @@ impl<'a> RunState<'a> {
             };
             for &(index, x, y, _, threshold, protected) in &void_effects {
                 if !protected
-                    && !destroyed[index]
+                    && !exits[index].is_gone()
                     && self.empty_neighbor_count(x, y) <= threshold
                 {
-                    destroyed[index] = true;
+                    if can_destroy(index) { exits[index] = SymbolExit::Destroyed; }
                 }
             }
             for &(_, x, y, gain, _, _) in &void_effects {
-                extra_income += effective_empties(x, y, &destroyed) * gain;
+                extra_income += effective_empties(x, y, &exits) * gain;
             }
         }
 
-        let mut reanimated: HashMap<usize, i32> = HashMap::new();
+        let frying_pan_essence = self
+            .data
+            .essence_index
+            .get("frying_pan_essence")
+            .copied()
+            .filter(|id| self.essences_held.contains(id));
+        let frying_pans = self
+            .items_held
+            .iter()
+            .filter(|id| self.data.items[**id].name == "frying_pan")
+            .count() as i32;
+        if frying_pan_essence.is_some() || frying_pans > 0 {
+            let mut fried = false;
+            let egg_id = self.data.symbol_id("egg");
+            let omelette_id = self.data.symbol_id("omelette");
+            for (index, x, y) in entries.iter().copied() {
+                if exits[index].is_gone()
+                    || Some(self.deck[index].type_id as usize) != egg_id
+                    || self.has_fine_print(21)
+                {
+                    continue;
+                }
+                let adjacent_pan = self
+                    .neighbor_indexes(x, y, index)
+                    .iter()
+                    .any(|neighbor| {
+                        !exits[*neighbor].is_gone()
+                            && self.has_group(self.deck[*neighbor].type_id as usize, "omelettestuff")
+                    });
+                if adjacent_pan {
+                    if can_destroy(index) { exits[index] = SymbolExit::Destroyed; }
+                }
+            }
+            // The on-destroy effect also applies when another symbol kills
+            // an egg; removing an egg is a separate event.
+            for (index,_,_) in entries.iter().copied() {
+                if exits[index].is_destroyed() && Some(self.deck[index].type_id as usize) == egg_id {
+                    fried = true;
+                    if let Some(omelette) = omelette_id {
+                        for _ in 0..frying_pans + i32::from(frying_pan_essence.is_some()) { spawned.push(omelette); }
+                    }
+                }
+            }
+            if fried {
+                if let Some(essence_id) = frying_pan_essence {
+                    self.try_destroy_essence(essence_id);
+                    let factor = self.data.essences[essence_id]
+                            .values
+                            .first()
+                            .copied()
+                            .unwrap_or(3.0);
+                    self.multiply_permanent_name("omelette", factor);
+                }
+            }
+        }
+        let fossil_progress = self.fossil_progress() + entries.iter().filter(|(n,_,_)|
+            exits[*n].is_gone() && self.has_group(self.deck[*n].type_id as usize,"fossillikes")).count() as i32;
+        for (index,_,_) in entries.iter().copied() {
+            let def = &self.data.symbols[self.deck[index].type_id as usize];
+            if def.name == "frozen_fossil" && !exits[index].is_gone()
+                && self.deck[index].times_displayed as i32 >= self.timed_destroy_threshold("frozen_fossil",def.values[0] as i32) - fossil_progress * def.values[1] as i32
+                && can_destroy(index) { exits[index] = SymbolExit::Destroyed; }
+        }
+        for (index,x,y) in entries.iter().copied() {
+            if self.data.symbols[self.deck[index].type_id as usize].name == "dove" {
+                let count = self.neighbor_indexes(x,y,index).iter().filter(|n| dove_attempts.contains(n)).count() as i32;
+                let gain = self.data.symbols[self.deck[index].type_id as usize].values[0] as i32;
+                self.deck[index].bonus += count * gain;
+            }
+        }
+
         for (index, _, _) in entries.iter().copied() {
-            if !destroyed[index] {
+            match exits[index] {
+                SymbolExit::Destroyed => self.record_destruction(self.deck[index].type_id),
+                SymbolExit::Removed => {
+                    let id = self.deck[index].type_id;
+                    self.removed_history.push(id);
+                    extra_income += self.removal_payout(id as usize);
+                    if self.data.symbols[id as usize].name == "oyster" {
+                        if let Some(pearl) = self.data.symbol_id("pearl") { spawned.push(pearl); }
+                    }
+                }
+                SymbolExit::Present => {}
+            }
+        }
+        let destroyed_count = exits.iter().filter(|exit| exit.is_destroyed()).count() as i32;
+        let destroyed_mask: Vec<bool> = exits.iter().map(|exit| exit.is_destroyed()).collect();
+        let gone_mask: Vec<bool> = exits.iter().map(|exit| exit.is_gone()).collect();
+        extra_income += self.tick_permanent_essences(&entries, &destroyed_mask, destroyed_count);
+
+        for (index, _, _) in entries.iter().copied() {
+            if !exits[index].is_destroyed() {
                 continue;
             }
             let type_id = self.deck[index].type_id as usize;
             let name = self.data.symbols[type_id].name.as_str();
-            for item_id in self.items_held.clone() {
-                let item = &self.data.items[item_id];
-                let group = match item.name.as_str() {
-                    "void_party" => "void",
-                    "mobius_strip" => "box",
-                    _ => continue,
-                };
-                if !self.has_group(type_id, group) {
-                    continue;
+            self.queue_revivals(index,&mut spawned,&mut spawned_revivals);
+            if self.has_group(type_id,"box") {
+                for &id in &self.items_held {
+                    if self.data.items[id].name == "looting_glove" { mult[index] *= self.data.items[id].values[0]; }
                 }
-                let chance = item.values.first().copied().unwrap_or(50.0);
-                let limit = item
-                    .values
-                    .get(1)
-                    .copied()
-                    .unwrap_or(7.0)
-                    .max(1.0) as i32;
-                let used = reanimated.get(&item_id).copied().unwrap_or(0);
-                if used < limit && self.rng.unit() * 100.0 < chance {
-                    reanimated.insert(item_id, used + 1);
-                    spawned.push(type_id);
+                if let Some(id) = looting_essence {
+                    mult[index] *= self.data.essences[id].values[0];
+                    if !self.spin_essence_triggers.contains(&id) { self.try_destroy_essence(id); }
                 }
             }
-            let gem_floor = if self.has_essence("x_ray_machine_essence") {
-                Rarity::VeryRare
-            } else if self.has_item("x_ray_machine") {
-                Rarity::Rare
-            } else {
-                Rarity::Common
-            };
             match name {
                 "ore" => {
                     if !self.fp_affects(15, name) {
-                        if let Some(gem) = self.pick_group_min("gem", gem_floor) {
-                            spawned.push(gem);
-                        }
+                        spawned.extend(ore_births.remove(&index).unwrap_or_else(|| self.roll_ore_gems(type_id)));
                         if let Some(essence_id) = self
                             .data
                             .essence_index
@@ -5360,15 +5426,10 @@ impl<'a> RunState<'a> {
                 }
                 "big_ore" => {
                     if !self.fp_affects(15, name) {
-                        for _ in 0..self.data.symbols[type_id]
-                            .values
-                            .first()
-                            .copied()
-                            .unwrap_or(2.0) as i32
-                        {
-                            if let Some(gem) = self.pick_group_min("gem", gem_floor) {
-                                spawned.push(gem);
-                            }
+                        spawned.extend(ore_births.remove(&index).unwrap_or_else(|| self.roll_ore_gems(type_id)));
+                        if let Some(id) = self.data.essence_index.get("x_ray_machine_essence").copied()
+                            .filter(|id| self.essences_held.contains(id) && !self.spin_essence_triggers.contains(id)) {
+                            self.try_destroy_essence(id);
                         }
                     }
                 }
@@ -5385,48 +5446,27 @@ impl<'a> RunState<'a> {
                     }
                 }
                 "lockbox" | "safe" | "treasure_chest" | "mega_chest" => {
-                    let fp9 = if self.fp_affects(9, &name) {
-                        self.fp_value(9, 0)
-                    } else {
-                        0.0
-                    };
-                    let bonus = self.data.symbols[type_id]
-                        .values
-                        .first()
-                        .copied()
-                        .unwrap_or(0.0)
-                        - fp9;
-                    let mut glove_multiplier: f64 = self
-                        .items_held
-                        .iter()
-                        .filter(|item_id| self.data.items[**item_id].name == "looting_glove")
-                        .map(|item_id| {
-                            self.data.items[*item_id]
-                                .values
-                                .first()
-                                .copied()
-                                .unwrap_or(1.5)
-                        })
-                        .product::<f64>()
-                        .max(1.0);
-                    if let Some(essence_id) = self
-                        .data
-                        .essence_index
-                        .get("looting_glove_essence")
-                        .copied()
-                        .filter(|id| self.essences_held.contains(id))
-                    {
-                        glove_multiplier *= self.data.essences[essence_id]
-                            .values
-                            .first()
-                            .copied()
-                            .unwrap_or(3.5);
-                        self.try_destroy_essence(essence_id);
+                    let penalty = if self.fp_affects(9,name) { self.fp_value(9,0) } else { 0.0 };
+                    spin_bonus[index] += (self.data.symbols[type_id].values[0] - penalty).max(0.0) as i32;
+                }
+                "chemical_seven" => spin_bonus[index] += self.data.symbols[type_id].values[0] as i32,
+                "lucky_capsule" | "tedium_capsule" => {
+                    spin_bonus[index] += self.data.symbols[type_id].values[0] as i32 * capsule_factor;
+                }
+                "mine" => {
+                    if let Some(&id) = self.data.item_index.get("mining_pick") { self.grant_item(id); self.trace_item_grant("mine", id); }
+                }
+                "golem" => {
+                    if let Some(id) = self.data.symbol_id("ore") {
+                        spawned.extend(std::iter::repeat(id).take(self.data.symbols[type_id].values[1] as usize));
                     }
-                    extra_income += (bonus.max(0.0) * glove_multiplier).round() as i32;
+                }
+                "matryoshka_doll_1"|"matryoshka_doll_2"|"matryoshka_doll_3"|"matryoshka_doll_4" => {
+                    let stage = name.chars().last().unwrap().to_digit(10).unwrap();
+                    if let Some(id) = self.data.symbol_id(&format!("matryoshka_doll_{}",stage+1)) { spawned.push(id); }
                 }
                 "thief" => {
-                    extra_income += self.deck[index].times_displayed as i32
+                    spin_bonus[index] += self.deck[index].times_displayed as i32
                         * self.data.symbols[type_id]
                             .values
                             .get(1)
@@ -5434,7 +5474,7 @@ impl<'a> RunState<'a> {
                             .unwrap_or(4.0) as i32;
                 }
                 "gambler" => {
-                    extra_income += self.deck[index].times_displayed as i32
+                    spin_bonus[index] += self.deck[index].times_displayed as i32
                         * self.data.symbols[type_id]
                             .values
                             .get(1)
@@ -5452,6 +5492,7 @@ impl<'a> RunState<'a> {
                     if let Some(pool_ball) = self.data.item_index.get("pool_ball").copied() {
                         for _ in 0..count {
                             self.grant_item(pool_ball);
+                            self.trace_item_grant("hustler", pool_ball);
                         }
                         // A newly granted pool ball pays its 1 coin in the
                         // same spin.
@@ -5466,7 +5507,7 @@ impl<'a> RunState<'a> {
                 "present" => {
                     // Present pays values[1] only when it is (or was) destroyed
                     // this spin, whichever effect removed it.
-                    extra_income += self.data.symbols[type_id]
+                    spin_bonus[index] += self.data.symbols[type_id]
                         .values
                         .get(1)
                         .copied()
@@ -5574,21 +5615,21 @@ impl<'a> RunState<'a> {
                     }
                 }
                 "billionaire" => {
-                    extra_income += self.data.symbols[type_id]
+                    spin_bonus[index] += self.data.symbols[type_id]
                         .values
                         .get(1)
                         .copied()
                         .unwrap_or(39.0) as i32;
                 }
                 "void_fruit" | "void_creature" | "void_stone" => {
-                    extra_income += self.data.symbols[type_id]
+                    spin_bonus[index] += self.data.symbols[type_id]
                         .values
                         .get(2)
                         .copied()
                         .unwrap_or(8.0) as i32;
                 }
                 "target" => {
-                    extra_income += self.data.symbols[type_id]
+                    spin_bonus[index] += self.data.symbols[type_id]
                         .values
                         .first()
                         .copied()
@@ -5608,7 +5649,7 @@ impl<'a> RunState<'a> {
                 let organisms = entries
                     .iter()
                     .filter(|(index, _, _)| {
-                        destroyed[*index]
+                        exits[*index].is_destroyed()
                             && self.has_group(self.deck[*index].type_id as usize, "organism")
                     })
                     .count();
@@ -5618,87 +5659,6 @@ impl<'a> RunState<'a> {
             }
         }
 
-        let doves: Vec<(usize, usize, usize)> = entries
-            .iter()
-            .copied()
-            .filter(|(index, _, _)| {
-                !destroyed[*index]
-                    && self.data.symbols[self.deck[*index].type_id as usize].name == "dove"
-            })
-            .collect();
-        for (dove_index, x, y) in doves {
-            let mut prevented = 0;
-            for neighbor in self.neighbor_indexes(x, y, dove_index) {
-                if destroyed[neighbor] {
-                    destroyed[neighbor] = false;
-                    prevented += 1;
-                }
-            }
-            if prevented > 0 {
-                let gain = self.data.symbols[self.deck[dove_index].type_id as usize]
-                    .values
-                    .first()
-                    .copied()
-                    .unwrap_or(1.0) as i32;
-                self.deck[dove_index].bonus += gain * prevented;
-            }
-        }
-
-        let frying_pan_essence = self
-            .data
-            .essence_index
-            .get("frying_pan_essence")
-            .copied()
-            .filter(|id| self.essences_held.contains(id));
-        let frying_pans = self
-            .items_held
-            .iter()
-            .filter(|id| self.data.items[**id].name == "frying_pan")
-            .count() as i32;
-        if frying_pan_essence.is_some() || frying_pans > 0 {
-            let mut fried = false;
-            let egg_id = self.data.symbol_id("egg");
-            let omelette_id = self.data.symbol_id("omelette");
-            for (index, x, y) in entries.iter().copied() {
-                if destroyed[index]
-                    || Some(self.deck[index].type_id as usize) != egg_id
-                    || self.has_fine_print(21)
-                {
-                    continue;
-                }
-                let adjacent_pan = self
-                    .neighbor_indexes(x, y, index)
-                    .iter()
-                    .any(|neighbor| {
-                        !destroyed[*neighbor]
-                            && self.has_group(self.deck[*neighbor].type_id as usize, "omelettestuff")
-                    });
-                if adjacent_pan {
-                    destroyed[index] = true;
-                    fried = true;
-                    let count = frying_pans + i32::from(frying_pan_essence.is_some());
-                    if let Some(omelette) = omelette_id {
-                        for _ in 0..count {
-                            spawned.push(omelette);
-                        }
-                    }
-                }
-            }
-            if fried {
-                if let Some(essence_id) = frying_pan_essence {
-                    self.try_destroy_essence(essence_id);
-                    if !self.has_essence("frying_pan_essence") {
-                        let factor = self.data.essences[essence_id]
-                            .values
-                            .first()
-                            .copied()
-                            .unwrap_or(3.0);
-                        self.multiply_permanent_name("omelette", factor);
-                    }
-                }
-            }
-        }
-        let destroyed_count = destroyed.iter().filter(|flag| **flag).count() as i32;
         if destroyed_count >= 3 {
             if let Some(essence_id) = self
                 .data
@@ -5720,11 +5680,6 @@ impl<'a> RunState<'a> {
                     }
                 }
                 self.try_destroy_essence(essence_id);
-            }
-        }
-        for (index, _, _) in entries.iter().copied() {
-            if destroyed[index] {
-                self.destroyed_history.push(self.deck[index].type_id);
             }
         }
         if self.has_item("compost_heap") {
@@ -5779,7 +5734,7 @@ impl<'a> RunState<'a> {
             let rabbits = entries
                 .iter()
                 .filter(|(index, _, _)| {
-                    !destroyed[*index]
+                    !exits[*index].is_gone()
                         && self.data.symbols[self.deck[*index].type_id as usize].name == "rabbit"
                 })
                 .count();
@@ -5815,13 +5770,14 @@ impl<'a> RunState<'a> {
         let survivors: Vec<usize> = entries
             .iter()
             .map(|(index, _, _)| *index)
-            .filter(|index| !destroyed[*index])
+            .filter(|index| !exits[*index].is_gone())
             .collect();
         // Godot checks item conditions in the first `check_effects` pass,
         // before any symbol effect has resolved, so peppers and lemons see
         // the board exactly as it was dealt.  Destroyed icons still count
         // as present here.
         let empty_count = (BOARD_SLOTS - entries.len()) as i32;
+        let mut full_board_rewarded = empty_count == 0;
         let mut type_counts: HashMap<u16, i32> = HashMap::new();
         for (index, _, _) in entries.iter().copied() {
             *type_counts.entry(self.deck[index].type_id).or_default() += 1;
@@ -5856,7 +5812,7 @@ impl<'a> RunState<'a> {
         let destroyed_minerlikes = entries
             .iter()
             .filter(|(index, _, _)| {
-                destroyed[*index] && self.has_group(self.deck[*index].type_id as usize, "minerlikes")
+                exits[*index].is_destroyed() && self.has_group(self.deck[*index].type_id as usize, "minerlikes")
             })
             .count() as i32;
         let pepper_items: i32 = self
@@ -5886,8 +5842,8 @@ impl<'a> RunState<'a> {
                 "red_pepper" if all_different || survivor_all_different => v0,
                 "purple_pepper" if triple_adjacent => v0,
                 "mining_pick" => v0 * destroyed_minerlikes,
-                "lemon" => v0 * empty_count,
-                "chili_powder" => v0.max(pepper_items),
+                "lemon" => v0 * survivor_empty_count,
+                "chili_powder" => pepper_items,
                 "shattered_mirror" => {
                     let charge = self.item_saved.entry(item_id).or_insert(0);
                     *charge += 1;
@@ -5943,46 +5899,33 @@ impl<'a> RunState<'a> {
             let def = &self.data.essences[lemon_essence];
             let threshold = def.values.first().copied().unwrap_or(4.0) as i32;
             let per_empty = def.values.get(1).copied().unwrap_or(4.0) as i32;
-            extra_income += empty_count * per_empty;
-            if empty_count >= threshold.max(1) {
+            extra_income += survivor_empty_count * per_empty;
+            if survivor_empty_count >= threshold.max(1) {
                 self.try_destroy_essence(lemon_essence);
             }
         }
 
-        if milk_eaten && self.has_essence("pizza_the_cat_essence") {
-            let factor = self
-                .data
-                .essence_index
-                .get("pizza_the_cat_essence")
-                .map(|id| {
-                    self.data.essences[*id]
-                        .values
-                        .first()
-                        .copied()
-                        .unwrap_or(1.5)
-                })
-                .unwrap_or(1.5);
-            for symbol in self.deck.iter_mut() {
-                if self.data.symbols[symbol.type_id as usize].name == "cat" {
-                    let extra =
-                        (symbol.current_value(self.data) as f64 * (factor - 1.0)).round() as i32;
-                    symbol.bonus += extra.max(1);
-                }
-            }
-            self.essences_held
-                .retain(|id| self.data.essences[*id].name != "pizza_the_cat_essence");
-            self.essence_saved
-                .retain(|id, _| self.essences_held.contains(id) || self.disabled_essences.contains(id));
-        }
-
-        extra_income += self.tick_essences(&entries, destroyed_count);
+        // Godot pays value-dependent consumption after pending destruction,
+        // when later registered effects (such as buffing powder on the wine)
+        // have resolved. Do not freeze the meal's value at the eater's turn.
+        let feed_gains:Vec<_>=dynamic_feeds.iter().map(|&(source,target,factor)| {
+            let x=self.board_slot_of(target).map(|slot|slot%BOARD_COLS).unwrap_or(0);
+            let (sum,multiplier)=self.spin_coin_components(target,x,&spin_bonus,&mult);
+            (source,(spawned_value(sum,multiplier) as f64*factor).round() as i32)
+        }).collect();
+        for (source,gain) in feed_gains {spin_bonus[source]+=gain;}
+        extra_income += self.tick_essences(&entries, destroyed_count, &spin_bonus);
         self.tick_trigger_essences(&entries);
-        extra_income += self.tick_permanent_essences(&entries, &destroyed, destroyed_count);
-        self.apply_wildcard_values(&entries, &destroyed, &mult, &mut spin_bonus);
+        self.apply_wildcard_values(&entries, &gone_mask, &mult, &mut spin_bonus);
 
         extra_income += self.pre_spin_income;
         self.pre_spin_income = 0;
         self.last_item_gains = item_gains_sink;
+        if self.diagnostics_enabled {
+            for (name,coins) in self.last_item_gains.clone() {
+                self.trace_extra("item", &name, coins);
+            }
+        }
         self.last_extra_income = extra_income;
         let mut income = extra_income;
         let mut symbol_income: Vec<(usize, i32)> = Vec::new();
@@ -6002,44 +5945,10 @@ impl<'a> RunState<'a> {
             // removed after `check_values`).  A cat eating milk still pays
             // the milk's own coin value.
             let type_id = self.deck[index].type_id as usize;
-            let def = &self.data.symbols[type_id];
-            let base = def.base_value;
-            let permanent_bonus = self.permanent_bonus_for(def);
-            let permanent_mult = self.permanent_mult_for(def);
             // Godot's `get_value("coin")` adds every `value_bonus` (dog,
             // bee, dice, omelette, fine prints) *before* the multipliers,
             // and skips all multipliers when the product is negative.
-            let mut flat = spin_bonus[index];
-            if self.has_fine_print(26) && def.rarity == "very_rare" {
-                flat -= self.fp_value(26, 0) as i32;
-            }
-            if self.fp_affects(27, &def.name)
-                && def.groups.iter().any(|group| group == "eachother")
-            {
-                flat -= self.fp_value(27, 0) as i32;
-            }
-            if self.fp_affects(33, &def.name)
-                && def.groups.iter().any(|group| group == "suit")
-            {
-                flat -= self.fp_value(33, 0) as i32;
-            }
-            if def.name == "d3" && self.has_fine_print(29) {
-                flat -= self.fp_value(29, 0) as i32;
-            }
-            if def.name == "d5" && self.has_fine_print(35) {
-                flat -= self.fp_value(35, 0) as i32;
-            }
-            let mut multiplier = mult[index] * permanent_mult * self.spin_column_mult[x];
-            if def.name == "dwarf" && self.has_fine_print(28) {
-                multiplier *= 0.5;
-            }
-            if def.name == "monkey" && self.has_fine_print(32) {
-                multiplier *= 0.5;
-            }
-            if def.groups.iter().any(|group| group == "scaler") && self.fp_affects(19, &def.name) {
-                multiplier *= 0.5;
-            }
-            let sum = base + self.deck[index].bonus + permanent_bonus + flat;
+            let (sum,multiplier)=self.spin_coin_components(index,x,&spin_bonus,&mult);
             let product = sum as f64 * multiplier;
             let mut value = if product < 0.0 {
                 sum
@@ -6074,6 +5983,8 @@ impl<'a> RunState<'a> {
                 }
             }
             income += value;
+            self.trace_payment(y * BOARD_COLS + x, type_id, "initial", sum, multiplier, value,
+                match exits[index] { SymbolExit::Present => "present", SymbolExit::Destroyed => "destroyed", SymbolExit::Removed => "removed" }, 0);
             slot_state[y * BOARD_COLS + x] = Some((sum, multiplier, value));
             if value != 0 {
                 symbol_income.push((y * BOARD_COLS + x, value));
@@ -6088,8 +5999,22 @@ impl<'a> RunState<'a> {
             }
         }
 
-        let mut removed: Vec<usize> = (0..deck_len).filter(|index| destroyed[*index]).collect();
+        let prior_one_time: [u8;BOARD_SLOTS] = std::array::from_fn(|slot| self.board.slots[slot].map(|index|
+            u8::from(dog_targets.contains(&index)) | (u8::from(omelette_targets.contains(&index)) << 1)
+                | (u8::from(ninja_mouse_targets.contains(&index)) << 2)
+                | (u8::from(rusty_gear_targets.contains(&index)) << 3)).unwrap_or(0));
+        // Reserve early births against the original occupied reels. Placeholder
+        // indices are the exact indices the newborns get after removing victims.
+        // Keep this separate from the deck until the initial pass is complete.
+        let exit_map: HashMap<usize,SymbolExit> = exits.iter().copied().enumerate().collect();
+        let (mut birth_board,before_clear_spawns) =
+            self.plan_natural_births(&spawn_origins,&exit_map,deck_len);
+        self.pay_later_full_board(
+            birth_board.as_ref().map(|board|board.occupied()==BOARD_SLOTS).unwrap_or(false),
+            &mut full_board_rewarded,&mut income);
+        let mut removed: Vec<usize> = (0..deck_len).filter(|index| exits[*index].is_gone()).collect();
         self.board.remove_deck_indices(&removed);
+        if let Some(board) = birth_board.as_mut() { board.remove_deck_indices(&removed); }
         removed.sort_unstable_by(|a, b| b.cmp(a));
         for index in removed {
             self.deck.remove(index);
@@ -6097,25 +6022,56 @@ impl<'a> RunState<'a> {
         let item_spawns = self.tick_items();
         let item_spawn_count = item_spawns.len() as i32;
         spawned.extend(item_spawns);
+        let essence_spawn_count = self.queued_spin_symbols.len() as i32;
+        spawned.append(&mut self.queued_spin_symbols);
+        if let Some(board) = birth_board { self.board = board; }
         let mut spawned_indices: Vec<usize> = Vec::new();
-        for type_id in spawned {
+        let mut late_births: Vec<usize> = Vec::new();
+        for (order,type_id) in spawned.into_iter().enumerate() {
+            income += self.note_symbol_added(type_id,true);
             let value = self.data.symbols[type_id].base_value;
-            self.deck.push(Symbol::new(type_id, value));
+            let mut symbol = Symbol::new(type_id,value);
+            if let Some(&revivals) = spawned_revivals.get(&order) { symbol.revivals = revivals; }
+            self.deck.push(symbol);
             let index = self.deck.len() - 1;
             // Godot's `add_tile` places each new symbol into a visible
             // empty slot right away; the end-of-spin board already shows it.
-            self.board.add_symbol(index, &mut self.rng.reel());
+            if !before_clear_spawns.contains(&order) {
+                late_births.push(index);
+            }
             spawned_indices.push(index);
         }
+        self.board.add_symbols(&late_births,&mut self.rng.reel());
         // Godot re-checks icons added this spin before `check_values`:
         // they can still be eaten, buffed by a neighbour, or destroyed.
+        let history_before_spawn = self.destroyed_history.len();
+        let void_paid_before_spawn = self.data.essence_index.get("void_portal_essence")
+            .map(|id| self.spin_essence_triggers.contains(id)).unwrap_or(false);
         let (post_removed, extra_added) =
-            self.apply_spawned_effects(&spawned_indices, &slot_state, &mut income);
-        if extra_added + item_spawn_count > 0 {
+            self.apply_spawned_effects(&spawned_indices, &slot_state, &prior_one_time, &type_counts, destroyed_count,
+                &mut full_board_rewarded, &mut income);
+        let later_deaths = &self.destroyed_history[history_before_spawn..];
+        let later_count = later_deaths.len() as i32;
+        for &item_id in &self.items_held {
+            let def = &self.data.items[item_id];
+            let count = match def.name.as_str() {
+                "black_pepper" => later_count,
+                "mining_pick" => later_deaths.iter().filter(|id| self.has_group(**id as usize,"minerlikes")).count() as i32,
+                _ => 0,
+            };
+            income += count * def.values.first().copied().unwrap_or(0.0) as i32;
+        }
+        if later_count > 0 && black_essence_rate > 0 {
+            income += later_count * black_essence_rate;
+            let id = self.data.essence_index["black_pepper_essence"];
+            if !self.spin_essence_triggers.contains(&id) { self.try_destroy_essence(id); }
+        }
+        if void_paid_before_spawn { income += later_count * void_essence_rate; }
+        if extra_added + item_spawn_count + essence_spawn_count > 0 {
             // Brown pepper counts every symbol added this spin, including
             // gems created when a newly spawned ore is destroyed and symbols
             // added by items at spin end.
-            let delta = extra_added + item_spawn_count;
+            let delta = extra_added + item_spawn_count + essence_spawn_count;
             for item_id in self.items_held.clone() {
                 let def = &self.data.items[item_id];
                 if def.name == "brown_pepper" {
@@ -6138,10 +6094,12 @@ impl<'a> RunState<'a> {
         self.apply_item_income_conditions(&mut income);
         self.spin_all_adjacent = false;
         self.spin_corner_adjacent = false;
+        self.spin_effect_essences.clear();
         self.last_symbol_income = symbol_income;
         self.last_effect_rng = self.rng.effect().take_log();
         self.last_reel_shuffle = self.rng.reel_shuffle().take_log();
         self.last_effect_shuffle = self.rng.effect_shuffle().take_log();
+        self.finish_spin_diagnostics(income);
         income
     }
 
@@ -6152,11 +6110,96 @@ impl<'a> RunState<'a> {
             .position(|slot| *slot == Some(index))
     }
 
+    /// Item conditions are checked again after additions, before their new
+    /// neighbours can consume them. A briefly full board pays once per spin.
+    fn pay_later_full_board(&mut self, full:bool, rewarded:&mut bool, income:&mut i32) {
+        if !full || *rewarded {return;}
+        *rewarded=true;
+        for id in self.items_held.clone() {
+            if self.data.items[id].name!="yellow_pepper" {continue;}
+            let mut gain=self.data.items[id].values[0] as i32;
+            if self.fp_affects(17,"yellow_pepper") {gain=(gain-self.fp_value(17,0) as i32).max(0);}
+            *income+=gain;
+            self.last_extra_income+=gain;
+            if gain!=0 {self.last_item_gains.push(("yellow_pepper".to_owned(),gain));}
+            self.trace_extra("item","yellow_pepper",gain);
+        }
+        if let Some(id)=self.data.essence_index.get("yellow_pepper_essence").copied()
+            .filter(|id|self.essences_held.contains(id)) {
+            let gain=self.data.essences[id].values[0] as i32;
+            *income+=gain;
+            self.last_extra_income+=gain;
+            self.trace_extra("essence","yellow_pepper_essence",gain);
+            self.try_destroy_essence(id);
+        }
+    }
+
+    /// Mirror the reference's short symbol queue, rather than treating all
+    /// births as an end-of-spin batch. Pending destruction delays a flush;
+    /// removals free their slots without turning into destruction events.
+    fn plan_natural_births(
+        &mut self, origins: &std::collections::BTreeMap<usize,usize>,
+        exits: &HashMap<usize,SymbolExit>, first_new_index: usize,
+    ) -> (Option<Board>,std::collections::BTreeSet<usize>) {
+        let mut placed = std::collections::BTreeSet::new();
+        if origins.is_empty() { return (None,placed); }
+        let mut board = self.board.clone();
+        let items:Vec<_>=origins.iter().filter(|(_,source)| **source == usize::MAX).map(|(&order,_)|order).collect();
+        board.add_symbols(&items.iter().map(|order|first_new_index+order).collect::<Vec<_>>(),&mut self.rng.reel());
+        placed.extend(items);
+        let mut pending_destruction = false;
+        for x in 0..BOARD_COLS {
+            for y in 0..BOARD_ROWS {
+                let Some(source) = self.board.slots[y*BOARD_COLS+x] else { continue; };
+                match exits.get(&source).copied().unwrap_or(SymbolExit::Present) {
+                    SymbolExit::Destroyed => pending_destruction = true,
+                    SymbolExit::Removed => {
+                        for reel in &mut board.reels {
+                            for entry in reel { if *entry == Some(source) { *entry = None; } }
+                        }
+                        board.sync_slots();
+                    }
+                    SymbolExit::Present => {}
+                }
+                if pending_destruction { continue; }
+                let orders:Vec<_>=origins.iter().filter(|(_,origin)| **origin == source).map(|(&order,_)|order).collect();
+                board.add_symbols(&orders.iter().map(|order|first_new_index+order).collect::<Vec<_>>(),&mut self.rng.reel());
+                placed.extend(orders);
+            }
+        }
+        (if placed.is_empty() { None } else { Some(board) },placed)
+    }
+
+    fn rusty_gear_members(&self, threshold: usize) -> Vec<usize> {
+        let mut seen = HashSet::new();
+        let mut result = Vec::new();
+        for &entry in &self.board.slots {
+            let Some(index) = entry else { continue; };
+            if !seen.insert(index) { continue; }
+            let mut component = vec![index];
+            let mut cursor = 0;
+            while cursor < component.len() {
+                let current = component[cursor]; cursor += 1;
+                let Some(slot) = self.board_slot_of(current) else { continue; };
+                for (other_slot,&other) in self.board.slots.iter().enumerate() {
+                    let Some(other) = other else { continue; };
+                    if (slot % BOARD_COLS).abs_diff(other_slot % BOARD_COLS) <= 1
+                        && (slot / BOARD_COLS).abs_diff(other_slot / BOARD_COLS) <= 1
+                        && self.deck[other].type_id == self.deck[index].type_id && seen.insert(other) {
+                        component.push(other);
+                    }
+                }
+            }
+            if component.len() >= threshold { result.extend(component); }
+        }
+        result
+    }
+
     /// Item-driven type changes that Godot applies to newly added icons too
     /// (currently Quigley the Wolf's dog -> wolf conversion).
     fn spawn_type_after_items(&mut self, index: usize) -> usize {
         let type_id = self.deck[index].type_id as usize;
-        if self.has_item("quigley_the_wolf") && self.data.symbols[type_id].name == "dog" {
+        if (self.has_item("quigley_the_wolf") || self.quigley_active) && self.data.symbols[type_id].name == "dog" {
             if let Some(wolf) = self.data.symbol_id("wolf") {
                 self.deck[index].type_id = wolf as u16;
                 return wolf;
@@ -6173,6 +6216,51 @@ impl<'a> RunState<'a> {
         (sum as f64 * self.permanent_mult_for(def)).round() as i32
     }
 
+    /// A newly transformed chick/hen registers and resolves its own effects
+    /// in this spin. Successful hatching takes priority over the frying pan.
+    fn grow_chicken_and_lay(&mut self, index: usize) -> (i32, Vec<usize>, bool, bool) {
+        let mut bonus = 0;
+        let mut born = Vec::new();
+        let mut egg_grew = false;
+        let mut chick_grew = false;
+        loop {
+            let id = self.deck[index].type_id as usize;
+            let name = self.data.symbols[id].name.clone();
+            let values = self.data.symbols[id].values.clone();
+            if self.fp_affects(13, &name) { break; }
+            match name.as_str() {
+                "egg" | "chick" => {
+                    let chance = values.first().copied().unwrap_or(10.0)
+                        * if name == "egg" { self.item_multiplier("chicken_coop", 1) } else { 1.0 };
+                    if self.rng.unit() * 100.0 >= chance { break; }
+                    let next = if name == "egg" { "chick" } else { "chicken" };
+                    let Some(next_id) = self.data.symbol_id(next) else { break; };
+                    bonus += self.deck[index].current_value(self.data);
+                    self.deck[index].type_id = next_id as u16;
+                    egg_grew |= name == "egg";
+                    chick_grew |= name == "chick";
+                    // Registration eagerly rolls each new type's chances.
+                    let _ = self.rng.unit();
+                    if next == "chicken" { let _ = self.rng.unit(); }
+                }
+                "chicken" => {
+                    let factor = self.spawn_multiplier() * self.item_multiplier("chicken_coop", 0);
+                    for (at, target, default) in [(0,"egg",5.0),(1,"golden_egg",1.0)] {
+                        if self.rng.unit() * 100.0 < values.get(at).copied().unwrap_or(default) * factor {
+                            if let Some(target_id) = self.data.symbol_id(target) {
+                                born.push(target_id);
+                                self.note_spawner_spawns(1);
+                            }
+                        }
+                    }
+                    break;
+                }
+                _ => break,
+            }
+        }
+        (bonus, born, egg_grew, chick_grew)
+    }
+
     fn clear_board_slots(&mut self, removed: &HashSet<usize>) {
         if removed.is_empty() {
             return;
@@ -6184,7 +6272,6 @@ impl<'a> RunState<'a> {
                 }
             }
         }
-        self.board.rebuild_positions();
         self.board.sync_slots();
     }
 
@@ -6241,24 +6328,13 @@ impl<'a> RunState<'a> {
                     state.mult *= factor;
                 }
             }
-            if name == "rusty_gear" {
-                let copies = self
-                    .deck
-                    .iter()
-                    .filter(|symbol| symbol.type_id == self.deck[index].type_id)
-                    .count();
-                if copies >= 2 {
-                    let factor = if v1 > 1 { v1 as f64 } else { 2.0 };
-                    state.mult *= factor;
-                }
-            }
         }
     }
 
     fn add_spawn_flat(
         states: &mut HashMap<usize, SpawnedValue>,
         survivor: &mut HashMap<usize, (usize, i32, f64, i32)>,
-        survivor_destroyed: &HashSet<usize>,
+        _survivor_destroyed: &HashSet<usize>,
         index: usize,
         is_spawned: bool,
         amount: i32,
@@ -6269,11 +6345,9 @@ impl<'a> RunState<'a> {
         }
         if is_spawned {
             if let Some(state) = states.get_mut(&index) {
-                if !state.destroyed {
-                    state.sum += amount;
-                }
+                state.sum += amount;
             }
-        } else if !survivor_destroyed.contains(&index) {
+        } else {
             if let Some((_, sum, mult, value)) = survivor.get_mut(&index) {
                 *sum += amount;
                 let new_value = spawned_value(*sum, *mult);
@@ -6286,7 +6360,7 @@ impl<'a> RunState<'a> {
     fn multiply_spawn_target(
         states: &mut HashMap<usize, SpawnedValue>,
         survivor: &mut HashMap<usize, (usize, i32, f64, i32)>,
-        survivor_destroyed: &HashSet<usize>,
+        _survivor_destroyed: &HashSet<usize>,
         index: usize,
         is_spawned: bool,
         factor: f64,
@@ -6297,11 +6371,9 @@ impl<'a> RunState<'a> {
         }
         if is_spawned {
             if let Some(state) = states.get_mut(&index) {
-                if !state.destroyed {
-                    state.mult *= factor;
-                }
+                state.mult *= factor;
             }
-        } else if !survivor_destroyed.contains(&index) {
+        } else {
             if let Some((_, sum, mult, value)) = survivor.get_mut(&index) {
                 *mult *= factor;
                 let new_value = spawned_value(*sum, *mult);
@@ -6312,6 +6384,32 @@ impl<'a> RunState<'a> {
     }
 
     /// Applies one adjacency effect from `source` onto `target`.
+    fn can_destroy_spawn(
+        &mut self, target: usize, states: &mut HashMap<usize,SpawnedValue>,
+        survivor: &mut HashMap<usize,(usize,i32,f64,i32)>,
+        gone: &HashSet<usize>, income: &mut i32,
+    ) -> bool {
+        let def = &self.data.symbols[self.deck[target].type_id as usize];
+        if (def.name == "spirit" && self.has_item("undertaker"))
+            || (def.name == "coin" && self.has_fine_print(20))
+            || (def.name == "egg" && self.has_fine_print(21))
+            || (def.groups.iter().any(|g| g == "chest") && self.fp_affects(10,&def.name))
+            || (def.groups.iter().any(|g| g == "void") && self.fp_affects(36,&def.name))
+            || (def.groups.iter().any(|g| g == "capsule") && self.fp_affects(37,&def.name)) { return false; }
+        let Some(slot) = self.board_slot_of(target) else { return false; };
+        let doves: Vec<usize> = self.neighbor_indexes(slot % BOARD_COLS,slot / BOARD_COLS,target).into_iter()
+            .filter(|&n| self.data.symbols[self.deck[n].type_id as usize].name == "dove").collect();
+        if doves.is_empty() { return true; }
+        for dove in doves {
+            if self.spin_dove_blocks.insert((dove,target)) {
+                let gain = self.data.symbols[self.deck[dove].type_id as usize].values[0] as i32;
+                self.deck[dove].bonus += gain;
+                Self::add_spawn_flat(states,survivor,gone,dove,states.contains_key(&dove),gain,income);
+            }
+        }
+        false
+    }
+
     fn apply_spawn_edge(
         &mut self,
         source: usize,
@@ -6319,23 +6417,22 @@ impl<'a> RunState<'a> {
         states: &mut HashMap<usize, SpawnedValue>,
         survivor: &mut HashMap<usize, (usize, i32, f64, i32)>,
         survivor_destroyed: &mut HashSet<usize>,
+        survivor_removed: &mut HashSet<usize>,
         dog_applied: &mut HashSet<usize>,
         omelette_applied: &mut HashSet<usize>,
+        ninja_mouse_applied: &mut HashSet<usize>,
+        dynamic_feeds: &mut HashMap<(usize,usize),(f64,i32)>,
         income: &mut i32,
     ) {
         let target_is_spawned = states.contains_key(&target);
         if target_is_spawned {
-            if states.get(&target).map(|state| state.destroyed).unwrap_or(true) {
-                return;
-            }
-        } else if survivor_destroyed.contains(&target) || !survivor.contains_key(&target) {
-            return;
-        }
+            if !states.contains_key(&target) { return; }
+        } else if !survivor.contains_key(&target) { return; }
         let source_is_spawned = states.contains_key(&source);
-        if source_is_spawned && states.get(&source).map(|state| state.destroyed).unwrap_or(true) {
+        if source_is_spawned && states.get(&source).map(|state| state.exit == SymbolExit::Removed).unwrap_or(true) {
             return;
         }
-        if !source_is_spawned && (survivor_destroyed.contains(&source) || !survivor.contains_key(&source)) {
+        if !source_is_spawned && (survivor_removed.contains(&source) || !survivor.contains_key(&source)) {
             return;
         }
 
@@ -6346,13 +6443,18 @@ impl<'a> RunState<'a> {
         let target_type = self.deck[target].type_id as usize;
         let target_name = self.data.symbols[target_type].name.clone();
         let target_groups = self.data.symbols[target_type].groups.clone();
-        let target_values = self.data.symbols[target_type].values.clone();
         let target_has = |group: &str| target_groups.iter().any(|item| item == group);
         let source_has = |group: &str| source_groups.iter().any(|item| item == group);
         let v0 = source_values.first().copied().unwrap_or(0.0);
 
         let mut factor: Option<f64> = None;
         let mut destroy: Option<(f64, i32, bool)> = None; // (victim factor, flat gain, self destroy)
+        let mut permanent_gain = 0;
+        let mut remove_target = false;
+        if target_name == "egg" && source_has("omelettestuff")
+            && (self.has_item("frying_pan") || self.has_spin_essence("frying_pan_essence")) {
+            destroy = Some((0.0,0,false));
+        }
         match source_name.as_str() {
             "bee" if target_has("beelikes") => factor = Some(v0),
             "light_bulb" if target_has("gem") => factor = Some(v0),
@@ -6362,6 +6464,9 @@ impl<'a> RunState<'a> {
             "dame" if target_has("gem") => factor = Some(v0),
             "king_midas" if target_name == "coin" => factor = Some(v0),
             "chef" if target_has("food") => factor = Some(v0),
+            "comedian" if target_has("funny") => factor = Some(v0),
+            "billionaire" if target_name == "cheese" || target_name == "wine" => factor = Some(v0),
+            "joker" if target_has("suit") => factor = Some(v0),
             "sun" if target_name == "flower" => factor = Some(v0),
             "moon" if target_has("night") => factor = Some(v0),
             "cat" if target_name == "milk" => destroy = Some((0.0, v0 as i32, false)),
@@ -6371,17 +6476,71 @@ impl<'a> RunState<'a> {
             "miner" if target_has("minerlikes") => destroy = Some((0.0, v0 as i32, false)),
             "goldfish" if target_name == "bubble" => destroy = Some((0.0, v0 as i32, false)),
             "hooligan" if target_has("spiritbox") => destroy = Some((0.0, v0 as i32, false)),
+            "mrs_fruit" if target_has("fruitlikes") => {
+                destroy = Some((0.0, 0, false)); permanent_gain = v0 as i32;
+            }
+            "archaeologist" if target_has("archlikes") => {
+                destroy = Some((0.0, 0, false)); permanent_gain = v0 as i32;
+            }
+            "pirate" if target_has("piratelikes") => {
+                destroy = Some((0.0, 0, false)); permanent_gain = v0 as i32;
+            }
+            "diver" if target_has("poslikes") => {
+                destroy = Some((0.0, 0, false)); permanent_gain = v0 as i32; remove_target = true;
+            }
+            "eldritch_beast" if target_has("fossillikes") => destroy = Some((0.0, 0, false)),
             "monkey" if target_has("monkeylikes") => destroy = Some((v0, 0, false)),
             "dwarf" if target_has("dwarflikes") => destroy = Some((v0, 0, false)),
             "dame" if target_name == "martini" => {
                 destroy = Some((0.0, source_values.get(1).copied().unwrap_or(0.0) as i32, false))
             }
             "general_zaroff" if target_has("human") => destroy = Some((0.0, v0 as i32, false)),
+            "bounty_hunter" if self.has_item("zaroffs_contract") && target_has("human") => {
+                let contracts = self.items_held.iter().filter(|id| self.data.items[**id].name == "zaroffs_contract").count() as i32;
+                let extra = if target_name == "thief" { v0 as i32 } else { 0 };
+                destroy = Some((0.0,contracts * self.data.items[self.data.item_index["zaroffs_contract"]].values[0] as i32 + extra,false));
+            }
             "bounty_hunter" if target_name == "thief" => destroy = Some((0.0, v0 as i32, false)),
             "key" if target_has("chest") => destroy = Some((0.0, 0, true)),
-            "banana_peel" if target_name == "thief" => destroy = Some((0.0, 0, true)),
+            "magic_key" if target_has("chest") => { destroy = Some((0.0,0,true)); factor = Some(v0); }
+            "banana_peel" if target_name == "thief" || (target_name == "comedian" && self.has_spin_essence("dark_humor_essence")) => destroy = Some((0.0, 0, true)),
+            "dwarf" if self.has_item("dwarven_anvil") && target_has("minerlikes") => destroy = Some((v0,0,false)),
+            "robin_hood" if target_has("robinhates") => destroy = Some((0.0,source_values[3] as i32,false)),
             _ => {}
         }
+        if source_name == "robin_hood" && target_has("robinlikes") {
+            Self::add_spawn_flat(states,survivor,survivor_destroyed,target,target_is_spawned,source_values[2] as i32,income);
+            let gain = self.grow_when_buffed(target);
+            Self::add_spawn_flat(states,survivor,survivor_destroyed,target,target_is_spawned,gain,income);
+        }
+        if matches!((source_name.as_str(),target_name.as_str()),("ninja","mouse")|("mouse","ninja"))
+            && self.has_item("ninja_and_mouse") && ninja_mouse_applied.insert(target) {
+            Self::multiply_spawn_target(states,survivor,survivor_destroyed,target,target_is_spawned,self.item_multiplier("ninja_and_mouse",0),income);
+        }
+        if source_has("suit") && target_has("suit") {
+            let source_black = matches!(source_name.as_str(),"clubs"|"spades");
+            let target_black = matches!(target_name.as_str(),"clubs"|"spades");
+            let copies = if source_black == target_black { 1 } else {
+                self.items_held.iter().filter(|id| self.data.items[**id].name == "fifth_ace").count() as i32
+            };
+            Self::add_spawn_flat(states,survivor,survivor_destroyed,target,target_is_spawned,v0 as i32 * copies,income);
+        }
+        if source_name == "buffing_powder" {
+            factor = Some(v0.powi(self.capsule_multiplier()));
+        }
+        let was_removed = states.get(&target).map(|s| s.exit == SymbolExit::Removed)
+            .unwrap_or_else(|| survivor_removed.contains(&target));
+        // Removal preserves the form's coin payout and registered multipliers.
+        // A newborn pearl can be removed before a bulb/dame checks it; the buff
+        // still applies, and the bulb must spend its charge. Ordinary consumers
+        // must not turn that removal into a destruction or run death callbacks.
+        let buffs_removed_form = factor.is_some() && destroy.is_none();
+        if was_removed && !buffs_removed_form && !remove_target
+            && !matches!(source_name.as_str(),"archaeologist"|"pirate") { return; }
+        // A removed victim still feeds registered growth, without converting
+        // the removal into a destruction or invoking its destroy callback.
+        if destroy.is_some() && !remove_target && !was_removed
+            && !self.can_destroy_spawn(target,states,survivor,survivor_destroyed,income) { return; }
 
         if source_name == "light_bulb" && target_has("gem") {
             let threshold = source_values.get(1).copied().unwrap_or(5.0) as i32;
@@ -6396,10 +6555,10 @@ impl<'a> RunState<'a> {
                 self.deck[source].saved += 1;
                 self.deck[source].saved
             };
-            if saved >= threshold {
+            if saved >= threshold && self.can_destroy_spawn(source,states,survivor,survivor_destroyed,income) {
                 if source_is_spawned {
                     if let Some(state) = states.get_mut(&source) {
-                        state.destroyed = true;
+                        state.exit = SymbolExit::Destroyed;
                     }
                 } else {
                     survivor_destroyed.insert(source);
@@ -6408,6 +6567,8 @@ impl<'a> RunState<'a> {
         }
 
         if let Some(factor) = factor {
+            let gain = self.grow_when_buffed(target);
+            Self::add_spawn_flat(states,survivor,survivor_destroyed,target,target_is_spawned,gain,income);
             Self::multiply_spawn_target(
                 states,
                 survivor,
@@ -6447,10 +6608,11 @@ impl<'a> RunState<'a> {
         }
 
         if let Some((victim_factor, flat_gain, self_destroy)) = destroy {
-            let newly = if target_is_spawned {
+            if !remove_target { self.note_consumption(source,target); }
+            let _newly = if target_is_spawned {
                 if let Some(state) = states.get_mut(&target) {
-                    if !state.destroyed {
-                        state.destroyed = true;
+                    if remove_target || !state.exit.is_gone() {
+                        state.exit = if remove_target { SymbolExit::Removed } else { SymbolExit::Destroyed };
                         true
                     } else {
                         false
@@ -6458,36 +6620,29 @@ impl<'a> RunState<'a> {
                 } else {
                     false
                 }
-            } else if survivor_destroyed.insert(target) {
+            } else if remove_target || !survivor_destroyed.contains(&target) {
+                survivor_destroyed.insert(target);
+                if remove_target { survivor_removed.insert(target); }
                 true
             } else {
                 false
             };
-            if newly {
+            {
+                if permanent_gain != 0 {
+                    self.deck[source].bonus += permanent_gain;
+                }
                 let gain = if victim_factor != 0.0 {
-                    (victim_factor * self.non_prev_value(target) as f64).round() as i32
+                    dynamic_feeds.entry((source,target)).or_insert((victim_factor,0));
+                    0
                 } else {
-                    flat_gain
+                    flat_gain + permanent_gain
                 };
                 Self::add_spawn_flat(states, survivor, survivor_destroyed, source, source_is_spawned, gain, income);
-                if !target_is_spawned {
-                    // Chests and presents pay their on-destroy bonus even
-                    // when the last hit lands after the main pass.
-                    match target_name.as_str() {
-                        "present" => {
-                            *income += target_values.get(1).copied().unwrap_or(10.0) as i32;
-                        }
-                        "lockbox" | "safe" | "treasure_chest" | "mega_chest" => {
-                            *income += target_values.first().copied().unwrap_or(15.0) as i32;
-                        }
-                        _ => {}
-                    }
-                }
             }
-            if self_destroy {
+            if self_destroy && self.can_destroy_spawn(source,states,survivor,survivor_destroyed,income) {
                 if source_is_spawned {
                     if let Some(state) = states.get_mut(&source) {
-                        state.destroyed = true;
+                        state.exit = SymbolExit::Destroyed;
                     }
                 } else {
                     survivor_destroyed.insert(source);
@@ -6502,25 +6657,40 @@ impl<'a> RunState<'a> {
         &mut self,
         first_wave: &[usize],
         slot_state: &[Option<(i32, f64, i32)>; BOARD_SLOTS],
+        prior_one_time: &[u8;BOARD_SLOTS],
+        initial_counts: &HashMap<u16,i32>,
+        initial_destroyed: i32,
+        full_board_rewarded: &mut bool,
         income: &mut i32,
     ) -> (Vec<usize>, i32) {
         if first_wave.is_empty() {
             return (Vec::new(), 0);
         }
         let mut states: HashMap<usize, SpawnedValue> = HashMap::new();
+        let mut diagnostic_slots = self.diagnostics_enabled.then(HashMap::<usize,usize>::new);
         let mut survivor: HashMap<usize, (usize, i32, f64, i32)> = HashMap::new();
         let mut survivor_destroyed: HashSet<usize> = HashSet::new();
+        let mut survivor_removed: HashSet<usize> = HashSet::new();
         let mut dog_applied: HashSet<usize> = HashSet::new();
         let mut omelette_applied: HashSet<usize> = HashSet::new();
+        let mut ninja_mouse_applied: HashSet<usize> = HashSet::new();
+        let mut gear_applied: HashSet<usize> = HashSet::new();
         let mut item_done: HashSet<usize> = HashSet::new();
         let mut death_done: HashSet<usize> = HashSet::new();
         let mut edges: HashSet<(usize, usize)> = HashSet::new();
+        let mut dynamic_feeds: HashMap<(usize,usize),(f64,i32)> = HashMap::new();
         let mut all_spawned: Vec<usize> = Vec::new();
+        let mut conversion_bonus: HashMap<usize,i32> = HashMap::new();
         let mut pending: Vec<usize> = first_wave.to_vec();
         let mut extra_added = 0i32;
 
         for &index in first_wave {
+            if let Some(slots) = diagnostic_slots.as_mut() {
+                if let Some(slot) = self.board_slot_of(index) { slots.insert(index, slot); }
+            }
+            let was_dog = self.data.symbols[self.deck[index].type_id as usize].name == "dog";
             let type_id = self.spawn_type_after_items(index);
+            if was_dog && self.data.symbols[type_id].name == "wolf" { conversion_bonus.insert(index,1); }
             let def = &self.data.symbols[type_id];
             let sum = def.base_value + self.deck[index].bonus + self.permanent_bonus_for(def);
             let x = self.board_slot_of(index).map(|slot| slot % BOARD_COLS).unwrap_or(0);
@@ -6531,7 +6701,7 @@ impl<'a> RunState<'a> {
                     sum,
                     mult,
                     saved: 0,
-                    destroyed: false,
+                    exit: SymbolExit::Present,
                     visible: self.board_slot_of(index).is_some(),
                 },
             );
@@ -6549,93 +6719,78 @@ impl<'a> RunState<'a> {
             }
             survivor.insert(index, (slot, sum, mult, value));
         }
-        // Dogs/omelettes that already received their one-time bonus in the
-        // main pass should not receive it again from a new doglike.
-        for &index in survivor.keys() {
-            let name = self.data.symbols[self.deck[index].type_id as usize]
-                .name
-                .clone();
-            if name != "dog" && name != "omelette" {
-                continue;
-            }
-            let slot = survivor[&index].0;
-            let (x, y) = (slot % BOARD_COLS, slot / BOARD_COLS);
-            let wanted = if name == "dog" { "doglikes" } else { "omelettestuff" };
-            let has_source = self.neighbor_indexes(x, y, index).iter().any(|neighbor| {
-                survivor.contains_key(neighbor)
-                    && self.has_group(self.deck[*neighbor].type_id as usize, wanted)
-            });
-            if has_source {
-                if name == "dog" {
-                    dog_applied.insert(index);
-                } else {
-                    omelette_applied.insert(index);
-                }
-            }
+        for (&index,(slot,_,_,_)) in &survivor {
+            if prior_one_time[*slot] & 1 != 0 { dog_applied.insert(index); }
+            if prior_one_time[*slot] & 2 != 0 { omelette_applied.insert(index); }
+            if prior_one_time[*slot] & 4 != 0 { ninja_mouse_applied.insert(index); }
+            if prior_one_time[*slot] & 8 != 0 { gear_applied.insert(index); }
         }
 
-        let mut capsule_done: HashSet<usize> = HashSet::new();
-        for _ in 0..3 {
+        let mut registered = HashSet::new();
+        let mut rarity_registered = HashSet::new();
+        let mut rule_values: HashMap<usize,(i32,f64)> = survivor.keys().chain(states.keys()).map(|&index| {
+            let def = &self.data.symbols[self.deck[index].type_id as usize];
+            (index,(self.permanent_bonus_for(def),self.permanent_mult_for(def)))
+        }).collect();
+        let mut counted_applied: HashMap<usize,i32> = survivor.keys().map(|&index|
+            (index,self.counted_symbol_bonus(self.deck[index].type_id as usize,initial_counts))).collect();
+        let history_before = self.destroyed_history.len();
+        for _ in 0..4096 {
+            self.pay_later_full_board(self.board.occupied()==BOARD_SLOTS,full_board_rewarded,income);
+            let mut queued: Vec<usize> = Vec::new();
+            let mut natural_origins = std::collections::BTreeMap::new();
+            let mut queued_revivals: HashMap<usize,[u8;2]> = HashMap::new();
+            // Native registration applies every visible newborn's rarity
+            // modifier before checking its other effects. Hidden additions
+            // do not qualify; later waves must not register a survivor twice.
             for &index in &pending {
-                if item_done.insert(index) {
-                    self.apply_spawn_item_bonuses(index, &mut states);
-                }
-                if !all_spawned.contains(&index) {
-                    all_spawned.push(index);
-                }
-            }
-
-            // Godot re-registers effects for every symbol added during the
-            // spin, so a capsule spawned this spin also opens and destroys
-            // itself before `check_values`.
-            for &index in &all_spawned {
-                if !capsule_done.insert(index) {
-                    continue;
-                }
-                let type_id = self.spawn_type_after_items(index);
-                let name = self.data.symbols[type_id].name.clone();
-                let values = self.data.symbols[type_id].values.clone();
-                let count = (values.first().copied().unwrap_or(1.0) as i32
-                    * self.capsule_multiplier())
-                .max(1);
-                match name.as_str() {
-                    "essence_capsule" => {
-                        self.essence_tokens += count;
-                        if let Some(state) = states.get_mut(&index) {
-                            state.destroyed = true;
-                        }
-                    }
-                    "item_capsule" => {
-                        for _ in 0..count {
-                            let mut pool = self.item_pools[0].clone();
-                            pool.retain(|item| !self.items_held.contains(item) && !self.disabled_items.contains(item));
-                            if pool.is_empty() {
-                                break;
-                            }
-                            let pick = pool[self.rng.range(0, pool.len())];
-                            self.grant_item(pick);
-                        }
-                        if let Some(state) = states.get_mut(&index) {
-                            state.destroyed = true;
-                        }
-                    }
-                    "reroll_capsule" => {
-                        self.reroll_tokens += count;
-                        if let Some(state) = states.get_mut(&index) {
-                            state.destroyed = true;
-                        }
-                    }
-                    "removal_capsule" => {
-                        self.removal_tokens += count;
-                        if let Some(state) = states.get_mut(&index) {
-                            state.destroyed = true;
-                        }
-                    }
-                    _ => {}
+                if !states.get(&index).map(|s| s.visible && !s.exit.is_gone()).unwrap_or(false) { continue; }
+                let def = &self.data.symbols[self.deck[index].type_id as usize];
+                if matches!(def.name.as_str(), "shiny_pebble" | "rabbit_fluff")
+                    && rarity_registered.insert(index) {
+                    self.spin_rarity_factor *= def.values.first().copied().unwrap_or(1.0);
                 }
             }
+            for &index in &pending {
+                if !states.get(&index).map(|s| s.visible && !s.exit.is_gone()).unwrap_or(false) { continue; }
+                if registered.insert(index) {
+                    let additions_before = queued.len();
+                    self.resolve_newborn_intrinsic(index,&mut states,&mut survivor,&mut survivor_destroyed,income,&mut queued);
+                    for order in additions_before..queued.len() { natural_origins.insert(order,index); }
+                    if let Some(bonus) = conversion_bonus.remove(&index) {
+                        if let Some(state) = states.get_mut(&index) { state.sum += bonus; }
+                    }
+                    let def = &self.data.symbols[self.deck[index].type_id as usize];
+                    rule_values.insert(index,(self.permanent_bonus_for(def),self.permanent_mult_for(def)));
+                }
+                if item_done.insert(index) { self.apply_spawn_item_bonuses(index,&mut states); }
+                if !all_spawned.contains(&index) { all_spawned.push(index); }
+            }
 
+            let mut counts = initial_counts.clone();
+            for (&index,state) in &states {
+                if state.visible { *counts.entry(self.deck[index].type_id).or_default() += 1; }
+            }
+            let counted_indices: Vec<usize> = survivor.keys().chain(states.keys()).copied().collect();
+            for index in counted_indices {
+                if states.get(&index).map(|s| !s.visible).unwrap_or(false) { continue; }
+                let desired = self.counted_symbol_bonus(self.deck[index].type_id as usize,&counts);
+                let previous = counted_applied.insert(index,desired).unwrap_or(0);
+                let spawned = states.contains_key(&index);
+                Self::add_spawn_flat(&mut states,&mut survivor,&survivor_destroyed,index,spawned,desired-previous,income);
+            }
             let targets: Vec<usize> = all_spawned.clone();
+            if self.has_item("rusty_gear") {
+                let id = self.data.item_index["rusty_gear"];
+                let threshold = self.data.items[id].values[0] as usize;
+                let factor = self.item_multiplier("rusty_gear",1);
+                for index in self.rusty_gear_members(threshold) {
+                    if gear_applied.insert(index) {
+                        let is_spawned = states.contains_key(&index);
+                        Self::multiply_spawn_target(&mut states,&mut survivor,&survivor_destroyed,index,is_spawned,factor,income);
+                    }
+                }
+            }
             for &target in &targets {
                 let Some(slot) = self.board_slot_of(target) else {
                     continue;
@@ -6649,8 +6804,11 @@ impl<'a> RunState<'a> {
                             &mut states,
                             &mut survivor,
                             &mut survivor_destroyed,
+                            &mut survivor_removed,
                             &mut dog_applied,
                             &mut omelette_applied,
+                            &mut ninja_mouse_applied,
+                            &mut dynamic_feeds,
                             income,
                         );
                     }
@@ -6670,8 +6828,11 @@ impl<'a> RunState<'a> {
                             &mut states,
                             &mut survivor,
                             &mut survivor_destroyed,
+                            &mut survivor_removed,
                             &mut dog_applied,
                             &mut omelette_applied,
+                            &mut ninja_mouse_applied,
+                            &mut dynamic_feeds,
                             income,
                         );
                     }
@@ -6679,21 +6840,59 @@ impl<'a> RunState<'a> {
             }
 
             // Destroyed spawned symbols run their on-destroy effects.
-            let newly_dead: Vec<usize> = states
+            let mut newly_dead: Vec<usize> = states
                 .iter()
-                .filter(|(index, state)| state.destroyed && !death_done.contains(index))
+                .filter(|(index, state)| state.exit.is_gone() && !death_done.contains(index))
                 .map(|(index, _)| *index)
+                .chain(survivor_destroyed.iter().filter(|index| !death_done.contains(index)).copied())
                 .collect();
+            newly_dead.sort_unstable();
             let mut next: Vec<usize> = Vec::new();
-            let mut queued: Vec<usize> = Vec::new();
+            for &index in &newly_dead {
+                let removed = states.get(&index).map(|s| s.exit == SymbolExit::Removed)
+                    .unwrap_or_else(|| survivor_removed.contains(&index));
+                if !removed { self.record_destruction(self.deck[index].type_id); }
+            }
+            let entries: Vec<_> = self.board.slots.iter().enumerate().filter_map(|(slot,index)|
+                index.map(|index| (index,slot % BOARD_COLS,slot / BOARD_COLS))).collect();
+            let mut dead_mask = vec![false;self.deck.len()];
+            for (&index,state) in &states { dead_mask[index] = state.exit.is_destroyed(); }
+            for &index in &survivor_destroyed { dead_mask[index] = !survivor_removed.contains(&index); }
+            self.tick_trigger_essences(&entries);
+            *income += self.tick_permanent_essences(&entries,&dead_mask,newly_dead.iter().filter(|&&i| dead_mask[i]).count() as i32);
+            self.finish_charged_event_essences();
             for &index in &newly_dead {
                 death_done.insert(index);
                 let type_id = self.deck[index].type_id as usize;
                 let name = self.data.symbols[type_id].name.clone();
                 let values = self.data.symbols[type_id].values.clone();
+                let removed = states.get(&index).map(|s| s.exit == SymbolExit::Removed)
+                    .unwrap_or_else(|| survivor_removed.contains(&index));
+                if removed {
+                    self.removed_history.push(type_id as u16);
+                    *income += self.removal_payout(type_id);
+                    if name == "oyster" {
+                        if let Some(pearl) = self.data.symbol_id("pearl") { queued.push(pearl); }
+                    }
+                    continue;
+                }
+                self.queue_revivals(index,&mut queued,&mut queued_revivals);
+                if self.has_item("compost_heap") {
+                    self.compost_destroyed += 1;
+                    let need = self.data.items[self.data.item_index["compost_heap"]].values[0] as u32;
+                    if self.compost_destroyed >= need.max(1) {
+                        self.compost_destroyed -= need.max(1);
+                        if let Some(seed) = self.data.symbol_id("seed") { queued.push(seed); }
+                    }
+                }
+                if self.has_group(type_id,"organism") {
+                    let count = self.items_held.iter().filter(|id| self.data.items[**id].name == "shrine").count();
+                    if let Some(spirit) = self.data.symbol_id("spirit") { queued.extend(std::iter::repeat(spirit).take(count)); }
+                }
+                let mut death_payout = 0;
                 match name.as_str() {
                     "ore" => {
-                        let floor = if self.has_essence("x_ray_machine_essence") {
+                        let floor = if self.has_spin_essence("x_ray_machine_essence") {
                             Rarity::VeryRare
                         } else if self.has_item("x_ray_machine") {
                             Rarity::Rare
@@ -6705,7 +6904,7 @@ impl<'a> RunState<'a> {
                         }
                     }
                     "big_ore" => {
-                        let floor = if self.has_essence("x_ray_machine_essence") {
+                        let floor = if self.has_spin_essence("x_ray_machine_essence") {
                             Rarity::VeryRare
                         } else if self.has_item("x_ray_machine") {
                             Rarity::Rare
@@ -6719,10 +6918,10 @@ impl<'a> RunState<'a> {
                         }
                     }
                     "present" => {
-                        *income += values.get(1).copied().unwrap_or(10.0) as i32;
+                        death_payout += values.get(1).copied().unwrap_or(10.0) as i32;
                     }
                     "lockbox" | "safe" | "treasure_chest" | "mega_chest" => {
-                        *income += values.first().copied().unwrap_or(15.0) as i32;
+                        death_payout += values.first().copied().unwrap_or(15.0) as i32;
                     }
                     "pinata" => {
                         if let Some(candy) = self.data.symbol_id("candy") {
@@ -6738,37 +6937,173 @@ impl<'a> RunState<'a> {
                             }
                         }
                     }
+                    "banana" => { if let Some(id) = self.data.symbol_id("banana_peel") { queued.push(id); } }
+                    "peach" => { if let Some(id) = self.data.symbol_id("seed") { queued.push(id); } }
+                    "frozen_fossil" => { if let Some(id) = self.data.symbol_id("eldritch_beast") { queued.push(id); } }
+                    "target" => death_payout += values.first().copied().unwrap_or(10.0) as i32,
+                    "billionaire" => death_payout += values.get(1).copied().unwrap_or(39.0) as i32,
                     "urn" => {
                         if let Some(spirit) = self.data.symbol_id("spirit") {
-                            queued.push(spirit);
+                            queued.extend(std::iter::repeat(spirit).take(self.grave_robber_mult as usize));
                         }
                     }
                     "tomb" | "big_urn" => {
                         if let Some(spirit) = self.data.symbol_id("spirit") {
                             let (index, values_at) = if name == "tomb" { (1, 4.0) } else { (0, 2.0) };
-                            let count = values.get(index).copied().unwrap_or(values_at) as i32;
+                            let count = values.get(index).copied().unwrap_or(values_at) as i32 * self.grave_robber_mult;
                             for _ in 0..count.max(0) {
                                 queued.push(spirit);
                             }
                         }
                     }
+                    "chemical_seven" => {
+                        death_payout += values[0] as i32;
+                        if let Some(&id) = self.data.item_index.get("lucky_seven") { self.grant_item(id); self.trace_item_grant("chemical_seven", id); }
+                    }
+                    "lucky_capsule"|"tedium_capsule" => {
+                        death_payout += values[0] as i32 * self.capsule_multiplier();
+                        if name == "tedium_capsule" {
+                            for _ in 0..values[1] as i32 * self.capsule_multiplier() { self.symbol_forced_queue.push((Rarity::Common,false)); }
+                        }
+                    }
+                    "removal_capsule" => self.removal_tokens += values[0] as i32 * self.capsule_multiplier(),
+                    "reroll_capsule" => self.reroll_tokens += values[0] as i32 * self.capsule_multiplier(),
+                    "essence_capsule" => self.essence_tokens += values[0] as i32 * self.capsule_multiplier(),
+                    "rarity_capsule" => for _ in 0..values[0] as i32 * self.capsule_multiplier() { self.symbol_forced_queue.push((Rarity::Rare,true)); },
+                    "item_capsule" => {
+                        for _ in 0..values[0] as i32 * self.capsule_multiplier() {
+                            let pool: Vec<usize> = self.item_pools[0].iter().copied().filter(|id| !self.items_held.contains(id) && !self.disabled_items.contains(id)).collect();
+                            if !pool.is_empty() { let pick = pool[self.rng.range(0,pool.len())]; self.grant_item(pick); self.trace_item_grant("item_capsule", pick); }
+                        }
+                    }
+                    "hustler" => {
+                        if let Some(&id) = self.data.item_index.get("pool_ball") {
+                            let count = values[0] as i32 * self.capsule_multiplier();
+                            for _ in 0..count { self.grant_item(id); self.trace_item_grant("hustler", id); }
+                            *income += count * self.data.items[id].values[0] as i32;
+                        }
+                    }
+                    "time_capsule" => {
+                        let pool: Vec<u16> = self.destroyed_history.iter().copied().filter(|&id| {
+                            let d = &self.data.symbols[id as usize]; d.name != "time_capsule" && d.rarity != "none" && !d.groups.iter().any(|g| g == "time_capsule_effects")
+                        }).collect();
+                        for _ in 0..values[0] as i32 * self.capsule_multiplier() {
+                            if !pool.is_empty() { queued.push(pool[self.rng.range(0,pool.len())] as usize); }
+                        }
+                    }
+                    "golem" => if let Some(id) = self.data.symbol_id("ore") { queued.extend(std::iter::repeat(id).take(values[1] as usize)); },
+                    "mine" => if let Some(&id) = self.data.item_index.get("mining_pick") { self.grant_item(id); self.trace_item_grant("mine", id); },
+                    "matryoshka_doll_1"|"matryoshka_doll_2"|"matryoshka_doll_3"|"matryoshka_doll_4" => {
+                        let stage = name.chars().last().unwrap().to_digit(10).unwrap();
+                        if let Some(id) = self.data.symbol_id(&format!("matryoshka_doll_{}",stage+1)) { queued.push(id); }
+                    }
+                    "void_creature"|"void_fruit"|"void_stone" => death_payout += values[2] as i32,
+                    "thief"|"gambler" => death_payout += self.deck[index].times_displayed as i32 * values[1] as i32,
+                    "moon" => if let Some(id) = self.data.symbol_id("cheese") { queued.extend(std::iter::repeat(id).take(values[0] as usize)); },
+                    "spirit" if self.shrine_active => if let Some(id) = self.pick_group("organism") { queued.push(id); },
                     _ => {}
                 }
+                let is_spawned = states.contains_key(&index);
+                Self::add_spawn_flat(&mut states,&mut survivor,&survivor_destroyed,index,is_spawned,death_payout,income);
+                if self.has_group(type_id,"box") {
+                    let mut factor = self.item_multiplier("looting_glove",0);
+                    if self.has_spin_essence("looting_glove_essence") {
+                        let id = self.data.essence_index["looting_glove_essence"];
+                        factor *= self.data.essences[id].values[0];
+                        if self.essences_held.contains(&id) && !self.spin_essence_triggers.contains(&id) { self.try_destroy_essence(id); }
+                    }
+                    Self::multiply_spawn_target(&mut states,&mut survivor,&survivor_destroyed,index,is_spawned,factor,income);
+                }
+                if matches!(name.as_str(),"ore"|"big_ore") {
+                    if let Some(id) = self.data.essence_index.get("x_ray_machine_essence").copied().filter(|id| self.essences_held.contains(id) && !self.spin_essence_triggers.contains(id)) { self.try_destroy_essence(id); }
+                }
+                if name == "egg" && (self.has_item("frying_pan") || self.has_spin_essence("frying_pan_essence")) {
+                    let count = self.items_held.iter().filter(|id| self.data.items[**id].name == "frying_pan").count() + usize::from(self.has_spin_essence("frying_pan_essence"));
+                    if let Some(id) = self.data.symbol_id("omelette") { queued.extend(std::iter::repeat(id).take(count)); }
+                    if let Some(id) = self.data.essence_index.get("frying_pan_essence").copied().filter(|id| self.essences_held.contains(id) && !self.spin_essence_triggers.contains(id)) {
+                        self.multiply_permanent_name("omelette",self.data.essences[id].values[0]); self.try_destroy_essence(id);
+                    }
+                }
+            }
+
+            if let Some(id) = self.data.essence_index.get("compost_heap_essence").copied().filter(|id|
+                self.essences_held.contains(id) && !self.spin_essence_triggers.contains(id)) {
+                let total = initial_destroyed as usize + self.destroyed_history.len() - history_before;
+                // Earlier destructions were already included in the saved
+                // main-pass compost counter before entering this stage.
+                let threshold = self.data.essences[id].values.get(1).copied().unwrap_or(3.0) as usize;
+                if total >= threshold {
+                    if let Some(melon) = self.data.symbol_id("watermelon") {
+                        queued.extend(std::iter::repeat(melon).take(self.data.essences[id].values[0] as usize));
+                    }
+                    self.try_destroy_essence(id);
+                }
+            }
+            for (&index,previous) in &mut rule_values {
+                let def = &self.data.symbols[self.deck[index].type_id as usize];
+                let current = (self.permanent_bonus_for(def),self.permanent_mult_for(def));
+                let delta = current.0 - previous.0;
+                let factor = current.1 / previous.1.max(f64::MIN_POSITIVE);
+                if let Some(state) = states.get_mut(&index) {
+                    state.sum += delta; state.mult *= factor;
+                } else if !survivor_removed.contains(&index) {
+                    if let Some((_,sum,mult,value)) = survivor.get_mut(&index) {
+                        *sum += delta; *mult *= factor;
+                        let new_value = spawned_value(*sum,*mult);
+                        *income += new_value - *value; *value = new_value;
+                    }
+                }
+                *previous = current;
+            }
+
+            // A new food may receive a later neighbour's buff in this pass.
+            // Recompute each registered feed from that current form's actual
+            // value; only the difference is paid, never the meal twice.
+            let mut feed_changes=Vec::new();
+            for (&(source,target),(factor,paid)) in &mut dynamic_feeds {
+                let value=if let Some(state)=states.get(&target) {
+                    spawned_value(state.sum,state.mult)
+                } else if let Some((_,sum,mult,_))=survivor.get(&target) {
+                    spawned_value(*sum,*mult)
+                } else {self.non_prev_value(target)};
+                let gain=(value as f64 * *factor).round() as i32;
+                feed_changes.push((source,gain-*paid));*paid=gain;
+            }
+            for (source,delta) in feed_changes {
+                let spawned=states.contains_key(&source);
+                Self::add_spawn_flat(&mut states,&mut survivor,&survivor_destroyed,source,spawned,delta,income);
             }
 
             let dead: HashSet<usize> = states
                 .iter()
-                .filter(|(_, state)| state.destroyed)
+                .filter(|(_, state)| state.exit.is_gone())
                 .map(|(index, _)| *index)
                 .chain(survivor_destroyed.iter().copied())
                 .collect();
+            let exit_map: HashMap<usize,SymbolExit> = dead.iter().map(|&index|
+                (index,if states.get(&index).map(|s| s.exit == SymbolExit::Removed)
+                    .unwrap_or_else(|| survivor_removed.contains(&index)) { SymbolExit::Removed } else { SymbolExit::Destroyed })).collect();
+            let (birth_board,early_births) = self.plan_natural_births(&natural_origins,&exit_map,self.deck.len());
+            if let Some(board) = birth_board { self.board = board; }
+            self.pay_later_full_board(self.board.occupied()==BOARD_SLOTS,full_board_rewarded,income);
             self.clear_board_slots(&dead);
-            for type_id in queued {
+            let first_new_index=self.deck.len();
+            let late_births:Vec<_>=(0..queued.len()).filter(|order|!early_births.contains(order))
+                .map(|order|first_new_index+order).collect();
+            self.board.add_symbols(&late_births,&mut self.rng.reel());
+            for (order,type_id) in queued.into_iter().enumerate() {
+                *income += self.note_symbol_added(type_id,true);
                 let value = self.data.symbols[type_id].base_value;
-                self.deck.push(Symbol::new(type_id, value));
+                let mut symbol = Symbol::new(type_id,value);
+                if let Some(&revivals) = queued_revivals.get(&order) { symbol.revivals = revivals; }
+                self.deck.push(symbol);
                 let index = self.deck.len() - 1;
-                self.board.add_symbol(index, &mut self.rng.reel());
+                if let Some(slots) = diagnostic_slots.as_mut() {
+                    if let Some(slot) = self.board_slot_of(index) { slots.insert(index, slot); }
+                }
+                let was_dog = self.data.symbols[type_id].name == "dog";
                 let type_id = self.spawn_type_after_items(index);
+                if was_dog && self.data.symbols[type_id].name == "wolf" { conversion_bonus.insert(index,1); }
                 let def = &self.data.symbols[type_id];
                 let sum = def.base_value + self.permanent_bonus_for(def);
                 let x = self.board_slot_of(index).map(|slot| slot % BOARD_COLS).unwrap_or(0);
@@ -6779,10 +7114,11 @@ impl<'a> RunState<'a> {
                         sum,
                         mult,
                         saved: 0,
-                        destroyed: false,
+                        exit: SymbolExit::Present,
                         visible: self.board_slot_of(index).is_some(),
                     },
                 );
+                rule_values.insert(index,(self.permanent_bonus_for(def),self.permanent_mult_for(def)));
                 all_spawned.push(index);
                 next.push(index);
                 extra_added += 1;
@@ -6799,7 +7135,7 @@ impl<'a> RunState<'a> {
         let spawned_voids: Vec<(usize, usize, i32)> = states
             .iter()
             .filter_map(|(&index, state)| {
-                if !state.visible || state.destroyed {
+                if !state.visible || state.exit.is_gone() {
                     return None;
                 }
                 let def = &self.data.symbols[self.spawn_type_after_items(index)];
@@ -6836,6 +7172,11 @@ impl<'a> RunState<'a> {
             if state.visible {
                 let value = spawned_value(state.sum, state.mult);
                 *income += value;
+                if let Some(slot) = diagnostic_slots.as_ref().and_then(|slots| slots.get(index)).copied() {
+                    self.trace_payment(slot, self.deck[*index].type_id as usize, "newborn", state.sum, state.mult, value,
+                        match state.exit { SymbolExit::Present => "present", SymbolExit::Destroyed => "destroyed", SymbolExit::Removed => "removed" },
+                        all_spawned.iter().position(|i| i==index).unwrap_or(usize::MAX));
+                }
                 // Godot increments `times_coins_given` for every displayed
                 // icon in `check_values`, including icons added this spin.
                 if value > 0 {
@@ -6851,9 +7192,22 @@ impl<'a> RunState<'a> {
                 self.deck[*index].times_coins_given += 1;
             }
         }
+        if self.diagnostics_enabled {
+            for (index, (slot,sum,mult,value)) in &survivor {
+                let name = self.data.symbols[self.deck[*index].type_id as usize].name.clone();
+                if let Some(trace) = self.last_spin_diagnostics.as_mut() {
+                    if let Some(payment) = trace.slots[*slot].payments.iter_mut().find(|p| p.stage == "initial") {
+                        payment.name = name;
+                        payment.sum = *sum; payment.multiplier = *mult; payment.coins = *value;
+                        if survivor_removed.contains(index) { payment.state = "removed"; }
+                        else if survivor_destroyed.contains(index) { payment.state = "destroyed"; }
+                    }
+                }
+            }
+        }
         let mut removed: Vec<usize> = states
             .iter()
-            .filter(|(_, state)| state.destroyed)
+            .filter(|(_, state)| state.exit.is_gone())
             .map(|(index, _)| *index)
             .collect();
         removed.extend(survivor_destroyed.iter().copied());
@@ -6885,6 +7239,7 @@ impl<'a> RunState<'a> {
                     break;
                 }
                 *income += payout;
+                self.trace_extra("item", "lucky_seven", payout);
                 let mut remaining = needed;
                 let mut kept = Vec::with_capacity(self.items_held.len());
                 for held in self.items_held.iter().copied() {
@@ -6906,6 +7261,7 @@ impl<'a> RunState<'a> {
             if v1 <= 0 {
                 continue;
             }
+            let diagnostic_income_before = *income;
             match name.as_str() {
                 "bowling_ball_essence" | "horseshoe_essence" | "pool_ball_essence"
                 | "four_leaf_clover_essence" => {
@@ -6947,18 +7303,19 @@ impl<'a> RunState<'a> {
                     }
                 }
                 "piggy_bank" => {
-                    *income = (*income - v0 - self.fp_value(16, 0) as i32).max(0);
+                    *income -= v0 + self.fp_value(16, 0) as i32;
                     *self.item_saved.entry(item_id).or_insert(0) += v0;
                 }
                 "swear_jar" => {
                     // The jar only swallows a coin when the spin earned little.
                     if v2 <= 0 || total_value < v2 {
-                        *income = (*income - v0 - self.fp_value(16, 0) as i32).max(0);
+                        *income -= v0 + self.fp_value(16, 0) as i32;
                         *self.item_saved.entry(item_id).or_insert(0) += v0;
                     }
                 }
                 _ => {}
             }
+            self.trace_extra("item", &name, *income - diagnostic_income_before);
         }
         if let Some(lizard) = self
             .data
@@ -7059,24 +7416,7 @@ impl<'a> RunState<'a> {
             {
                 self.try_destroy_essence(essence_id);
             }
-            if !self.has_essence("chili_powder_essence") {
-                for _ in 0..count {
-                    let peppers: Vec<usize> = self
-                        .data
-                        .items
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, def)| def.groups.iter().any(|group| group == "pepper"))
-                        .map(|(index, _)| index)
-                        .collect();
-                    if peppers.is_empty() {
-                        break;
-                    }
-                    let pick = self.rng.range(0, peppers.len());
-                    let item_id = peppers[pick];
-                    self.grant_item(item_id);
-                }
-            }
+            self.pending_pepper_items += count as i32;
         }
         if self.rents_paid >= 12 {
             if !self.boss_fight {
@@ -7142,17 +7482,7 @@ impl<'a> RunState<'a> {
 
     fn grant_essence(&mut self, essence_id: usize) {
         if self.disabled_essences.contains(&essence_id) { self.disabled_essences.push(essence_id); return; }
-        let (name, values) = {
-            let def = &self.data.essences[essence_id];
-            (def.name.clone(), def.values.clone())
-        };
-        match name.as_str() {
-            "bag_of_holding_essence" => {
-                self.pending_bonus_items += values.first().copied().unwrap_or(2.0) as i32;
-                self.essences_held.push(essence_id);
-            }
-            _ => self.essences_held.push(essence_id),
-        }
+        self.essences_held.push(essence_id);
     }
 
     fn add_symbols(&mut self, tag: &str, count: i32) {
@@ -7160,12 +7490,44 @@ impl<'a> RunState<'a> {
             let value = self.data.symbols[type_id].base_value;
             for _ in 0..count.max(0) {
                 self.deck.push(Symbol::new(type_id, value));
-                self.note_symbol_added(type_id);
+                if self.board.initialized {
+                    self.board.add_symbol(self.deck.len() - 1, &mut self.rng.reel());
+                }
+                let payout = self.note_symbol_added(type_id, false);
+                self.credit_outside_spin(payout);
             }
         }
     }
 
-    fn note_symbol_added(&mut self, type_id: usize) {
+    fn note_symbol_added(&mut self, type_id: usize, in_spin: bool) -> i32 {
+        let mut coins = 0;
+        if !in_spin {
+            coins += self.items_held.iter().filter(|id| self.data.items[**id].name == "brown_pepper")
+                .map(|id| self.data.items[*id].values[0] as i32).sum::<i32>();
+            if let Some(id) = self.data.essence_index.get("brown_pepper_essence").copied().filter(|id| self.essences_held.contains(id)) {
+                coins += self.data.essences[id].values[0] as i32;
+                self.try_destroy_essence(id);
+            }
+            // These counters advance on player additions, never on a bare
+            // spin or on symbols generated by other symbols during a spin.
+            for name in ["symbol_bomb_small_essence", "symbol_bomb_big_essence", "symbol_bomb_very_big_essence",
+                "symbol_bomb_quantum_essence", "shattered_mirror_essence", "frozen_pizza_essence"] {
+                let Some(id) = self.data.essence_index.get(name).copied().filter(|id| self.essences_held.contains(id)) else { continue; };
+                let values = self.data.essences[id].values.clone();
+                let count = self.essence_saved.entry(id).or_default();
+                *count += 1;
+                if *count < values[0] as i32 { continue; }
+                match name {
+                    "symbol_bomb_small_essence"|"symbol_bomb_big_essence"|"symbol_bomb_very_big_essence" => self.removal_tokens += values[1] as i32,
+                    "symbol_bomb_quantum_essence" => {
+                        if let Some(&item) = self.data.item_index.get("symbol_bomb_quantum") { self.grant_item(item); }
+                    }
+                    "shattered_mirror_essence" => coins += values[2] as i32,
+                    _ => {}
+                }
+                self.try_destroy_essence(id);
+            }
+        }
         for (name, group) in [
             ("lunchbox_essence", "food"),
             ("adoption_papers_essence", "animal"),
@@ -7196,15 +7558,18 @@ impl<'a> RunState<'a> {
             *count += 1;
             if *count >= threshold.max(1) {
                 self.try_destroy_essence(essence_id);
-                if self.has_essence(name) {
-                    // Popsicle protection delayed the destruction; keep the
-                    // trigger primed for the next added symbol.
-                    self.essence_saved.insert(essence_id, threshold.max(1));
-                } else {
-                    self.essence_saved.remove(&essence_id);
-                    self.coins += payout;
-                }
+                coins += payout;
             }
+        }
+        coins
+    }
+
+    fn credit_outside_spin(&mut self, coins: i32) {
+        self.coins += coins;
+        if self.boss_fight && coins > 0 {
+            self.apply_boss_damage(coins.min(self.boss_hp));
+            self.boss_hp = (self.boss_hp - coins).max(0);
+            if self.boss_hp == 0 { self.won = true; self.phase = Phase::Done; }
         }
     }
 
@@ -7306,6 +7671,7 @@ impl<'a> RunState<'a> {
     }
 
     fn roll_spin_reward(&mut self) -> Vec<usize> {
+        self.active_bonus_offer = None;
         self.refresh_symbol_pools();
         let (mut uncommon, mut rare, mut very_rare) = self.spin_rarity_chances();
         let lucky = self.rarity_lucky_factor();
@@ -7324,6 +7690,10 @@ impl<'a> RunState<'a> {
             .saturating_sub(self.fp_value(30, 0) as usize + self.shattered_mirror_penalty())
             .max(1);
         let (forced, or_better) = self.take_symbol_forced_rarities(count);
+        let extra = std::mem::take(&mut self.pending_extra_symbol_choices);
+        self.active_symbol_forced = forced.iter().map(|&r| (r,or_better)).collect();
+        self.active_symbol_extra = extra;
+        let count = count + extra;
         let mut offer = Vec::with_capacity(count);
         let mut pools: [Vec<usize>; 4] = [
             self.rarity_pools[0].clone(),
@@ -7373,7 +7743,8 @@ impl<'a> RunState<'a> {
             self.deck.push(Symbol::new(type_id, value));
             let index = self.deck.len() - 1;
             self.board.add_symbol(index, &mut self.rng.reel());
-            self.note_symbol_added(type_id);
+            let payout = self.note_symbol_added(type_id, false);
+            self.credit_outside_spin(payout);
             if self.data.symbols[type_id].name != "coin" { self.taken_symbols.insert(type_id); self.passed_symbols.remove(&type_id); }
         }
         self.finish_spin_choice();
@@ -7395,8 +7766,25 @@ impl<'a> RunState<'a> {
     /// Routes the next queued bonus offer (item/essence acquisition can queue
     /// guaranteed symbol offers), then falls back to the normal reward flow.
     fn next_offer_phase(&mut self, fallback: FollowUp) {
+        if self.won { self.phase = Phase::Done; return; }
+        let fallback = self.pending_offer_followup.take().unwrap_or(fallback);
+        // The normal post-rent offer keeps its rarity guarantee and comes
+        // before Frozen Pizza's extra offers, including after an essence.
+        if fallback == FollowUp::SymbolReward {
+            self.phase = Phase::SymbolReward { offer:self.roll_symbol_reward() };
+            return;
+        }
+        let queued = self.pending_pepper_items > 0 || !self.pending_bonus_symbols.is_empty()
+            || self.pending_extra_symbol_offers > 0 || self.pending_bonus_items > 0;
+        if queued && fallback != FollowUp::Ready { self.pending_offer_followup = Some(fallback); }
+        if self.pending_pepper_items > 0 {
+            self.pending_pepper_items -= 1;
+            let offer = self.roll_pepper_reward();
+            if !offer.is_empty() { self.phase = Phase::ItemReward { offer }; return; }
+        }
         if let Some(bonus) = self.pending_bonus_symbols.pop() {
             let offer = match bonus { BonusOffer::Any => self.roll_spin_reward(), BonusOffer::Rarity(rarity) => self.roll_bonus_symbol_offer(rarity), BonusOffer::Group(group) => self.roll_restricted_offer(Some(group)), BonusOffer::Passed => self.roll_restricted_offer(None) };
+            self.active_bonus_offer = Some(bonus);
             self.phase = Phase::SpinReward { offer };
             return;
         }
@@ -7421,9 +7809,12 @@ impl<'a> RunState<'a> {
                 offer: self.roll_symbol_reward(),
             },
         };
+        if self.phase == Phase::Ready { self.activate_pending_fine_prints(); }
     }
 
     fn roll_bonus_symbol_offer(&mut self, rarity: Rarity) -> Vec<usize> {
+        self.active_bonus_offer = Some(BonusOffer::Rarity(rarity));
+        self.active_symbol_forced.clear(); self.active_symbol_extra = 0;
         self.refresh_symbol_pools();
         let pool = &self.rarity_pools[rarity as usize];
         if pool.is_empty() {
@@ -7438,6 +7829,7 @@ impl<'a> RunState<'a> {
     }
 
     fn roll_restricted_offer(&mut self, group: Option<&str>) -> Vec<usize> {
+        self.active_symbol_forced.clear(); self.active_symbol_extra = 0;
         self.refresh_symbol_pools();
         let mut pools: [Vec<usize>; 4] = std::array::from_fn(|i| self.rarity_pools[i].iter().copied().filter(|&id| match group {
             Some(g) => self.has_group(id, g), None => self.passed_symbols.contains(&id)
@@ -7464,7 +7856,7 @@ impl<'a> RunState<'a> {
     /// 碎镜（每份）会让符号奖励少一个选项。真机的普通旋后奖励和交租奖励
     /// 都会扣，所以两个入口共用这个计数。
     fn shattered_mirror_penalty(&self) -> usize {
-        self.items_held
+        let items: usize = self.items_held
             .iter()
             .filter(|item_id| self.data.items[**item_id].name == "shattered_mirror")
             .map(|item_id| {
@@ -7474,10 +7866,14 @@ impl<'a> RunState<'a> {
                     .copied()
                     .unwrap_or(1.0) as usize
             })
-            .sum()
+            .sum();
+        let essences: usize = self.essences_held.iter().filter(|id| self.data.essences[**id].name == "shattered_mirror_essence")
+            .map(|id| self.data.essences[*id].values[1] as usize).sum();
+        items + essences
     }
 
     fn roll_symbol_reward(&mut self) -> Vec<usize> {
+        self.active_bonus_offer = None;
         self.refresh_symbol_pools();
         let rarities = self.rent_reward_rarities();
         let mirror_penalty = self.shattered_mirror_penalty();
@@ -7493,6 +7889,8 @@ impl<'a> RunState<'a> {
         if !forced.is_empty() {
             self.rng.forced_rarity().shuffle(&mut forced);
         }
+        self.active_symbol_forced = forced.iter().map(|&r| (r,or_better)).collect();
+        self.active_symbol_extra = extra;
         let (mut uncommon, mut rare, mut very_rare) = self.spin_rarity_chances();
         let lucky = self.rarity_lucky_factor();
         uncommon *= lucky;
@@ -7546,7 +7944,20 @@ impl<'a> RunState<'a> {
         offer
     }
 
+    fn roll_pepper_reward(&mut self) -> Vec<usize> {
+        self.active_item_peppers = true;
+        let mut pool: Vec<usize> = self.data.items.iter().enumerate()
+            .filter(|(id,def)| def.groups.iter().any(|g| g == "pepper") && !self.items_held.contains(id) && !self.disabled_items.contains(id))
+            .map(|(id,_)| id).collect();
+        let mut offer = Vec::new();
+        while !pool.is_empty() && offer.len() < 3 {
+            let at = self.rng.range(0,pool.len()); offer.push(pool.remove(at));
+        }
+        offer
+    }
+
     fn roll_item_reward(&mut self) -> Vec<usize> {
+        self.active_item_peppers = false;
         let (mut uncommon, mut rare, mut very_rare) = match self.rents_paid {
             0 | 1 => (0.0, 0.0, 0.0),
             2 => (0.1, 0.0, 0.0),
@@ -7669,7 +8080,8 @@ impl<'a> RunState<'a> {
             self.deck.push(Symbol::new(type_id, value));
             let index = self.deck.len() - 1;
             self.board.add_symbol(index, &mut self.rng.reel());
-            self.note_symbol_added(type_id);
+            let payout = self.note_symbol_added(type_id, false);
+            self.credit_outside_spin(payout);
             if self.data.symbols[type_id].name != "coin" { self.taken_symbols.insert(type_id); self.passed_symbols.remove(&type_id); }
         }
         self.finish_symbol_choice();
@@ -7700,6 +8112,36 @@ impl<'a> RunState<'a> {
         }
     }
 
+    /// Explicit curriculum hook, never called by normal play or evaluation.
+    /// Reuses acquisition effects without pretending the actor chose a card.
+    pub fn grant_training_card(&mut self, kind: &str, name: &str, count: usize) -> Result<(), String> {
+        if !matches!(self.phase, Phase::Ready) || self.done() {
+            return Err("Training grants require a live pre-spin state".into());
+        }
+        if count == 0 || count > 10 || (kind == "essence" && count != 1) || name == "empty" {
+            return Err("Invalid training grant count or empty symbol".into());
+        }
+        let id = match kind {
+            "symbol" => self.data.symbol_index.get(name).copied(),
+            "item" => self.data.item_index.get(name).copied(),
+            "essence" => self.data.essence_index.get(name).copied(),
+            _ => None,
+        }.ok_or_else(|| format!("Unknown training card {kind}/{name}"))?;
+        for _ in 0..count {
+            match kind {
+                "symbol" => {
+                    self.add_symbols(name, 1);
+                    if name != "coin" { self.taken_symbols.insert(id); self.passed_symbols.remove(&id); }
+                }
+                "item" => self.grant_item(id),
+                "essence" => self.grant_essence(id),
+                _ => unreachable!(),
+            }
+        }
+        self.next_offer_phase(FollowUp::Ready);
+        Ok(())
+    }
+
     fn grant_item(&mut self, item_id: usize) {
         // Items stay in the inventory.  Godot only fires the one-shot effects
         // (barrel of dwarves, lunchbox, symbol bombs, ...) when the player
@@ -7710,10 +8152,20 @@ impl<'a> RunState<'a> {
     /// Destroys an item the way the player's "use item" button does.
     pub fn use_item(&mut self, item_id: usize) -> bool {
         if !self.can_use_managed_item(item_id) { return false; }
+        if self.data.items[item_id].name == "comfy_pillow" {
+            self.use_comfy_pillow(false);
+            return true;
+        }
         let position = self.items_held.iter().position(|id| *id == item_id).unwrap();
         let def = &self.data.items[item_id]; let name = def.name.clone(); let values = def.values.clone();
         let needed = values.first().copied().unwrap_or(0.0).max(0.0) as usize;
         match name.as_str() {
+            "coffee" => { self.spins_left += 1; self.rent_pending = false; }
+            "devils_deal" => {
+                self.add_symbols("dud", needed as i32);
+                self.rent_pending = false;
+                self.pay_rent_waived();
+            }
             "barrel_o_dwarves" => self.add_symbols("dwarf", needed as i32),
             "goldilocks" => self.add_symbols("bear", needed as i32),
             "lunchbox" | "adoption_papers" => { let group = if name == "lunchbox" { "food" } else { "animal" }; for _ in 0..needed { self.pending_bonus_symbols.push(BonusOffer::Group(group)); } }
@@ -7742,6 +8194,7 @@ impl<'a> RunState<'a> {
         self.items_held.remove(position);
         if !self.items_held.contains(&item_id) { self.item_saved.remove(&item_id); self.item_ages.remove(&item_id); }
         if !self.pending_bonus_symbols.is_empty() { self.next_offer_phase(FollowUp::Ready); }
+        if self.phase == Phase::Ready { self.activate_pending_fine_prints(); }
         true
     }
 
@@ -7760,6 +8213,10 @@ impl<'a> RunState<'a> {
         if matches!(self.phase, Phase::ItemReward { .. }) {
             self.token_pepper_income("pink_pepper");
             self.spend_pepper_essence("pink_pepper_essence");
+            if let Some(id) = self.data.essence_index.get("bag_of_holding_essence").copied().filter(|id| self.essences_held.contains(id)) {
+                self.pending_bonus_items += self.data.essences[id].values[0] as i32;
+                self.try_destroy_essence(id);
+            }
             self.next_offer_phase(FollowUp::Ready);
             self.zero_balance_gift();
         }
@@ -7787,18 +8244,39 @@ impl<'a> RunState<'a> {
         1 + self.fp_value(25, 0) as i32
     }
 
+    pub fn can_reroll(&self) -> bool {
+        matches!(self.phase, Phase::SpinReward { .. } | Phase::SymbolReward { .. })
+            && self.reroll_tokens >= self.reroll_cost()
+    }
+
     pub fn reroll_reward(&mut self) {
         let cost = self.reroll_cost();
-        if self.reroll_tokens < cost {
+        if !self.can_reroll() {
             return;
         }
+        // Re-rolling is another draw from the same offer, including its
+        // rarity guarantee, restricted group and credit-card width.
+        let symbol_choice = matches!(self.phase,Phase::SpinReward { .. }|Phase::SymbolReward { .. });
+        let saved_forced = self.symbol_forced_queue.clone();
+        let saved_extra = self.pending_extra_symbol_choices;
+        if symbol_choice {
+            self.symbol_forced_queue = self.active_symbol_forced.clone();
+            self.pending_extra_symbol_choices = self.active_symbol_extra;
+        }
         let offer = match self.phase {
-            Phase::SpinReward { .. } => self.roll_spin_reward(),
+            Phase::SpinReward { .. } => match self.active_bonus_offer {
+                Some(BonusOffer::Rarity(r)) => self.roll_bonus_symbol_offer(r),
+                Some(BonusOffer::Group(g)) => self.roll_restricted_offer(Some(g)),
+                Some(BonusOffer::Passed) => self.roll_restricted_offer(None),
+                _ => self.roll_spin_reward(),
+            },
             Phase::SymbolReward { .. } => self.roll_symbol_reward(),
-            Phase::ItemReward { .. } => self.roll_item_reward(),
-            Phase::EssenceReward { .. } => self.roll_essence_reward(),
             _ => return,
         };
+        if symbol_choice {
+            self.symbol_forced_queue = saved_forced;
+            self.pending_extra_symbol_choices = saved_extra;
+        }
         self.reroll_tokens -= cost;
         self.token_pepper_income("lime_pepper");
         self.spend_pepper_essence("lime_pepper_essence");
@@ -7806,10 +8284,6 @@ impl<'a> RunState<'a> {
             self.phase = Phase::SpinReward { offer };
         } else if matches!(self.phase, Phase::SymbolReward { .. }) {
             self.phase = Phase::SymbolReward { offer };
-        } else if matches!(self.phase, Phase::EssenceReward { .. }) {
-            self.phase = Phase::EssenceReward { offer };
-        } else {
-            self.phase = Phase::ItemReward { offer };
         }
     }
 
@@ -7822,7 +8296,7 @@ impl<'a> RunState<'a> {
             }
         }
         if total > 0 {
-            self.coins += total;
+            self.credit_outside_spin(total);
         }
     }
 
@@ -7834,12 +8308,13 @@ impl<'a> RunState<'a> {
             .copied()
             .filter(|id| self.essences_held.contains(id))
         {
-            self.coins += self.data.essences[essence_id]
+            let payout = self.data.essences[essence_id]
                 .values
                 .first()
                 .copied()
                 .unwrap_or(0.0) as i32;
             self.try_destroy_essence(essence_id);
+            self.credit_outside_spin(payout);
         }
     }
 
@@ -7871,47 +8346,22 @@ impl<'a> RunState<'a> {
         self.removal_tokens -= cost;
         self.token_pepper_income("gray_pepper");
         self.spend_pepper_essence("gray_pepper_essence");
-        let removed_name = self
-            .deck
-            .get(deck_index)
-            .map(|symbol| self.data.symbols[symbol.type_id as usize].name.clone());
-        match removed_name.as_deref() {
-            Some("pufferfish") => {
-                let gain = self.data.symbol_id("pufferfish").map_or(0, |type_id| {
-                    self.data.symbols[type_id]
-                        .values
-                        .first()
-                        .copied()
-                        .unwrap_or(1.0) as i32
-                });
-                self.reroll_tokens += gain;
-            }
-            Some("jellyfish") => {
-                let gain = self.data.symbol_id("jellyfish").map_or(0, |type_id| {
-                    self.data.symbols[type_id]
-                        .values
-                        .first()
-                        .copied()
-                        .unwrap_or(1.0) as i32
-                });
-                self.removal_tokens += gain;
-            }
-            Some("sand_dollar") => {
-                let gain = self.data.symbol_id("sand_dollar").map_or(0, |type_id| {
-                    self.data.symbols[type_id]
-                        .values
-                        .first()
-                        .copied()
-                        .unwrap_or(10.0) as i32
-                });
-                self.coins += gain;
-            }
-            _ => {}
-        }
+        let id = self.deck[deck_index].type_id;
+        self.removed_history.push(id);
+        let payout = self.removal_payout(id as usize);
+        self.credit_outside_spin(payout);
         self.board.remove_deck_indices(&[deck_index]);
         self.deck.remove(deck_index);
+        if self.data.symbols[id as usize].name == "oyster" { self.add_symbols("pearl",1); }
+        if self.phase == Phase::Ready { self.activate_pending_fine_prints(); }
     }
 }
+
+include!("catalog_effects.rs");
+
+#[cfg(test)]
+#[path = "catalog_regression.rs"]
+mod catalog_regression;
 
 #[cfg(test)]
 mod tests {
@@ -7919,6 +8369,79 @@ mod tests {
 
     fn data() -> GameData {
         GameData::load(crate::default_data_dir()).expect("game data should load")
+    }
+
+    fn legacy_pre_spin_observation(state: &RunState<'_>, type_id: usize) -> serde_json::Value {
+        let def = &state.data.symbols[type_id];
+        let rules = state.pre_spin_consumer_rules();
+        let consumers: Vec<_> = rules.iter().filter(|(target, _, _, _)| {
+            if *target == "suit" { def.groups.iter().any(|group| group == "suit") }
+            else { def.name == *target }
+        }).collect();
+        serde_json::json!({"removed": !consumers.is_empty(),
+            "cash_per_symbol": consumers.iter().map(|(_, payout, _, _)| *payout).sum::<i32>(),
+            "consumer_count": consumers.len(),
+            "stored_as_egg": def.name == "egg" && state.has_item("egg_carton") && !state.has_fine_print(21),
+            "stored_as_goldfish": def.name == "goldfish" && state.has_item("fish_bowl")})
+    }
+
+    #[test]
+    fn batched_pre_spin_observations_match_legacy_without_rng_changes() {
+        let data = data();
+        let mut state = RunState::new(&data, 1234567);
+        let ids: Vec<_> = (0..data.symbols.len()).collect();
+        let rng_states = |state: &mut RunState<'_>| [state.rng.reel().state_pair(),
+            state.rng.reel_shuffle().state_pair(), state.rng.effect().state_pair(),
+            state.rng.effect_shuffle().state_pair(), state.rng.oil_can().state_pair(),
+            state.rng.fineprint().state_pair(), state.rng.forced_rarity().state_pair()];
+        for setup in 0..4 {
+            if setup == 1 {
+                for name in ["coin_on_a_string", "coin_on_a_string", "flush", "egg_carton", "fish_bowl", "lint_roller"] {
+                    state.items_held.push(data.item_index[name]);
+                }
+                for name in ["coin_on_a_string_essence", "flush_essence", "flush_essence", "egg_carton_essence",
+                    "fish_bowl_essence", "lint_roller_essence", "barrel_o_dwarves_essence"] {
+                    state.essences_held.push(data.essence_index[name]);
+                }
+            } else if setup == 2 {
+                state.fine_prints.extend([20, 21]);
+            } else if setup == 3 {
+                state.disabled_items = std::mem::take(&mut state.items_held);
+                state.disabled_essences = std::mem::take(&mut state.essences_held);
+            }
+            let before = rng_states(&mut state);
+            let expected: Vec<_> = ids.iter().map(|&id| legacy_pre_spin_observation(&state, id)).collect();
+            assert_eq!(state.pre_spin_symbol_observations(&ids), expected);
+            for (&id, expected) in ids.iter().zip(&expected) {
+                assert_eq!(&state.pre_spin_symbol_observation(id), expected);
+            }
+            assert!(state.pre_spin_symbol_observations(&[]).is_empty());
+            assert_eq!(rng_states(&mut state), before);
+        }
+    }
+
+    #[test]
+    #[ignore = "manual microbenchmark; timing is informational only"]
+    fn benchmark_batched_pre_spin_observations() {
+        let data = data();
+        let mut state = RunState::new(&data, 1234567);
+        state.items_held.extend(0..data.items.len());
+        state.essences_held.extend(0..data.essences.len());
+        for count in [3usize, 30, data.symbols.len()] {
+            let ids: Vec<_> = (0..count).map(|id| id % data.symbols.len()).collect();
+            let repetitions = 2000;
+            let started = std::time::Instant::now();
+            for _ in 0..repetitions {
+                let values: Vec<_> = ids.iter().map(|&id| legacy_pre_spin_observation(&state, id)).collect();
+                std::hint::black_box(values);
+            }
+            let old = started.elapsed();
+            let started = std::time::Instant::now();
+            for _ in 0..repetitions { std::hint::black_box(state.pre_spin_symbol_observations(&ids)); }
+            let new = started.elapsed();
+            eprintln!("pre-spin observations: candidates={count}, repetitions={repetitions}, legacy_ms={:.3}, shared_ms={:.3}, speedup={:.3}",
+                old.as_secs_f64() * 1000.0, new.as_secs_f64() * 1000.0, old.as_secs_f64() / new.as_secs_f64());
+        }
     }
 
     #[test]
@@ -8278,6 +8801,9 @@ mod tests {
         let outcome = state.spin();
         assert_eq!(outcome.income, 150);
         assert_eq!(state.boss_hp, 1350);
+        assert_eq!(state.pending_fine_prints.len(), 3);
+        assert!(state.fine_prints.is_empty(), "clauses wait until the symbol choice finishes");
+        state.skip_spin();
         assert_eq!(state.fine_prints.len(), 3);
     }
 
@@ -8299,8 +8825,10 @@ mod tests {
         let data = data();
         let mut state = RunState::new(&data, 11);
         state.boss_fight = true;
+        state.boss_hp = 1500;
         for _ in 0..20 {
             state.apply_boss_damage(150);
+            state.activate_pending_fine_prints();
         }
         assert!(!state.fine_prints.is_empty());
         for legacy in [1u32, 2, 3, 5, 6, 7] {
@@ -8309,15 +8837,12 @@ mod tests {
     }
 
     #[test]
-    fn item_reliant_fine_prints_need_matching_items() {
+    fn static_fine_prints_may_be_drawn_without_their_named_symbol() {
         let data = data();
         let mut state = RunState::new(&data, 11);
-        assert!(!state.fp_applicable(18));
-        assert!(!state.fp_applicable(17));
-        state.items_held.push(data.item_index["guillotine"]);
-        state.items_held.push(data.item_index["green_pepper"]);
-        assert!(state.fp_applicable(18));
-        assert!(state.fp_applicable(17));
+        assert!(!state.deck.iter().any(|s| data.symbols[s.type_id as usize].name == "egg"));
+        assert_eq!(state.draw_fine_print(vec![21]),Some((21,None)));
+        assert_eq!(state.draw_fine_print(vec![18]),Some((18,None)));
     }
 
     #[test]
@@ -8657,7 +9182,7 @@ mod tests {
         let essence = data.essence_index["horseshoe_essence"];
         state.essences_held.push(essence);
         state.essence_saved.insert(essence, 29);
-        let payout = state.tick_essences(&[], 0);
+        let payout = state.tick_essences(&[], 0, &[]);
         assert_eq!(payout, 2);
         assert!(state.essences_held.is_empty());
     }
@@ -8668,11 +9193,11 @@ mod tests {
         let mut state = RunState::new(&data, 40);
         let essence = data.essence_index["horseshoe_essence"];
         state.essences_held.push(essence);
-        assert_eq!(state.tick_essences(&[], 0), 2);
-        assert_eq!(state.tick_essences(&[], 0), 2);
+        assert_eq!(state.tick_essences(&[], 0, &[]), 2);
+        assert_eq!(state.tick_essences(&[], 0, &[]), 2);
         assert!(state.has_essence("horseshoe_essence"));
         state.essence_saved.insert(essence, 29);
-        assert_eq!(state.tick_essences(&[], 0), 2);
+        assert_eq!(state.tick_essences(&[], 0, &[]), 2);
         assert!(!state.has_essence("horseshoe_essence"));
     }
 
@@ -8753,9 +9278,8 @@ mod tests {
             .essences_held
             .push(data.essence_index["shedding_season_essence"]);
         let income = state.resolve_spin_effects();
-        // The rabbit pays 1; four of the five spawned fluff icons land in
-        // visible slots (2 coins each), one goes off-screen.
-        assert_eq!(income, 9);
+        // The rabbit pays 1; all five fluff icons use available visible cells.
+        assert_eq!(income, 11);
         assert!(!state.has_essence("shedding_season_essence"));
         assert_eq!(
             state
@@ -8793,16 +9317,16 @@ mod tests {
             .essences_held
             .push(data.essence_index["treasure_map_essence"]);
         for _ in 0..32 {
-            state.tick_essences(&[], 0);
+            state.tick_essences(&[], 0, &[]);
         }
         assert_eq!(state.deck.len(), deck_len);
         assert!(state.has_essence("treasure_map_essence"));
-        state.tick_essences(&[], 0);
+        state.tick_essences(&[], 0, &[]);
         assert!(!state.has_essence("treasure_map_essence"));
-        assert_eq!(state.deck.len(), deck_len + 2);
-        let names: Vec<&str> = state.deck[deck_len..]
+        assert_eq!(state.queued_spin_symbols.len(), 2);
+        let names: Vec<&str> = state.queued_spin_symbols
             .iter()
-            .map(|symbol| data.symbols[symbol.type_id as usize].name.as_str())
+            .map(|id| data.symbols[*id].name.as_str())
             .collect();
         assert_eq!(names, vec!["key", "mega_chest"]);
     }
@@ -8981,10 +9505,10 @@ mod tests {
         let seven = data.symbol_id("chemical_seven").expect("chemical seven");
         state.essences_held.push(essence);
         for _ in 0..6 {
-            assert_eq!(state.tick_essences(&[], 0), 0);
+            assert_eq!(state.tick_essences(&[], 0, &[]), 0);
         }
         assert!(state.has_essence("lucky_seven_essence"));
-        assert_eq!(state.tick_essences(&[], 0), 0);
+        assert_eq!(state.tick_essences(&[], 0, &[]), 0);
         assert!(!state.has_essence("lucky_seven_essence"));
         assert!(state.rarity_pools[Rarity::Uncommon as usize]
             .iter()
@@ -8999,10 +9523,10 @@ mod tests {
         let essence = data.essence_index["piggy_bank_essence"];
         state.essences_held.push(essence);
         for _ in 0..24 {
-            assert_eq!(state.tick_essences(&[], 0), 0);
+            assert_eq!(state.tick_essences(&[], 0, &[]), -2);
         }
         assert!(state.has_essence("piggy_bank_essence"));
-        assert_eq!(state.tick_essences(&[], 0), 152);
+        assert_eq!(state.tick_essences(&[], 0, &[]), 150);
         assert!(!state.has_essence("piggy_bank_essence"));
     }
 
@@ -9034,14 +9558,14 @@ mod tests {
         }
         state.essences_held.push(essence);
         state.store_eggs_and_fish();
-        assert_eq!(state.coins, 1 + 3 * 12);
+        assert_eq!(state.pre_spin_income, 3 * 12);
         assert!(state.deck.is_empty());
         assert!(state.has_essence("egg_carton_essence"));
         for _ in 0..9 {
             state.deck.push(Symbol::new(egg, data.symbols[egg].base_value));
         }
         state.store_eggs_and_fish();
-        assert_eq!(state.coins, 1 + 12 * 12);
+        assert_eq!(state.pre_spin_income, 12 * 12);
         assert!(!state.has_essence("egg_carton_essence"));
     }
 
@@ -9173,7 +9697,7 @@ mod tests {
             .deck
             .iter()
             .filter(|symbol| data.symbols[symbol.type_id as usize].name == "pearl")
-            .all(|symbol| symbol.current_value(&data) == 2));
+            .all(|symbol| ((symbol.current_value(&data) + state.symbol_rule_bonus(symbol.type_id as usize)) as f64 * state.symbol_rule_multiplier(symbol.type_id as usize)).round() as i32 == 2));
     }
 
     #[test]
@@ -9230,7 +9754,7 @@ mod tests {
             .deck
             .iter()
             .filter(|symbol| data.symbols[symbol.type_id as usize].name == "banana")
-            .all(|symbol| symbol.current_value(&data) == 3));
+            .all(|symbol| ((symbol.current_value(&data) + state.symbol_rule_bonus(symbol.type_id as usize)) as f64 * state.symbol_rule_multiplier(symbol.type_id as usize)).round() as i32 == 3));
     }
 
     #[test]
@@ -9250,8 +9774,8 @@ mod tests {
         state.board.slots[2] = Some(2);
         let income = state.resolve_spin_effects();
         // Bounty 1 + farmer 2 + thief -1 + farmer contract 25 + thief
-        // contract 20 + thief on-destroy 4.
-        assert_eq!(income, 51, "bounty + farmer + thief values and payouts");
+        // contract 25 + normal bounty 20 + thief on-destroy 4.
+        assert_eq!(income, 76, "bounty + farmer + thief values and payouts");
     }
 
     #[test]
@@ -9323,7 +9847,7 @@ mod tests {
         state.board.slots[0] = Some(0);
         state.board.slots[1] = Some(1);
         let income = state.resolve_spin_effects();
-        assert_eq!(income, 55, "key 1 + lockbox 1 + 15 x 3.5");
+        assert_eq!(income, 57, "key 1 + (lockbox base 1 + destroy payout 15) x 3.5");
         assert!(!state.has_essence("looting_glove_essence"));
     }
 
@@ -9445,7 +9969,7 @@ mod tests {
             .deck
             .iter()
             .filter(|symbol| data.symbols[symbol.type_id as usize].name == "coin")
-            .all(|symbol| symbol.current_value(&data) == 3));
+            .all(|symbol| ((symbol.current_value(&data) + state.symbol_rule_bonus(symbol.type_id as usize)) as f64 * state.symbol_rule_multiplier(symbol.type_id as usize)).round() as i32 == 3));
     }
 
     #[test]
@@ -9473,7 +9997,7 @@ mod tests {
             .deck
             .iter()
             .filter(|symbol| data.symbols[symbol.type_id as usize].name == "rabbit")
-            .all(|symbol| symbol.current_value(&data) == 2));
+            .all(|symbol| ((symbol.current_value(&data) + state.symbol_rule_bonus(symbol.type_id as usize)) as f64 * state.symbol_rule_multiplier(symbol.type_id as usize)).round() as i32 == 2));
     }
 
     #[test]
@@ -9686,6 +10210,8 @@ mod tests {
         state
             .deck
             .push(Symbol::new(ninja, data.symbols[ninja].base_value));
+        state.board = Board::empty();
+        state.board.slots[0] = Some(0);
         state.board.slots[1] = Some(1);
         let income = state.resolve_spin_effects();
         assert!(!state.has_essence("cursed_katana_essence"));
@@ -9820,12 +10346,11 @@ mod tests {
         let data = data();
         let mut state = RunState::new(&data, 77);
         let ore = data.symbol_id("ore").expect("ore");
-        for _ in 0..5 {
-            state.destroyed_history.push(ore as u16);
-        }
+
         state
             .essences_held
             .push(data.essence_index["mining_pick_essence"]);
+        for _ in 0..5 { state.record_destruction(ore as u16); }
         assert_eq!(state.resolve_spin_effects(), 50);
         assert!(!state.has_essence("mining_pick_essence"));
     }
@@ -9835,12 +10360,11 @@ mod tests {
         let data = data();
         let mut state = RunState::new(&data, 78);
         let box_id = data.symbol_id("lockbox").expect("lockbox");
-        for _ in 0..7 {
-            state.destroyed_history.push(box_id as u16);
-        }
+
         state
             .essences_held
             .push(data.essence_index["mobius_strip_essence"]);
+        for _ in 0..7 { state.record_destruction(box_id as u16); }
         state.resolve_spin_effects();
         assert!(!state.has_essence("mobius_strip_essence"));
         assert_eq!(
@@ -9854,12 +10378,11 @@ mod tests {
         let data = data();
         let mut state = RunState::new(&data, 79);
         let void_id = data.symbol_id("void_creature").expect("void");
-        for _ in 0..5 {
-            state.destroyed_history.push(void_id as u16);
-        }
+
         state
             .essences_held
             .push(data.essence_index["void_party_essence"]);
+        for _ in 0..5 { state.record_destruction(void_id as u16); }
         state.resolve_spin_effects();
         assert!(!state.has_essence("void_party_essence"));
         assert_eq!(
@@ -9923,6 +10446,19 @@ mod tests {
             .enumerate()
             .map(|(index, _)| (index, index % BOARD_COLS, index / BOARD_COLS))
             .collect();
+        let consumer = match essence {
+            "dwarven_anvil_essence" => Some("dwarf"), "jackolantern_essence" => Some("toddler"),
+            "maxwell_the_bear_essence" => Some("bear"), "oswald_the_monkey_essence" => Some("monkey"),
+            "wanted_poster_essence" => Some("bounty_hunter"), "zaroffs_contract_essence" => Some("general_zaroff"),
+            _ => None,
+        };
+        if let Some(consumer) = consumer {
+            if let Some(source) = deck.iter().position(|name| *name == consumer) {
+                for (target,&dead) in destroyed_flags.iter().enumerate() {
+                    if dead { state.note_consumption(source,target); }
+                }
+            }
+        }
         let payout = state.tick_permanent_essences(
             &entries,
             destroyed_flags,
@@ -10055,10 +10591,9 @@ mod tests {
         let data = data();
         let mut state = RunState::new(&data, 90);
         let spirit = data.symbol_id("spirit").expect("spirit");
-        for _ in 0..4 {
-            state.destroyed_history.push(spirit as u16);
-        }
+
         state.essences_held.push(data.essence_index["shrine_essence"]);
+        for _ in 0..4 { state.record_destruction(spirit as u16); }
         let entries: Vec<(usize, usize, usize)> = Vec::new();
         let destroyed: Vec<bool> = Vec::new();
         state.tick_permanent_essences(&entries, &destroyed, 0);
@@ -10089,7 +10624,7 @@ mod tests {
         // The egg pays 1; the adjacent omelette gets the egg's +2 reverse
         // bonus, so (3 + 2) x 3 = 15. The pan-spawned omelette lands off-screen
         // in this artificial board, so it pays nothing.
-        assert_eq!(income, 16);
+        assert_eq!(income, 31, "egg 1 + two omelettes (base 3 + one adjacency bonus 2) x 3");
     }
 
     #[test]
@@ -10172,7 +10707,7 @@ mod tests {
         state.board.slots[12] = Some(2);
         let income = state.resolve_spin_effects();
         // Bomb 0 + destroyed coin 1 + destroyed cat 1 + 7 coin payout.
-        assert_eq!(income, 9);
+        assert_eq!(income, 8, "adjacent coin 1 x 7 + distant cat 1");
         assert_eq!(state.deck.len(), 1);
     }
 
@@ -10227,10 +10762,12 @@ mod tests {
         state.deck.push(Symbol::new(d3, 0));
         state.board.slots[0] = Some(0);
         state.essences_held.push(data.essence_index["reroll_essence"]);
-        assert_eq!(state.resolve_spin_effects(), 3);
-        for _ in 1..10 {
-            state.resolve_spin_effects();
+        for _ in 0..100 {
+            let income = state.resolve_spin_effects();
+            assert!((2..=3).contains(&income), "d3 rerolls only its 1");
+            if !state.has_essence("reroll_essence") { break; }
         }
+        assert_eq!(state.reroll_essence_rerolls,10);
         assert!(!state.has_essence("reroll_essence"));
     }
 
@@ -10344,6 +10881,10 @@ mod tests {
         let outcome = state.spin();
         assert!(outcome.rent_paid);
         assert!(!state.has_essence("chili_powder_essence"));
+        state.choose_symbol(0);
+        let Phase::ItemReward { offer } = &state.phase else { panic!("expected pepper choice"); };
+        assert!(offer.iter().all(|id| data.items[*id].groups.iter().any(|group| group == "pepper")));
+        state.choose_item(0);
         assert!(state
             .items_held
             .iter()
@@ -10661,6 +11202,7 @@ mod tests {
         state.items_held.push(data.item_index["frying_pan"]);
         // Fine print 13 suppresses the egg's own chance effect.
         state.fine_prints.push(13);
+        state.fine_print_icons.insert(13,"egg".to_string());
         state.resolve_spin_effects();
         assert!(state
             .deck

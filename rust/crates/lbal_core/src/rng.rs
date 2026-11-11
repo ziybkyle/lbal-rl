@@ -40,6 +40,9 @@ impl BetterLandlordRng {
         self.logging = true;
     }
 
+    /// Read-only native-mod comparison data; never consumes a random draw.
+    pub fn state_pair(&self) -> [i64; 2] { [self.state, self.inc] }
+
     pub fn take_log(&mut self) -> Vec<f64> {
         self.logging = false;
         std::mem::take(&mut self.log)
